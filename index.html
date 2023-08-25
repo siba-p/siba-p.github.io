@@ -3,48 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Name - PhD Researcher</title>
-    <link rel="stylesheet" href="styles.css"> <!-- Link to your CSS file -->
+    <title>Your Beautiful Website</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <header>
-        <h1>Your Name</h1>
-        <p>PhD Researcher in [Your Research Area]</p>
+    <header class="header">
+        <nav class="navbar">
+            <div class="logo">
+                <a href="index.html">YourLogo</a>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="services.html">Services</a></li>
+                <li><a href="portfolio.html">Portfolio</a></li>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
+        </nav>
     </header>
     
-    <nav>
-        <ul>
-            <li><a href="#about">About</a></li>
-            <li><a href="#research">Research</a></li>
-            <li><a href="#publications">Publications</a></li>
-            <li><a href="#contact">Contact</a></li>
-        </ul>
-    </nav>
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Welcome to Your Beautiful Website</h1>
+            <p>Your captivating tagline goes here.</p>
+            <a href="#contact" class="btn">Get in Touch</a>
+        </div>
+    </section>
     
-    <main>
-        <section id="about">
-            <h2>About Me</h2>
-            <p>Write a brief introduction about yourself and your research interests.</p>
-        </section>
-        
-        <section id="research">
-            <h2>Research</h2>
-            <p>Describe your research goals, methodologies, and any significant findings.</p>
-        </section>
-        
-        <section id="publications">
-            <h2>Publications</h2>
+    <section class="about" id="about">
+        <div class="about-content">
+            <h2>About Us</h2>
+            <p>We are a passionate team dedicated to delivering excellence...</p>
+        </div>
+    </section>
+    
+    <section class="services" id="services">
+        <div class="services-content">
+            <h2>Our Services</h2>
             <ul>
-                <li>Your Publication 1</li>
-                <li>Your Publication 2</li>
-                <!-- Add more publications as needed -->
+                <li>Service 1</li>
+                <li>Service 2</li>
+                <li>Service 3</li>
             </ul>
-        </section>
-    </main>
+        </div>
+    </section>
     
-    <footer>
-        <section id="contact">
-            <h2>Contact Me</h2>
-            <p>Email: your.email@example.com</p>
-            <p>LinkedIn: <a href="https://www.linkedin.com/in/yourname">Your Name</a></p>
-
+    <section class="portfolio" id="portfolio">
+        <div class="portfolio-content">
+            <h2>Portfolio</h2>
+            <!-- Your portfolio items with images and descriptions go here -->
+        </div>
+    </section>
+    
+    <section class="contact" id="contact">
+        <div class="contact-content">
+            <h2>Contact Us</h2>
+            <p>Have a project in mind? Let's talk!</p>
+            <a href="mailto:contact@example.com" class="btn">Email Us</a>
+        </div>
+    </section>
+    
+    <footer class="footer">
+        <p>&copy; 2023 Your Beautiful Website. All rights reserved.</p>
+    </footer>
+</body>
+</html>
