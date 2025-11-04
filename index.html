@@ -3,153 +3,258 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Innovative Research Hub</title>
+    <title>Your Name | PhD Candidate & Researcher</title>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Raleway:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50%25' y='50%25' font-size='80' text-anchor='middle' dominant-baseline='central'%3E💡%3C/text%3E%3C/svg%3E" type="image/svg+xml">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50%25' y='50%25' font-size='80' text-anchor='middle' dominant-baseline='central'%3E🎓%3C/text%3E%3C/svg%3E" type="image/svg+xml">
 </head>
 <body>
-    <header>
-        <nav>
-            <div class="logo">Innovative Research Hub</div>
-            <ul>
-                <li><a href="#home">Home</a></li>
-                <li><a href="#research">Research Areas</a></li>
+
+    <nav class="navbar">
+        <div class="container">
+            <a href="#home" class="nav-logo">Dr. Your Name</a>
+            <ul class="nav-menu">
+                <li><a href="#about">About</a></li>
+                <li><a href="#research">Research</a></li>
                 <li><a href="#publications">Publications</a></li>
-                <li><a href="#team">Our Team</a></li>
+                <li><a href="#blog">Blog</a></li>
                 <li><a href="#contact">Contact</a></li>
             </ul>
-        </nav>
-        <div class="hero">
-            <h1>Unveiling Tomorrow's Discoveries</h1>
-            <p>Exploring the frontiers of knowledge with creativity and precision.</p>
-            <button class="cta-button" onclick="scrollToSection('research')">Explore Our Work</button>
+        </div>
+    </nav>
+
+    <header id="home" class="hero">
+        <div class="container hero-content">
+            <img src="https://via.placeholder.com/150/004a99/ffffff?text=ME" alt="Your Name" class="profile-pic">
+            <h1>Hi, I'm [Your Name]</h1>
+            <p class="subtitle">Final-Year PhD Candidate at [Your University]</p>
+            <p class="specialization">My research focuses on [Your 1-2 sentence research specialization].</p>
+            <div class="hero-buttons">
+                <a href="#research" class="btn btn-primary">View My Research</a>
+                <a href="Your_CV.pdf" class="btn btn-secondary" target="_blank">Download CV</a>
+            </div>
         </div>
     </header>
 
     <main>
-        <section id="home" class="intro-section">
+        <section id="about" class="container">
+            <h2>About Me</h2>
+            <p>Welcome! I am a final-year PhD candidate in the [Your Department] at [Your University], working under the supervision of [Your Advisor's Name]. My research interests lie at the intersection of [Field 1], [Field 2], and [Field 3].</p>
+            <p>My doctoral thesis, "[Title of Your Thesis]," explores [brief, accessible description of your thesis]. I am passionate about using my skills to solve complex problems and am currently seeking post-doctoral or industry research positions starting [Date].</p>
+        </section>
+
+        <section id="research" class="bg-light">
             <div class="container">
-                <h2>Welcome to Our Creative Research Space</h2>
-                <p>We are a dedicated group of researchers pushing boundaries and challenging conventional wisdom. Our approach combines rigorous scientific methodology with innovative thinking to solve complex problems.</p>
-                <div class="grid-card">
-                    <div class="card">
-                        <h3>Our Vision</h3>
-                        <p>To be a leading center for transformative research that impacts society.</p>
-                    </div>
-                    <div class="card">
-                        <h3>Our Mission</h3>
-                        <p>To conduct interdisciplinary research, foster collaboration, and disseminate knowledge.</p>
-                    </div>
-                    <div class="card">
-                        <h3>Our Values</h3>
-                        <p>Integrity, Innovation, Collaboration, and Impact.</p>
-                    </div>
+                <h2>Research Focus</h2>
+                <div class="research-item">
+                    <h3>My Thesis: [Title of Your Thesis]</h3>
+                    <p>This section is perfect for giving a more detailed (but still accessible) overview of your main PhD project. Explain the problem, your method, and your key findings or contributions. You could even add an image or a diagram here.</p>
+                    <p><strong>Key research interests:</strong></p>
+                    <ul>
+                        <li>[Research Interest 1]</li>
+                        <li>[Research Interest 2]</li>
+                        <li>[Research Interest 3]</li>
+                    </ul>
                 </div>
             </div>
         </section>
 
-        <section id="research" class="research-section">
+        <section id="publications" class="container">
+            <h2>Publications & Posters</h2>
+            <ul class="publication-list">
+                <li>
+                    <p><strong>[Your Name]</strong>, et al. (2024). "Title of Your Awesome Paper." <em>Journal of Impressive Things, 12</em>(3).
+                       <a href="#" class="pub-link">[PDF]</a>
+                       <a href="#" class="pub-link">[DOI]</a>
+                       <a href="#" class="pub-link">[Code]</a>
+                    </p>
+                </li>
+                <li>
+                    <p><strong>[Your Name]</strong> & [Collaborator]. (2023). "Title of Another Great Paper." <em>Conference on Academic Prestige (CAP '23)</em>.
+                       <a href="#" class="pub-link">[PDF]</a>
+                       <a href="#" class="pub-link">[Poster]</a>
+                    </p>
+                </li>
+                <li>
+                    <p>More publications coming soon...</p>
+                </li>
+            </ul>
+        </section>
+
+        <section id="blog" class="bg-light">
             <div class="container">
-                <h2>Our Research Areas</h2>
-                <div class="research-grid">
-                    <div class="research-item">
-                        <img src="https://via.placeholder.com/150/007bff/ffffff?text=AI+Ethics" alt="AI Ethics Icon">
-                        <h3>AI & Machine Learning Ethics</h3>
-                        <p>Investigating the ethical implications and societal impact of artificial intelligence.</p>
+                <h2>From the Blog</h2>
+                <p class="section-subtitle">My thoughts on research, academia, and [Your Field].</p>
+                <div class="blog-grid">
+                    <article class="blog-card">
+                        <img src="https://via.placeholder.com/400x200/cccccc/333333?text=Blog+Image" alt="Blog post graphic" class="blog-card-img">
+                        <div class="blog-card-content">
+                            <span class="blog-card-date">November 4, 2025</span>
+                            <h3>My First Post: Why I Started This Blog</h3>
+                            <p>A short preview of the blog post. This is where you can write about your research journey, explain complex topics simply, or share your thoughts...</p>
+                            <a href="#" class="btn-read-more">Read More &rarr;</a>
+                        </div>
+                    </article>
+                    <article class="blog-card">
+                        <img src="https://via.placeholder.com/400x200/cccccc/333333?text=Blog+Image" alt="Blog post graphic" class="blog-card-img">
+                        <div class="blog-card-content">
+                            <span class="blog-card-date">November 1, 2025</span>
+                            <h3>Demystifying [A Complex Topic in Your Field]</h3>
+                            <p>Here's a simplified explanation of a core concept I work with every day. My goal is to make my research accessible to a wider audience...</p>
+                            <a href="#" class="btn-read-more">Read More &rarr;</a>
+                        </div>
+                    </article>
                     </div>
-                    <div class="research-item">
-                        <img src="https://via.placeholder.com/150/28a745/ffffff?text=Sustainable+Tech" alt="Sustainable Tech Icon">
-                        <h3>Sustainable Technologies</h3>
-                        <p>Developing eco-friendly solutions for a greener future.</p>
-                    </div>
-                    <div class="research-item">
-                        <img src="https://via.placeholder.com/150/ffc107/333333?text=Cognitive+Science" alt="Cognitive Science Icon">
-                        <h3>Cognitive Science & UX</h3>
-                        <p>Understanding human cognition to design intuitive user experiences.</p>
-                    </div>
-                    <div class="research-item">
-                        <img src="https://via.placeholder.com/150/dc3545/ffffff?text=Quantum+Comp" alt="Quantum Computing Icon">
-                        <h3>Quantum Computing Frontiers</h3>
-                        <p>Exploring the potential of quantum mechanics in computation.</p>
-                    </div>
-                </div>
             </div>
         </section>
 
-        <section id="publications" class="publications-section">
-            <div class="container">
-                <h2>Recent Publications</h2>
-                <div class="publication-list">
-                    <div class="publication-item">
-                        <h3>The Algorithmic Bias in Large Language Models</h3>
-                        <p><em>Journal of AI Ethics, Vol. 10, Issue 2</em> - Doe, J., Smith, A.</p>
-                        <a href="#" class="read-more">Read Abstract</a>
-                    </div>
-                    <div class="publication-item">
-                        <h3>Bio-degradable Polymers for Next-Gen Packaging</h3>
-                        <p><em>Environmental Science Today, Vol. 5, Issue 1</em> - Khan, S., Lee, M.</p>
-                        <a href="#" class="read-more">Read Abstract</a>
-                    </div>
-                    <div class="publication-item">
-                        <h3>Enhancing Human-Computer Interaction through Haptics</h3>
-                        <p><em>Frontiers in UX Design, Vol. 3, Issue 4</em> - Miller, C., Garcia, E.</p>
-                        <a href="#" class="read-more">Read Abstract</a>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="team" class="team-section">
-            <div class="container">
-                <h2>Meet Our Creative Minds</h2>
-                <div class="team-grid">
-                    <div class="team-member">
-                        <img src="https://via.placeholder.com/150/e91e63/ffffff?text=Dr.+A" alt="Dr. Alice Chen">
-                        <h3>Dr. Alice Chen</h3>
-                        <p>Principal Investigator<br>AI Ethics Specialist</p>
-                        <a href="#" class="profile-link">View Profile</a>
-                    </div>
-                    <div class="team-member">
-                        <img src="https://via.placeholder.com/150/673ab7/ffffff?text=Dr.+B" alt="Dr. Ben Carter">
-                        <h3>Dr. Ben Carter</h3>
-                        <p>Senior Researcher<br>Sustainable Tech Lead</p>
-                        <a href="#" class="profile-link">View Profile</a>
-                    </div>
-                    <div class="team-member">
-                        <img src="https://via.placeholder.com/150/00bcd4/ffffff?text=Dr.+C" alt="Dr. Clara Davies">
-                        <h3>Dr. Clara Davies</h3>
-                        <p>Research Associate<br>Cognitive UX Expert</p>
-                        <a href="#" class="profile-link">View Profile</a>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="contact" class="contact-section">
-            <div class="container">
-                <h2>Get In Touch</h2>
-                <p>We're always open to new collaborations and inquiries. Reach out to us!</p>
-                <form class="contact-form">
-                    <input type="text" placeholder="Your Name" required>
-                    <input type="email" placeholder="Your Email" required>
-                    <textarea placeholder="Your Message" rows="5" required></textarea>
-                    <button type="submit" class="cta-button">Send Message</button>
-                </form>
+        <section id="contact" class="container">
+            <h2>Get In Touch</h2>
+            <p>I am always open to discussing new research, collaborations, or opportunities. Feel free to reach out!</p>
+            <div class="social-links">
+                <a href="mailto:your.email@university.edu" title="Email"><i class="fas fa-envelope"></i></a>
+                <a href="#" title="LinkedIn Profile" target="_blank"><i class="fab fa-linkedin"></i></a>
+                <a href="#" title="Google Scholar" target="_blank"><i class="fas fa-graduation-cap"></i></a>
+                <a href="#" title="GitHub" target="_blank"><i class="fab fa-github"></i></a>
+                <a href="#" title="Twitter/X" target="_blank"><i class="fab fa-twitter"></i></a>
             </div>
         </section>
     </main>
 
     <footer>
-        <div class="container">
-            <p>&copy; 2025 Innovative Research Hub. All rights reserved.</p>
-            <div class="social-links">
-                <a href="#">LinkedIn</a> | <a href="#">GitHub</a> | <a href="#">Twitter</a>
-            </div>
-        </div>
+        <p>&copy; 2025 by [Your Name]. All rights reserved.</p>
     </footer>
 
-    <button id="backToTopBtn" title="Go to top">&#9650;</button>
+    <script src="script.js"></script>
+</body>
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Name | PhD Candidate & Researcher</title>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50%25' y='50%25' font-size='80' text-anchor='middle' dominant-baseline='central'%3E🎓%3C/text%3E%3C/svg%3E" type="image/svg+xml">
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="container">
+            <a href="#home" class="nav-logo">Dr. Your Name</a>
+            <ul class="nav-menu">
+                <li><a href="#about">About</a></li>
+                <li><a href="#research">Research</a></li>
+                <li><a href="#publications">Publications</a></li>
+                <li><a href="#blog">Blog</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <header id="home" class="hero">
+        <div class="container hero-content">
+            <img src="https://via.placeholder.com/150/004a99/ffffff?text=ME" alt="Your Name" class="profile-pic">
+            <h1>Hi, I'm [Your Name]</h1>
+            <p class="subtitle">Final-Year PhD Candidate at [Your University]</p>
+            <p class="specialization">My research focuses on [Your 1-2 sentence research specialization].</p>
+            <div class="hero-buttons">
+                <a href="#research" class="btn btn-primary">View My Research</a>
+                <a href="Your_CV.pdf" class="btn btn-secondary" target="_blank">Download CV</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section id="about" class="container">
+            <h2>About Me</h2>
+            <p>Welcome! I am a final-year PhD candidate in the [Your Department] at [Your University], working under the supervision of [Your Advisor's Name]. My research interests lie at the intersection of [Field 1], [Field 2], and [Field 3].</p>
+            <p>My doctoral thesis, "[Title of Your Thesis]," explores [brief, accessible description of your thesis]. I am passionate about using my skills to solve complex problems and am currently seeking post-doctoral or industry research positions starting [Date].</p>
+        </section>
+
+        <section id="research" class="bg-light">
+            <div class="container">
+                <h2>Research Focus</h2>
+                <div class="research-item">
+                    <h3>My Thesis: [Title of Your Thesis]</h3>
+                    <p>This section is perfect for giving a more detailed (but still accessible) overview of your main PhD project. Explain the problem, your method, and your key findings or contributions. You could even add an image or a diagram here.</p>
+                    <p><strong>Key research interests:</strong></p>
+                    <ul>
+                        <li>[Research Interest 1]</li>
+                        <li>[Research Interest 2]</li>
+                        <li>[Research Interest 3]</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="publications" class="container">
+            <h2>Publications & Posters</h2>
+            <ul class="publication-list">
+                <li>
+                    <p><strong>[Your Name]</strong>, et al. (2024). "Title of Your Awesome Paper." <em>Journal of Impressive Things, 12</em>(3).
+                       <a href="#" class="pub-link">[PDF]</a>
+                       <a href="#" class="pub-link">[DOI]</a>
+                       <a href="#" class="pub-link">[Code]</a>
+                    </p>
+                </li>
+                <li>
+                    <p><strong>[Your Name]</strong> & [Collaborator]. (2023). "Title of Another Great Paper." <em>Conference on Academic Prestige (CAP '23)</em>.
+                       <a href="#" class="pub-link">[PDF]</a>
+                       <a href="#" class="pub-link">[Poster]</a>
+                    </p>
+                </li>
+                <li>
+                    <p>More publications coming soon...</p>
+                </li>
+            </ul>
+        </section>
+
+        <section id="blog" class="bg-light">
+            <div class="container">
+                <h2>From the Blog</h2>
+                <p class="section-subtitle">My thoughts on research, academia, and [Your Field].</p>
+                <div class="blog-grid">
+                    <article class="blog-card">
+                        <img src="https://via.placeholder.com/400x200/cccccc/333333?text=Blog+Image" alt="Blog post graphic" class="blog-card-img">
+                        <div class="blog-card-content">
+                            <span class="blog-card-date">November 4, 2025</span>
+                            <h3>My First Post: Why I Started This Blog</h3>
+                            <p>A short preview of the blog post. This is where you can write about your research journey, explain complex topics simply, or share your thoughts...</p>
+                            <a href="#" class="btn-read-more">Read More &rarr;</a>
+                        </div>
+                    </article>
+                    <article class="blog-card">
+                        <img src="https://via.placeholder.com/400x200/cccccc/333333?text=Blog+Image" alt="Blog post graphic" class="blog-card-img">
+                        <div class="blog-card-content">
+                            <span class="blog-card-date">November 1, 2025</span>
+                            <h3>Demystifying [A Complex Topic in Your Field]</h3>
+                            <p>Here's a simplified explanation of a core concept I work with every day. My goal is to make my research accessible to a wider audience...</p>
+                            <a href="#" class="btn-read-more">Read More &rarr;</a>
+                        </div>
+                    </article>
+                    </div>
+            </div>
+        </section>
+
+        <section id="contact" class="container">
+            <h2>Get In Touch</h2>
+            <p>I am always open to discussing new research, collaborations, or opportunities. Feel free to reach out!</p>
+            <div class="social-links">
+                <a href="mailto:your.email@university.edu" title="Email"><i class="fas fa-envelope"></i></a>
+                <a href="#" title="LinkedIn Profile" target="_blank"><i class="fab fa-linkedin"></i></a>
+                <a href="#" title="Google Scholar" target="_blank"><i class="fas fa-graduation-cap"></i></a>
+                <a href="#" title="GitHub" target="_blank"><i class="fab fa-github"></i></a>
+                <a href="#" title="Twitter/X" target="_blank"><i class="fab fa-twitter"></i></a>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 by [Your Name]. All rights reserved.</p>
+    </footer>
 
     <script src="script.js"></script>
 </body>
