@@ -3,87 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Personal | Your Name</title>
+    <title>Personal | Sibasankar Panigrahy</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50%25' y='50%25' font-size='80' text-anchor='middle' dominant-baseline='central'%3E🎓%3C/text%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%23050914'/%3E%3Ctext x='50%25' y='55%25' font-size='54' text-anchor='middle' fill='%23ffd166' font-family='Space Grotesk'%3ESP%3C/text%3E%3C/svg%3E">
 </head>
 <body>
 
     <nav class="navbar">
         <div class="container">
-            <a href="index.html" class="nav-logo">Dr. [Your Name]</a>
+            <a href="index.html" class="nav-logo"><span>SP</span> Sibasankar Panigrahy</a>
+            <button class="nav-toggle" aria-label="Toggle navigation">
+                <i class="fas fa-bars"></i>
+            </button>
             <ul class="nav-menu">
                 <li><a href="index.html">Home</a></li>
                 <li><a href="research.html">Research</a></li>
-                <li><a href="publications.html">Publications</a></li>
+                <li><a href="publication.html">Publications</a></li>
                 <li><a href="blog.html">Blog</a></li>
                 <li><a href="personal.html" class="active">Personal</a></li>
+                <li><a class="nav-cta" href="index.html#contact">Contact</a></li>
             </ul>
         </div>
     </nav>
 
-    <header class="page-header">
+    <header class="page-hero">
         <div class="container">
-            <h1>My Toolkit & Hobbies</h1>
-            <p>A collection of code, tools, and things I enjoy.</p>
+            <p class="section-label">Outside the manuscript</p>
+            <h1>The tools I build, the things I teach, and the hobbies that keep me curious.</h1>
+            <p>Research is more than results—it is the systems, people, and rituals that make long projects sustainable.</p>
         </div>
     </header>
 
-    <main class="container page-section">
-        
-        <section id="code-tools">
-            <h2>My Code & Tools</h2>
-            <p>These are some of the open-source tools and repositories I've built or contribute to.</p>
-            <div class="card-grid">
-                <div class="card">
-                    <div class="card-content">
-                        <h3>[My Awesome Python Tool]</h3>
-                        <p>A short description of a tool you built. What problem does it solve?</p>
-                        <a href="#" class="btn-read-more">View on GitHub &rarr;</a>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-content">
-                        <h3>[Data Visualization R-Package]</h3>
-                        <p>A package for creating specific types of plots used in my field.</p>
-                        <a href="#" class="btn-read-more">View on GitHub &rarr;</a>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-content">
-                        <h3>[Useful Scripts Repository]</h3>
-                        <p>A collection of useful bash/python scripts for academic research.</p>
-                        <a href="#" class="btn-read-more">View on GitHub &rarr;</a>
-                    </div>
+    <main>
+        <section class="page-section reveal">
+            <div class="container">
+                <p class="section-label">Toolbox</p>
+                <div class="toolkit-grid">
+                    <article class="card">
+                        <h3>Lab OS (Notion + Git)</h3>
+                        <p>Custom operating system for our group that syncs experiments, tasks, and data citations across members.</p>
+                        <a class="btn-read-more" href="#">Template tour →</a>
+                    </article>
+                    <article class="card">
+                        <h3>Snakemake starter kit</h3>
+                        <p>Reusable workflows for MD → ML experiments, bundled with onboarding docs for mentees.</p>
+                    </article>
+                    <article class="card">
+                        <h3>Teaching artifacts</h3>
+                        <p>Mini-curriculum on scientific storytelling, peer review simulations, and feedback guides.</p>
+                    </article>
                 </div>
             </div>
         </section>
 
-        <section id="hobbies" class="section-top-margin">
-            <h2>Personal Interests</h2>
-            <p>When I'm not in the lab, I enjoy...</p>
-            <div class="card-grid">
-                <div class="card">
-                    <img src="https://via.placeholder.com/400x200/6366f1/ffffff?text=Hobby+1" alt="Hobby 1" class="card-img">
-                    <div class="card-content">
-                        <h3>Photography</h3>
-                        <p>I enjoy landscape and street photography. You can see some of my work on [Link to Flickr/Instagram].</p>
-                    </div>
+        <section class="page-section reveal">
+            <div class="container split-panel">
+                <div>
+                    <p class="section-label">Mentoring</p>
+                    <h2>Office hours for emerging researchers.</h2>
+                    <p>I host weekly open sessions for undergrads and masters students interested in computational materials. We review project ideas, debug code, and sketch career roadmaps.</p>
+                    <ul>
+                        <li>• 18 mentees over the past two years.</li>
+                        <li>• Playbooks on writing impactful abstracts and posters.</li>
+                        <li>• Async feedback loops using Loom + shared repositories.</li>
+                    </ul>
                 </div>
                 <div class="card">
-                    <img src="https://via.placeholder.com/400x200/ec4899/ffffff?text=Hobby+2" alt="Hobby 2" class="card-img">
-                    <div class="card-content">
-                        <h3>Reading</h3>
-                        <p>I'm an avid reader of sci-fi and history. Currently reading [Book Title].</p>
-                    </div>
+                    <h3>Reading log</h3>
+                    <p>Recent picks: <em>How to Build a Brain</em> (Boahen), <em>Atlas of AI</em> (Crawford), and poetry by Jayanta Mahapatra.</p>
+                    <h3>Music + movement</h3>
+                    <p>Tabla practice twice a week and long-distance cycling on weekends to reset between experiments.</p>
                 </div>
+            </div>
+        </section>
+
+        <section class="page-section reveal">
+            <div class="container cards-grid">
+                <article class="card">
+                    <small>Photography</small>
+                    <h3>Documenting cities between conferences.</h3>
+                    <p>Street and architectural photography captured on a Fuji X100V—often turned into zines for friends.</p>
+                </article>
+                <article class="card">
+                    <small>Community</small>
+                    <h3>Co-organizer, Delhi SciComm Circle.</h3>
+                    <p>Monthly meetups to help scientists craft visuals, blogs, and workshops for the public.</p>
+                </article>
+                <article class="card">
+                    <small>Writing</small>
+                    <h3>Personal newsletter</h3>
+                    <p>Quarterly dispatch sharing experiments in process, favorite reads, and open calls for collaboration.</p>
+                </article>
             </div>
         </section>
     </main>
 
     <footer class="footer">
-        <p>&copy; 2025 by [Your Name]. Built with HTML, CSS, and GitHub Pages.</p>
+        <p>© 2026 Sibasankar Panigrahy. Curiosity outside the lab fuels the work inside.</p>
     </footer>
 
     <script src="script.js"></script>

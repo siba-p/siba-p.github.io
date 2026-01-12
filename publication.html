@@ -3,59 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Publications | Your Name</title>
+    <title>Publications | Sibasankar Panigrahy</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50%25' y='50%25' font-size='80' text-anchor='middle' dominant-baseline='central'%3E🎓%3C/text%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%23050914'/%3E%3Ctext x='50%25' y='55%25' font-size='54' text-anchor='middle' fill='%23ffd166' font-family='Space Grotesk'%3ESP%3C/text%3E%3C/svg%3E">
 </head>
 <body>
 
     <nav class="navbar">
         <div class="container">
-            <a href="index.html" class="nav-logo">Dr. [Your Name]</a>
+            <a href="index.html" class="nav-logo"><span>SP</span> Sibasankar Panigrahy</a>
+            <button class="nav-toggle" aria-label="Toggle navigation">
+                <i class="fas fa-bars"></i>
+            </button>
             <ul class="nav-menu">
                 <li><a href="index.html">Home</a></li>
                 <li><a href="research.html">Research</a></li>
-                <li><a href="publications.html" class="active">Publications</a></li>
+                <li><a href="publication.html" class="active">Publications</a></li>
                 <li><a href="blog.html">Blog</a></li>
                 <li><a href="personal.html">Personal</a></li>
+                <li><a class="nav-cta" href="index.html#contact">Contact</a></li>
             </ul>
         </div>
     </nav>
 
-    <header class="page-header">
+    <header class="page-hero">
         <div class="container">
-            <h1>Publications</h1>
-            <p>My published work and conference presentations.</p>
+            <p class="section-label">Selected Work</p>
+            <h1>Peer-reviewed publications, invited talks, and community resources.</h1>
+            <p>Every manuscript ships with open data or code whenever licensing allows. Highlighting impact on programmable matter, metamaterials, and ML-aided discovery.</p>
+            <div class="filters">
+                <span class="chip active">All</span>
+                <span class="chip">Journals</span>
+                <span class="chip">Conferences</span>
+                <span class="chip">Workshops</span>
+                <span class="chip">Preprints</span>
+            </div>
         </div>
     </header>
 
-    <main class="container page-section">
-        <ul class="publication-list">
-            <li>
-                <p><strong>[Your Name]</strong>, et al. (2024). "Title of Your Awesome Paper." <em>Journal of Impressive Things, 12</em>(3).
-                   <a href="#" class="pub-link">[PDF]</a>
-                   <a href="#" class="pub-link">[DOI]</a>
-                   <a href="#" class="pub-link">[Code]</a>
-                </p>
-            </li>
-            <li>
-                <p><strong>[Your Name]</strong> & [Collaborator]. (2023). "Title of Another Great Paper." <em>Conference on Academic Prestige (CAP '23)</em>.
-                   <a href="#" class="pub-link">[PDF]</a>
-                   <a href="#" class="pub-link">[Poster]</a>
-                </p>
-            </li>
-            <li>
-                <p>[Author], <strong>[Your Name]</strong>, et al. (2022). "A Paper Where You Were a Co-Author." <em>Nature of Things, 1</em>(1).
-                   <a href="#" class="pub-link">[PDF]</a>
-                   <a href="#" class="pub-link">[DOI]</a>
-                </p>
-            </li>
-        </ul>
+    <main class="page-section">
+        <div class="container cards-grid">
+            <article class="publication-card">
+                <div class="pub-meta">2025 · Advanced Materials · Cover Feature</div>
+                <h3>Programmable hydrogels via differentiable inverse design.</h3>
+                <p>S. Panigrahy*, R. Mehta, et al. Demonstrates a gradient-based optimization loop that co-designs molecular motifs and fabrication constraints.</p>
+                <div class="pub-actions">
+                    <a class="pub-link" href="#">PDF</a>
+                    <a class="pub-link" href="#">DOI</a>
+                    <a class="pub-link" href="https://github.com">Code</a>
+                </div>
+            </article>
+            <article class="publication-card">
+                <div class="pub-meta">2025 · NeurIPS AI4Mat</div>
+                <h3>Physics-constrained graph neural operators for macromolecular crowding.</h3>
+                <p>S. Panigrahy*, P. Kulkarni. Introduces a graph operator that respects conservation laws and reaches 8× faster convergence vs. MD baselines.</p>
+                <div class="pub-actions">
+                    <a class="pub-link" href="#">Paper</a>
+                    <a class="pub-link" href="#">Poster</a>
+                </div>
+            </article>
+            <article class="publication-card">
+                <div class="pub-meta">2024 · ACS Applied Materials & Interfaces</div>
+                <h3>Macromolecular crowding as a design knob for metasurface coatings.</h3>
+                <p>Joint work with IISc that validates simulation-derived hypotheses on a robotic deposition platform.</p>
+                <div class="pub-actions">
+                    <a class="pub-link" href="#">PDF</a>
+                    <a class="pub-link" href="#">Supplement</a>
+                </div>
+            </article>
+            <article class="publication-card">
+                <div class="pub-meta">2023 · CAP</div>
+                <h3>Uncertainty-aware Bayesian optimization for adaptive metamaterial lattices.</h3>
+                <p>Framework for balancing mechanical and optical objectives with calibrated uncertainty estimates.</p>
+                <div class="pub-actions">
+                    <a class="pub-link" href="#">Slides</a>
+                    <a class="pub-link" href="#">Video</a>
+                </div>
+            </article>
+        </div>
     </main>
 
     <footer class="footer">
-        <p>&copy; 2025 by [Your Name]. Built with HTML, CSS, and GitHub Pages.</p>
+        <p>© 2026 Sibasankar Panigrahy. Disseminating open science.</p>
     </footer>
 
     <script src="script.js"></script>

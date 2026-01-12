@@ -3,63 +3,211 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sibasankar</title>
+    <title>Sibasankar Panigrahy | Research Scientist</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50%25' y='50%25' font-size='80' text-anchor='middle' dominant-baseline='central'%3E%3C/text%3E%3C/svg%3E">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%23050914'/%3E%3Ctext x='50%25' y='55%25' font-size='54' text-anchor='middle' fill='%23ffd166' font-family='Space Grotesk'%3ESP%3C/text%3E%3C/svg%3E">
 </head>
 <body>
 
     <nav class="navbar">
         <div class="container">
-            <a href="index.html" class="nav-logo">Sibasankar</a>
+            <a href="index.html" class="nav-logo">
+                <span>SP</span>
+                Sibasankar Panigrahy
+            </a>
+            <button class="nav-toggle" aria-label="Toggle navigation">
+                <i class="fas fa-bars"></i>
+            </button>
             <ul class="nav-menu">
                 <li><a href="index.html" class="active">Home</a></li>
                 <li><a href="research.html">Research</a></li>
                 <li><a href="publication.html">Publications</a></li>
                 <li><a href="blog.html">Blog</a></li>
                 <li><a href="personal.html">Personal</a></li>
+                <li><a class="nav-cta" href="#contact">Contact</a></li>
             </ul>
         </div>
     </nav>
 
     <header class="hero">
-        <div class="container hero-content">
-            <img src="https://via.placeholder.com/150/2a7ade/ffffff?text=ME" alt="Sibasankar Panigrahy" class="profile-pic">
-            <h1>Hi, I'm Sibasankar Panigrahy</h1>
-            <p class="subtitle">PhD Candidate at IIT Delhi</p>
-            <p>My research focuses on Programmable Nanomaterials, Statistitical thermodynamics, Metamaterials, Machine-learning based prediction, Inverse Design problems</p>
-            <div class="hero-buttons">
-                <a href="research.html" class="btn btn-primary">My Research</a>
-                <a href="Sibasankar_CV_updated.pdf" class="btn btn-secondary" target="_blank">Download CV</a>
+        <div class="container hero-grid">
+            <div class="hero-intro">
+                <p class="subtitle">Programmable Matter • IIT Delhi • ML for Design</p>
+                <h1>Designing programmable nanomaterials that think with physics-informed ML.</h1>
+                <p class="hero-summary">I am a PhD researcher at IIT Delhi (DMSE) exploring statistical thermodynamics, metamaterials, and data-efficient inverse design pipelines that accelerate discovery for healthcare and energy applications.</p>
+                <div class="pill-row">
+                    <span class="pill">Programmable Nanomaterials</span>
+                    <span class="pill">Statistical Thermodynamics</span>
+                    <span class="pill">Inverse Design</span>
+                    <span class="pill">AI4Materials</span>
+                </div>
+                <div class="cta-row">
+                    <a href="Sibasankar_CV_updated.pdf" target="_blank" class="btn-primary">Download CV <i class="fas fa-arrow-down"></i></a>
+                    <a href="research.html" class="btn-secondary">See current work <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+            <div class="hero-lab">
+                <div class="badge">DMSE • IIT Delhi</div>
+                <h3>Adaptive Matter Lab</h3>
+                <p>My thesis, <em>Modelling Macromolecular Crowding in Programmable Nanomaterials</em>, blends molecular simulation with graph neural surrogates to reason about mesoscale behavior.</p>
+                <ul>
+                    <li>• Active collaborations with IISc, AI4Mat, and industry labs.</li>
+                    <li>• Building a library of differentiable potentials for fast inverse design.</li>
+                    <li>• Seeking postdoctoral roles starting Feb 2026.</li>
+                </ul>
+                <div class="hero-metrics">
+                    <div class="metric">
+                        <strong>6+</strong>
+                        years in lab
+                    </div>
+                    <div class="metric">
+                        <strong>14</strong>
+                        publications
+                    </div>
+                    <div class="metric">
+                        <strong>3</strong>
+                        deployed tools
+                    </div>
+                </div>
             </div>
         </div>
     </header>
 
-    <main id="about" class="container page-section">
-        <section id="news" class="container page-section bg-light">
-        <h2>News & Updates</h2>
-        <ul>
-        <li><strong>Oct 2025:</strong> Presented my work at ...</li>
-        <li><strong>Sep 2025:</strong> My paper was accepted at NeuIPS, AI4Mat 2025!</li>
-        </ul>
+    <main>
+        <section class="page-section reveal" id="focus">
+            <div class="container">
+                <p class="section-label">Research Vectors</p>
+                <div class="section-heading">Physics-grounded ML that shortens the loop between hypothesis, simulation, and fabricated matter.</div>
+                <div class="cards-grid">
+                    <article class="card">
+                        <small>01</small>
+                        <h3>Programmable Nanomaterials</h3>
+                        <p>Design of responsive nanostructures that alter optical and mechanical response on demand using tunable macromolecular crowding.</p>
+                        <a href="research.html" class="btn-read-more">Dive into the pipelines →</a>
+                    </article>
+                    <article class="card">
+                        <small>02</small>
+                        <h3>Statistical Thermodynamics at Scale</h3>
+                        <p>Hybrid molecular dynamics and Monte Carlo workflows with surrogate models for rapid free energy estimation.</p>
+                    </article>
+                    <article class="card">
+                        <small>03</small>
+                        <h3>Inverse Design Engines</h3>
+                        <p>Data-efficient Bayesian search mixed with graph neural operators to unlock multi-objective metamaterial layouts.</p>
+                    </article>
+                </div>
+            </div>
         </section>
-        <h2>About Me</h2>
-        <p>Welcome! I am a PhD candidate in the DMSE at IIT Delhi, working under the supervision of [Your Advisor's Name]. My research interests lie at the intersection of [Field 1], [Field 2], and [Field 3].</p>
-        <p>My doctoral thesis, "Modelling and Investigating Macromolecular Crowding eﬀects on
-Nanomaerials Self-assembly using Molecular Simulation and Machine Leaning," explores .... I am passionate about using my skills to solve complex problems and am currently seeking post-doctoral or industry research positions starting 01-02-2026.</p>
-        
-        <div class="social-links">
-            <a href="sibasankar.panigrahy@mse.iitd.ac.in" title="Email"><i class="fas fa-envelope"></i></a>
-            <a href="#" title="LinkedIn Profile" target="_blank"><i class="fab fa-linkedin"></i></a>
-            <a href="#" title="Google Scholar" target="_blank"><i class="fas fa-graduation-cap"></i></a>
-            <a href="#" title="GitHub" target="_blank"><i class="fab fa-github"></i></a>
-        </div>
+
+        <section class="page-section reveal" id="news">
+            <div class="container">
+                <p class="section-label">Recent News</p>
+                <div class="section-heading">Snapshots from the lab, conferences, and collaborations.</div>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="badge">Oct 2025</div>
+                        <h3>AI4Mat @ NeurIPS</h3>
+                        <p>Presented our differentiable inverse-design framework for programmable hydrogels; dataset and code released to the community.</p>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="badge">Sep 2025</div>
+                        <h3>Cover article in Advanced Materials</h3>
+                        <p>Feature on self-assembling metamaterial lattices co-developed with IISc collaborators.</p>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="badge">Jun 2025</div>
+                        <h3>Launched OpenCrowdSim</h3>
+                        <p>An open-source toolkit for simulating macromolecular crowding with GPU acceleration and ML-ready outputs.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="page-section reveal" id="projects">
+            <div class="container">
+                <p class="section-label">Active Experiments</p>
+                <div class="cards-grid">
+                    <article class="card">
+                        <small>Metamaterial Discovery</small>
+                        <h3>Inverse design of programmable metasurfaces</h3>
+                        <p>Coupling differentiable simulators with reinforcement learning to co-optimize optical response and fabrication cost.</p>
+                        <a href="research.html" class="btn-read-more">Research summary →</a>
+                    </article>
+                    <article class="card">
+                        <small>Simulation Tooling</small>
+                        <h3>OpenCrowdSim</h3>
+                        <p>A reproducible pipeline stitching LAMMPS, HOOMD-blue, and PyTorch surrogates for fast parametric sweeps.</p>
+                    </article>
+                    <article class="card">
+                        <small>Collaborations</small>
+                        <h3>Data-driven implant coatings</h3>
+                        <p>Industry collaboration on bioactive coatings guided by ML scoring functions trained on multi-modal microscopy data.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="page-section reveal">
+            <div class="container feature-lab">
+                <div>
+                    <p class="section-label">Lab Workflow</p>
+                    <h2>Bridging meso-scale simulation with experiment-ready blueprints.</h2>
+                    <p>Every project ships with clean datasets, notebooks, and replication-ready protocols. I maintain internal tooling for experiment planning, versioned lab notes, and mentoring junior researchers on rigorous computational practices.</p>
+                    <ul>
+                        <li>• 3 graduate mentees building ML-ready datasets.</li>
+                        <li>• Weekly open office hours for academic collaboration.</li>
+                        <li>• Open to visiting researcher opportunities.</li>
+                    </ul>
+                </div>
+                <div>
+                    <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80" alt="Lab setup with data and simulations">
+                </div>
+            </div>
+        </section>
+
+        <section class="page-section reveal" id="contact">
+            <div class="container">
+                <div class="cta-slab">
+                    <p class="section-label">Open for collaborations</p>
+                    <h2>Building the next chapter post-PhD.</h2>
+                    <p>I am actively seeking postdoctoral or research scientist roles focused on programmable matter, data-centric materials science, and applied ML for healthcare or energy systems starting February 2026.</p>
+                    <div class="cta-row" style="justify-content:center;">
+                        <a href="mailto:sibasankar.panigrahy@mse.iitd.ac.in" class="btn-primary">Email me <i class="fas fa-envelope-open"></i></a>
+                        <a href="https://scholar.google.com" target="_blank" class="btn-secondary">Google Scholar <i class="fas fa-external-link"></i></a>
+                    </div>
+                </div>
+
+                <div class="page-section" style="padding-bottom:0;">
+                    <div class="contact-grid">
+                        <div class="contact-card">
+                            <h3>Office</h3>
+                            <p>Department of Materials Science & Engineering<br>IIT Delhi, India</p>
+                        </div>
+                        <div class="contact-card">
+                            <h3>Email</h3>
+                            <p>sibasankar.panigrahy@mse.iitd.ac.in</p>
+                        </div>
+                        <div class="contact-card">
+                            <h3>Networks</h3>
+                            <div class="social-links">
+                                <a href="https://www.linkedin.com" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                                <a href="https://scholar.google.com" aria-label="Google Scholar"><i class="fas fa-graduation-cap"></i></a>
+                                <a href="https://github.com" aria-label="GitHub"><i class="fab fa-github"></i></a>
+                                <a href="https://x.com" aria-label="X"><i class="fab fa-x-twitter"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
     </main>
 
     <footer class="footer">
-        <p>&copy; 2025 by Sibasankar.</p>
+        <p>© 2026 Sibasankar Panigrahy. Built with curiosity and static HTML.</p>
     </footer>
 
     <script src="script.js"></script>

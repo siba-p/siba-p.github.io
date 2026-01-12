@@ -3,57 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Research | Your Name</title>
+    <title>Research | Sibasankar Panigrahy</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50%25' y='50%25' font-size='80' text-anchor='middle' dominant-baseline='central'%3E🎓%3C/text%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%23050914'/%3E%3Ctext x='50%25' y='55%25' font-size='54' text-anchor='middle' fill='%23ffd166' font-family='Space Grotesk'%3ESP%3C/text%3E%3C/svg%3E">
 </head>
 <body>
 
     <nav class="navbar">
         <div class="container">
-            <a href="index.html" class="nav-logo">Dr. [Your Name]</a>
+            <a href="index.html" class="nav-logo"><span>SP</span> Sibasankar Panigrahy</a>
+            <button class="nav-toggle" aria-label="Toggle navigation">
+                <i class="fas fa-bars"></i>
+            </button>
             <ul class="nav-menu">
                 <li><a href="index.html">Home</a></li>
                 <li><a href="research.html" class="active">Research</a></li>
-                <li><a href="publications.html">Publications</a></li>
+                <li><a href="publication.html">Publications</a></li>
                 <li><a href="blog.html">Blog</a></li>
                 <li><a href="personal.html">Personal</a></li>
+                <li><a class="nav-cta" href="index.html#contact">Contact</a></li>
             </ul>
         </div>
     </nav>
 
-    <header class="page-header">
+    <header class="page-hero">
         <div class="container">
-            <h1>My Research</h1>
-            <p>An overview of my doctoral thesis and other projects.</p>
+            <p class="section-label">Research</p>
+            <h1>Layered simulations + machine learning for programmable nanomaterials.</h1>
+            <p>My doctoral work spans multiscale modelling, differentiable inverse design, and data-centric experimentation. Every project is reproducible, code-first, and documented publicly whenever possible.</p>
+            <div class="pill-row">
+                <span class="pill">Macromolecular Crowding</span>
+                <span class="pill">Metamaterials</span>
+                <span class="pill">Bayesian Optimization</span>
+                <span class="pill">Graph ML</span>
+            </div>
         </div>
     </header>
 
-    <main class="container page-section">
-        <section id="thesis">
-            <h2>Doctoral Thesis: [Title of Your Thesis]</h2>
-            <p>Here, you can write a detailed but accessible summary of your thesis. Explain the core problem, your methodology, and your key findings. You can add images, diagrams, or even embed a video.</p>
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor.</p>
-        </section>
-
-        <section id="other-projects" class="section-top-margin">
-            <h2>Other Projects</h2>
-            <div class="card-grid">
-                <div class="card">
-                    <img src="https://via.placeholder.com/400x200/34d399/ffffff?text=Project+1" alt="Project 1" class="card-img">
-                    <div class="card-content">
-                        <h3>[Project Title 1]</h3>
-                        <p>A brief description of a side project, collaboration, or a chapter of your thesis. Keep it to 2-3 sentences.</p>
-                        <a href="#" class="btn-read-more">View on GitHub &rarr;</a>
-                    </div>
+    <main>
+        <section class="page-section reveal">
+            <div class="container split-panel">
+                <div>
+                    <div class="badge">Doctoral Thesis</div>
+                    <h2>Modelling and Investigating Macromolecular Crowding effects on Nanomaterial Self-Assembly.</h2>
+                    <p>I marry coarse-grained MD with physics-informed neural surrogates to rapidly explore design spaces. The workflow closes the loop between simulation and experiment by exporting fabrication-ready phase diagrams.</p>
+                    <ul>
+                        <li>• Developed a differentiable simulator wrapper with adjoint gradients for parameter sensitivity.</li>
+                        <li>• Introduced a contrastive representation for mesoscale structures enabling few-shot classification.</li>
+                        <li>• Released OpenCrowdSim dataset with 3M labeled configurations.</li>
+                    </ul>
                 </div>
                 <div class="card">
-                    <img src="https://via.placeholder.com/400x200/34d399/ffffff?text=Project+2" alt="Project 2" class="card-img">
-                    <div class="card-content">
-                        <h3>[Project Title 2]</h3>
-                        <p>Another project. You can link to a paper, a repository, or a dedicated blog post about it.</p>
-                        <a href="#" class="btn-read-more">Read the Paper &rarr;</a>
+                    <small>Stack</small>
+                    <h3>Toolchain</h3>
+                    <p>Python · PyTorch · JAX · LAMMPS · HOOMD-blue · Hydra configs · MLflow · Snakemake</p>
+                    <small>Outcomes</small>
+                    <p>2 first-author journal papers, 1 patent filing, 1 open-source toolkit.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="page-section reveal">
+            <div class="container">
+                <p class="section-label">Experiment Tracks</p>
+                <div class="cards-grid">
+                    <article class="card">
+                        <small>Track A</small>
+                        <h3>Data-centric inverse design</h3>
+                        <p>Probabilistic surrogate models capture free energy surfaces, enabling multi-objective Bayesian optimization for adaptive metamaterials.</p>
+                        <a href="publication.html" class="btn-read-more">Related papers →</a>
+                    </article>
+                    <article class="card">
+                        <small>Track B</small>
+                        <h3>Adaptive matter testbed</h3>
+                        <p>Living repository of automated experiments combining digital twin calibration with robotic deposition setups (in collab. with IISc).</p>
+                    </article>
+                    <article class="card">
+                        <small>Track C</small>
+                        <h3>Human-centric tooling</h3>
+                        <p>Design systems, dashboards, and curriculum for mentoring students on reproducible simulation workflows.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="page-section reveal">
+            <div class="container">
+                <p class="section-label">Open Resources</p>
+                <div class="toolkit-grid">
+                    <div class="card">
+                        <h3>OpenCrowdSim</h3>
+                        <p>GPU-accelerated simulation dataset with pre-trained surrogates for macromolecular systems.</p>
+                        <a href="https://github.com" class="btn-read-more" target="_blank">View repository →</a>
+                    </div>
+                    <div class="card">
+                        <h3>Design Notebook Templates</h3>
+                        <p>Version-controlled lab notebooks built with Quarto for storytelling and reproducibility.</p>
+                    </div>
+                    <div class="card">
+                        <h3>Workshops</h3>
+                        <p>Yearly bootcamp for new researchers on setting up simulation-to-ML pipelines.</p>
                     </div>
                 </div>
             </div>
@@ -61,7 +114,7 @@
     </main>
 
     <footer class="footer">
-        <p>&copy; 2025 by [Your Name]. Built with HTML, CSS, and GitHub Pages.</p>
+        <p>© 2026 Sibasankar Panigrahy. Crafted for curious collaborators.</p>
     </footer>
 
     <script src="script.js"></script>
