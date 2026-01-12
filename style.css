@@ -1,20 +1,24 @@
 /* Elevated personal site for a research portfolio */
 :root {
-    --ink: #050914;
-    --deep-ink: #01040d;
-    --cloud: #f7f5ff;
-    --muted: #7c8aab;
-    --accent: #ffd166;
-    --accent-soft: #ffe4a3;
-    --teal: #4dd0e1;
-    --violet: #7b5dff;
-    --card: rgba(255, 255, 255, 0.08);
-    --border: rgba(255, 255, 255, 0.15);
-    --glass: rgba(255, 255, 255, 0.04);
+    --ink: #01030a;
+    --deep-ink: #000107;
+    --cloud: #d6ddff;
+    --muted: #8d96c9;
+    --accent: #ffc857;
+    --accent-soft: #ffdca4;
+    --teal: #4ecdc4;
+    --violet: #7f5af0;
+    --plasma: #ff6ac1;
+    --bio-green: #7ed957;
+    --neu-purple: #b28dff;
+    --card: rgba(7, 12, 33, 0.85);
+    --border: rgba(255, 255, 255, 0.12);
+    --glass: rgba(255, 255, 255, 0.03);
+    --grid-line: rgba(255, 255, 255, 0.05);
     --heading-font: 'Space Grotesk', sans-serif;
     --body-font: 'IBM Plex Sans', sans-serif;
     --radius: 18px;
-    --shadow-soft: 0 20px 60px rgba(5, 9, 20, 0.45);
+    --shadow-soft: 0 30px 90px rgba(1, 3, 10, 0.65);
 }
 
 * {
@@ -29,11 +33,12 @@ html {
 
 body {
     font-family: var(--body-font);
-    background: radial-gradient(circle at top, #0b1533 0%, #050914 50%, #03060f 100%);
+    background: radial-gradient(circle at 20% 20%, #0a1838 0%, #050b19 45%, #01030a 100%);
     color: #dfe7ff;
     line-height: 1.7;
     min-height: 100vh;
     position: relative;
+    overflow-x: hidden;
 }
 
 body::before,
@@ -41,16 +46,19 @@ body::after {
     content: '';
     position: fixed;
     inset: 0;
-    z-index: -2;
-    background: radial-gradient(circle at 10% 20%, rgba(77, 208, 225, 0.25), transparent 45%),
-                radial-gradient(circle at 80% 10%, rgba(123, 93, 255, 0.25), transparent 40%),
-                radial-gradient(circle at 50% 80%, rgba(255, 209, 102, 0.2), transparent 45%);
     pointer-events: none;
 }
 
-body::after {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, transparent 60%);
+body::before {
     z-index: -3;
+    background: radial-gradient(circle at 12% 18%, rgba(78, 205, 196, 0.22), transparent 40%),
+                radial-gradient(circle at 78% 12%, rgba(127, 90, 240, 0.2), transparent 45%),
+                radial-gradient(circle at 55% 78%, rgba(255, 104, 193, 0.16), transparent 40%);
+}
+
+body::after {
+    z-index: -4;
+    background: linear-gradient(145deg, rgba(2, 3, 10, 0.95), rgba(2, 8, 18, 0.75));
 }
 
 .container {
@@ -194,6 +202,36 @@ img {
 /* Hero */
 .hero {
     padding: 6rem 0 4rem;
+    position: relative;
+    overflow: hidden;
+    background: radial-gradient(circle at top right, rgba(127, 90, 240, 0.2), transparent 60%);
+}
+
+.hero::before,
+.hero::after {
+    content: '';
+    position: absolute;
+    inset: -20% -10% 10% -10%;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.hero::before {
+    background:
+        radial-gradient(circle at 10% 20%, rgba(126, 217, 87, 0.2), transparent 35%),
+        radial-gradient(circle at 70% 30%, rgba(255, 108, 193, 0.25), transparent 40%),
+        linear-gradient(120deg, rgba(127, 90, 240, 0.15), rgba(78, 205, 196, 0.08));
+    filter: blur(20px);
+    animation: neuronPulse 16s ease-in-out infinite alternate;
+}
+
+.hero::after {
+    background: repeating-linear-gradient(140deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.04) 2px, transparent 2px, transparent 80px),
+                radial-gradient(circle at 20% 70%, rgba(255, 200, 87, 0.12), transparent 45%),
+                radial-gradient(circle at 80% 80%, rgba(126, 217, 87, 0.12), transparent 40%);
+    mix-blend-mode: screen;
+    opacity: 0.7;
+    animation: biomaterialFlow 22s linear infinite;
 }
 
 .hero-grid {
@@ -201,6 +239,8 @@ img {
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
     gap: 3rem;
     align-items: center;
+    position: relative;
+    z-index: 1;
 }
 
 .hero-intro h1 {
@@ -331,7 +371,7 @@ img {
 .card {
     border-radius: var(--radius);
     border: 1px solid var(--border);
-    background: rgba(7, 12, 26, 0.9);
+    background: var(--card);
     padding: 1.75rem;
     display: flex;
     flex-direction: column;
@@ -426,8 +466,8 @@ img {
 
 .cta-slab {
     border-radius: calc(var(--radius) + 10px);
-    background: linear-gradient(120deg, rgba(77, 208, 225, 0.15), rgba(123, 93, 255, 0.2));
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: linear-gradient(120deg, rgba(78, 205, 196, 0.15), rgba(127, 90, 240, 0.18));
+    border: 1px solid rgba(255, 255, 255, 0.12);
     padding: 3rem;
     text-align: center;
     box-shadow: var(--shadow-soft);
@@ -527,6 +567,89 @@ img {
     font-weight: 600;
 }
 
+.data-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.data-card {
+    padding: 1.75rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: linear-gradient(145deg, rgba(2, 6, 18, 0.92), rgba(7, 14, 31, 0.82));
+    box-shadow: 0 20px 45px rgba(1, 2, 9, 0.55);
+    position: relative;
+    overflow: hidden;
+}
+
+.data-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at top right, rgba(255, 200, 87, 0.15), transparent 60%);
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.data-card > * {
+    position: relative;
+    z-index: 1;
+}
+
+.data-meta {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3em;
+    color: var(--muted);
+}
+
+.data-card .pill-row {
+    margin-top: 1rem;
+}
+
+.figure-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.figure-node {
+    padding: 1.5rem;
+    border-radius: var(--radius);
+    border: 1px dashed var(--border);
+    background: rgba(255, 255, 255, 0.03);
+    text-align: center;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+}
+
+.figure-node span {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+}
+
+.figure-node::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 30% 20%, rgba(78, 205, 196, 0.18), transparent 50%);
+    opacity: 0.8;
+    mix-blend-mode: screen;
+}
+
+.figure-node > * {
+    position: relative;
+    z-index: 1;
+}
+
 .blog-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -573,6 +696,33 @@ img {
 .reveal.is-visible {
     opacity: 1;
     transform: translateY(0);
+}
+
+@keyframes neuronPulse {
+    0% {
+        transform: scale(0.9) rotate(0deg);
+        opacity: 0.6;
+    }
+    50% {
+        transform: scale(1.05) rotate(3deg);
+        opacity: 0.85;
+    }
+    100% {
+        transform: scale(0.95) rotate(-2deg);
+        opacity: 0.6;
+    }
+}
+
+@keyframes biomaterialFlow {
+    0% {
+        transform: translate3d(0, 0, 0) rotate(0deg);
+    }
+    50% {
+        transform: translate3d(-5%, -3%, 0) rotate(5deg);
+    }
+    100% {
+        transform: translate3d(0, -6%, 0) rotate(12deg);
+    }
 }
 
 @media (max-width: 900px) {
