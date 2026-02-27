@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Sibasankar</title>
+    <link>http://localhost:1313/research/</link>
+    <description>Recent content on Sibasankar</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <managingEditor>sibasankarpanigrahy08@gmail.com (Sibasankar)</managingEditor>
+    <webMaster>sibasankarpanigrahy08@gmail.com (Sibasankar)</webMaster>
+    <copyright>Sibasankar. All Right Reserved</copyright>
+    <atom:link href="http://localhost:1313/research/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>ML-Driven Polymer Adhesion</title>
+      <link>http://localhost:1313/research/topic1/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <author>sibasankarpanigrahy08@gmail.com (Sibasankar)</author>
+      <guid>http://localhost:1313/research/topic1/</guid>
+      <description>Predicting PMF profiles using Hybrid CNN-GRU-Attention architectures.</description>
+      
+    </item>
+    
+    <item>
+      <title>DNA in Crowded Environments</title>
+      <link>http://localhost:1313/research/topic2/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <author>sibasankarpanigrahy08@gmail.com (Sibasankar)</author>
+      <guid>http://localhost:1313/research/topic2/</guid>
+      <description>Solvation dynamics of ss-DNA functionalized gold nanoparticles.</description>
+      
+    </item>
+    
+    <item>
+      <title>Force-Field Optimization</title>
+      <link>http://localhost:1313/research/topic3/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <author>sibasankarpanigrahy08@gmail.com (Sibasankar)</author>
+      <guid>http://localhost:1313/research/topic3/</guid>
+      <description>NBFIX re-parameterization of AMBER99sb-ILDN.</description>
+      
+    </item>
+    
+    <item>
+      <title>Citrate-Gold Interfaces</title>
+      <link>http://localhost:1313/research/topic4/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <author>sibasankarpanigrahy08@gmail.com (Sibasankar)</author>
+      <guid>http://localhost:1313/research/topic4/</guid>
+      <description>Thermodynamics of citrate adsorption on nanoparticles.</description>
+      
+    </item>
+    
+  </channel>
+</rss>

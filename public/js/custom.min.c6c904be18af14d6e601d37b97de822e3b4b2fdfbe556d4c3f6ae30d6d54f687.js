@@ -1,0 +1,1 @@
+window.addEventListener("DOMContentLoaded",()=>{document.getElementById("vanta-canvas")&&VANTA.NET({el:"#vanta-canvas",mouseControls:!0,touchControls:!0,minHeight:200,minWidth:200,scale:1,scaleMobile:1,color:3718648,backgroundColor:988970,points:12,maxDistance:22,spacing:16,showDots:!0})})

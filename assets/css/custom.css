@@ -1,0 +1,20 @@
+/* Make the theme background transparent so Vanta is visible */
+/* use rgba with zero alpha instead of "transparent" to prevent Hugo's minifier
+   from rewriting it to initial */
+.bg-neutral, .dark .bg-neutral-800, body {
+    background-color: rgba(0, 0, 0, 0) !important;
+}
+
+/* Ensure the Vanta canvas is actually at the bottom layer */
+#vanta-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1; /* Behind everything */
+    pointer-events: none; Allows you to still click buttons/links
+}
+body {
+    background: transparent !important;
+}
