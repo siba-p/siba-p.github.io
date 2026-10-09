@@ -49,10 +49,22 @@
   /* Assembly simulations */
   const fmt = (v, d = 2) => (+v).toFixed(d);
   const NOTES = {
-    complementary: "Complementary strands bind only unlike particles, so the system builds an alternating binary lattice.",
-    self: "Self-complementary strands bind like with like, so the two species sort into separate crystals.",
-    universal: "When every pair can hybridise, the particles pack into a hexagonal crystal with the species mixed at random."
+    complementary: "Complementary strands bind only unlike particles, building an alternating binary lattice. Drag to stir.",
+    self: "Like binds like, so the two species sort into separate crystals. Drag to stir.",
+    universal: "Every pair can hybridise, so the particles pack into a mixed hexagonal crystal. Drag to stir."
   };
+  function spark(canvas, hist) {
+    if (!canvas || !canvas.clientWidth) return;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2), w = canvas.clientWidth, h = canvas.clientHeight;
+    canvas.width = w * dpr; canvas.height = h * dpr;
+    const g = canvas.getContext("2d"); g.scale(dpr, dpr);
+    g.strokeStyle = "rgba(255,255,255,.1)"; g.beginPath(); g.moveTo(0, h - .5); g.lineTo(w, h - .5); g.stroke();
+    if (hist.length < 2) return;
+    g.beginPath();
+    hist.forEach((v, i) => { const X = (i / 159) * w, Y = h - 2 - v * (h - 4); i ? g.lineTo(X, Y) : g.moveTo(X, Y); });
+    const grad = g.createLinearGradient(0, 0, w, 0); grad.addColorStop(0, "#6f88ff"); grad.addColorStop(1, "#ff9f5a");
+    g.strokeStyle = grad; g.lineWidth = 1.6; g.stroke();
+  }
   function wirePanel(panel, sim) {
     if (!panel) return () => {};
     const tIn = $("[data-ctl=T]", panel), tOut = $("output[data-out=T]", panel);
@@ -91,6 +103,7 @@
       const set = (k, v) => { const el = $(`[data-stat=${k}]`, panel); if (el) el.textContent = v; };
       set("solid", Math.round(s.solid * 100) + "%");
       set("z", fmt(s.z, 2));
+      spark($(".sim-spark", panel), s.history);
     };
   }
   $$("canvas[data-sim]").forEach(canvas => {

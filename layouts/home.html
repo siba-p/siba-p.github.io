@@ -1,7 +1,7 @@
 {{ define "main" }}
 {{ $pubs := site.Data.publications }}
 <section class="hero" aria-label="Introduction">
-  <canvas class="sim" data-sim data-sigma="26" data-max="640" data-phi="0.38" data-prewarm="1800" aria-label="Live simulation of DNA-coated gold nanoparticles self-assembling into a binary crystal" role="img"></canvas>
+  <canvas class="sim" data-sim data-panel="hero-panel" data-sigma="27" data-max="900" data-phi="0.44" data-prewarm="2000" aria-label="Live simulation of DNA-coated gold nanoparticles self-assembling into a binary crystal" role="img"></canvas>
   <div class="wrap hero-inner">
     <div class="hero-text">
       <p class="role">{{ site.Params.role }} · {{ site.Params.affiliation }}</p>
@@ -13,10 +13,29 @@
         <a href="#network">Contact</a>
       </div>
     </div>
-  </div>
-  <div class="sim-caption" id="hero-caption">
-    <span class="t">Live simulation · DNA-programmable assembly</span>
-    <button type="button" data-cycle-program aria-label="Change binding program"><i style="background:#6f88ff"></i><i style="background:#ff9f5a"></i><span>a ↔ a′</span></button>
+    <aside class="hero-panel" id="hero-panel" aria-label="Simulation controls">
+      <header><span class="live">Live</span><span>DNA-programmable assembly</span></header>
+      <div class="seg dark" role="group" aria-label="Binding program">
+        <button type="button" data-program="complementary" aria-pressed="true" title="Only complementary strands bind: alternating binary lattice">a ↔ a′</button>
+        <button type="button" data-program="self" title="Like binds like: the species sort into two crystals">Self</button>
+        <button type="button" data-program="universal" title="Every pair binds: mixed hexagonal crystal">All</button>
+      </div>
+      <div class="hp-row">
+        <label for="hero-T">Temperature <span>k<sub>B</sub>T/ε</span></label>
+        <output data-out="T">0.45</output>
+        <input id="hero-T" type="range" min="0.2" max="1.4" step="0.01" value="0.45" data-ctl="T">
+      </div>
+      <div class="hp-stats">
+        <div><b data-stat="solid">–</b><span>in crystallites</span></div>
+        <div><b data-stat="z">–</b><span>links / particle</span></div>
+      </div>
+      <canvas class="sim-spark" aria-hidden="true"></canvas>
+      <div class="hp-buttons">
+        <button type="button" data-act="melt">Melt</button>
+        <button type="button" data-act="quench">Quench</button>
+      </div>
+      <p class="hp-note" data-program-note>Complementary strands bind only unlike particles, building an alternating binary lattice. Drag to stir.</p>
+    </aside>
   </div>
 </section>
 
