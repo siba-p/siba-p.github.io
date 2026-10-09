@@ -5,4 +5,5 @@ lead: "Plan, check and repair umbrella-sampling simulations in your browser. Des
 description: "WindowWise: a free in-browser tool to plan umbrella-sampling windows, run WHAM with bootstrap errors on GROMACS pullx files, and suggest repair windows."
 scripts: ["js/sm-charts.js", "js/app-shell.js", "js/windowwise-core.js", "js/windowwise-ui.js"]
 styles: ["css/apps.css"]
+math: true
 ---

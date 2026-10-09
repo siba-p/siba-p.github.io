@@ -246,3 +246,31 @@
 
 .app-main > *, .app-main section, .rview { min-width: 0; }
 .app-body > * { min-width: 0; }
+
+/* sample cards: neutral, technical */
+.sample .spec { font-size: .8rem; color: var(--ink-3); }
+.sample .spec .katex { font-size: 1.02em; color: var(--ink-2); }
+.sample b { margin-top: 2px; }
+.sample span:last-child .katex { font-size: .98em; }
+.sample:hover b { color: var(--accent); }
+.app-mode small .katex { font-size: 1em; }
+.eqs .katex-display { margin: .4rem 0 1.1rem; overflow-x: auto; overflow-y: hidden; padding: .2rem 0; }
+.eqs .katex-display > .katex { font-size: 1.06em; }
+.eqs p { margin: .2rem 0 .1rem; }
+.katex { font-size: 1.05em; }
+.kpi small .katex, .dtable .katex { font-size: 1em; }
+/* draggable range handles */
+.rh { cursor: ew-resize; }
+.rh:hover line, .rh.drag line { stroke-width: 3; }
+
+.eqbox { margin: .9rem 0 .4rem; padding: .6rem .8rem; border-radius: 10px; background: var(--bg-2); border: 1px solid var(--line); overflow-x: auto; }
+.eqbox .katex-display { margin: 0; }
+.x-in .katex-display { margin: .5rem 0; overflow-x: auto; overflow-y: hidden; }
+.rtabs .katex { font-size: 1em; }
+
+.side-foot .hint { font-size: .74rem; color: var(--ink-3); }
+.scale .bar { background: linear-gradient(90deg, color-mix(in oklab, #d03b3b 30%, var(--line)) 0%, var(--line) 35%, var(--line) 65%, color-mix(in oklab, var(--accent) 35%, var(--line)) 100%); opacity: 1; height: 8px; top: 19px; }
+.scale::before { content: ""; position: absolute; left: 50%; top: 14px; width: 1px; height: 18px; background: var(--ink-3); }
+.scale .mark { background: var(--accent); width: 4px; border-radius: 3px; }
+.eqs .katex-display { max-width: 100%; }
+.slot b .katex { font-size: 1.02em; }

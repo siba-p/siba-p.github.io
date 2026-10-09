@@ -5,4 +5,5 @@ lead: "Kirkwood–Buff integrals from simulation RDFs, with the finite-size corr
 description: "KBkit: in-browser Kirkwood-Buff integrals with Ganguly-van der Vegt and Kruger-Vlugt finite-size corrections and KB thermodynamics."
 scripts: ["js/sm-charts.js", "js/app-shell.js", "js/kbkit-core.js", "js/kbkit-ui.js"]
 styles: ["css/apps.css"]
+math: true
 ---

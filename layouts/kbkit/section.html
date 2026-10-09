@@ -10,12 +10,11 @@
         </div>
       </div>
       <div class="app-badges">
-        <span><i style="background:#34c6b6"></i>Validated: hard spheres to within 1% of the exact result</span>
-        <span><i style="background:#8ea0ff"></i>Runs locally · nothing is uploaded</span>
+        <span>Validated: hard spheres to within 1% of the exact result</span>
+        <span>Runs locally · nothing is uploaded</span>
         <a href="https://github.com/siba-p/kbkit">Python package & CLI ↗</a>
         <a href="#method">Method</a>
       </div>
-      <ol class="app-steps" id="kb-steps"><li class="on"><b>1</b>Choose a calculation</li><li><b>2</b>Load RDFs &amp; system</li><li><b>3</b>Read the thermodynamics</li><li><b>4</b>Export</li></ol>
     </div>
   </header>
 
@@ -23,13 +22,13 @@
     <div class="app-modes" role="group" aria-label="Calculation">
       <button class="app-mode" type="button" data-mode="single" aria-pressed="true">
         <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 26c3 0 3-20 6-20s3 12 6 12 3-5 6-5 5 3 8 3"/></svg>
-        <b>Single RDF</b><small>One KB integral G<sub>ij</sub>, with raw and corrected estimates</small></button>
+        <b>Single RDF</b><small>One integral {{ transform.ToMath `G_{ij}` (dict "output" "htmlAndMathml") }} with raw and corrected estimates</small></button>
       <button class="app-mode" type="button" data-mode="binary" aria-pressed="false">
         <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="16" r="6"/><circle cx="22" cy="16" r="4"/><circle cx="25" cy="7" r="2.5"/><circle cx="6" cy="27" r="2.5"/></svg>
-        <b>Binary mixture</b><small>Activity derivatives, partial molar volumes, compressibility</small></button>
+        <b>Binary mixture</b><small>{{ transform.ToMath `G_{ww},\,G_{cc},\,G_{cw}` (dict "output" "htmlAndMathml") }}: activity, volumes, compressibility</small></button>
       <button class="app-mode" type="button" data-mode="pb" aria-pressed="false">
         <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="16" cy="16" r="7"/><circle cx="16" cy="16" r="12" stroke-dasharray="2 3"/><circle cx="27" cy="9" r="2" fill="currentColor"/></svg>
-        <b>Preferential binding</b><small>Does a cosolvent accumulate at a solute or get excluded?</small></button>
+        <b>Preferential binding</b><small>{{ transform.ToMath `\nu_{pc} = \rho_c (G_{pc} - G_{pw})` (dict "output" "htmlAndMathml") }} for a cosolvent at a solute</small></button>
     </div>
 
     <div class="app-body">
@@ -42,12 +41,12 @@
               <label class="fld"><span class="fld-l">Length unit <i class="tip" tabindex="0" data-tip="Unit of r in the RDF files. Laboratory units (cm³/mol, GPa⁻¹) are shown only for nm.">?</i></span><span class="fld-in"><select id="kb-lu"><option value="nm">nm</option><option value="Å">Å</option><option value="σ">σ (reduced)</option></select></span></label>
             </div>
             <div class="fld-row" data-show="single">
-              <label class="fld"><span class="fld-l">N<sub>j</sub> <i class="tip" tabindex="0" data-tip="Number of j particles (molecules or the atom type used in the RDF) in the box. Needed for the Ganguly–van der Vegt finite-size correction.">?</i></span><span class="fld-in"><input id="kb-nj" type="number" step="any" min="0"></span></label>
-              <label class="check" style="align-self:end;padding-bottom:.55em"><input type="checkbox" id="kb-same"> i = j (same species)</label>
+              <label class="fld"><span class="fld-l">{{ transform.ToMath `N_j` (dict "output" "htmlAndMathml") }} particles <i class="tip" tabindex="0" data-tip="Number of j particles (molecules or the atom type used in the RDF) in the box. Needed for the Ganguly–van der Vegt finite-size correction.">?</i></span><span class="fld-in"><input id="kb-nj" type="number" step="any" min="0"></span></label>
+              <label class="check" style="align-self:end;padding-bottom:.55em"><input type="checkbox" id="kb-same"> {{ transform.ToMath `i = j` (dict "output" "htmlAndMathml") }}</label>
             </div>
             <div class="fld-row" data-show="binary pb">
-              <label class="fld"><span class="fld-l">N solvent <i class="tip" tabindex="0" data-tip="Number of solvent (w) molecules in the box.">?</i></span><span class="fld-in"><input id="kb-nw" type="number" step="any" min="0"></span></label>
-              <label class="fld"><span class="fld-l">N cosolvent <i class="tip" tabindex="0" data-tip="Number of cosolvent (c) molecules in the box.">?</i></span><span class="fld-in"><input id="kb-nc" type="number" step="any" min="0"></span></label>
+              <label class="fld"><span class="fld-l">{{ transform.ToMath `N_w` (dict "output" "htmlAndMathml") }} solvent <i class="tip" tabindex="0" data-tip="Number of solvent (w) molecules in the box.">?</i></span><span class="fld-in"><input id="kb-nw" type="number" step="any" min="0"></span></label>
+              <label class="fld"><span class="fld-l">{{ transform.ToMath `N_c` (dict "output" "htmlAndMathml") }} cosolvent <i class="tip" tabindex="0" data-tip="Number of cosolvent (c) molecules in the box.">?</i></span><span class="fld-in"><input id="kb-nc" type="number" step="any" min="0"></span></label>
             </div>
             <label class="fld" data-show="binary"><span class="fld-l">Temperature</span><span class="fld-in"><input id="kb-T" type="number" step="any" value="298.15"><em>K</em></span></label>
           </div>
@@ -59,13 +58,14 @@
         <details class="sec">
           <summary><span><span class="n">3</span>Advanced ranges</span></summary>
           <div class="sec-in">
-            <p class="hint">Leave blank for automatic choices: plateau over the last 30% of r, Krüger–Vlugt fit over 40–90% of r<sub>max</sub>.</p>
+            <p class="hint">Blank = automatic. Plateau over the last 30% of {{ transform.ToMath `r` (dict "output" "htmlAndMathml") }}; Krüger–Vlugt fit over 40–90% of {{ transform.ToMath `r_{\max}` (dict "output" "htmlAndMathml") }}. You can also drag the shaded regions on the charts.</p>
             <div class="fld-row"><label class="fld"><span class="fld-l">Plateau from</span><span class="fld-in"><input id="kb-p1" type="number" step="any"></span></label><label class="fld"><span class="fld-l">to</span><span class="fld-in"><input id="kb-p2" type="number" step="any"></span></label></div>
             <div class="fld-row"><label class="fld"><span class="fld-l">KV fit L from</span><span class="fld-in"><input id="kb-f1" type="number" step="any"></span></label><label class="fld"><span class="fld-l">to</span><span class="fld-in"><input id="kb-f2" type="number" step="any"></span></label></div>
           </div>
         </details>
         <div class="side-foot">
           <button type="button" class="btn btn-primary" id="kb-run">Compute</button>
+          <p class="hint" style="text-align:center;margin:0">Results update live as you change any input.</p>
           <div class="btn-row" style="justify-content:stretch"><button type="button" class="btn-sm" id="kb-report" disabled style="flex:1;justify-content:center">Report</button><button type="button" class="btn-sm" id="kb-csv" disabled style="flex:1;justify-content:center">CSV</button><button type="button" class="btn-sm" id="kb-copy" disabled style="flex:1;justify-content:center">Copy</button></div>
         </div>
       </aside>
@@ -79,9 +79,9 @@
           <h2>From g(r) to thermodynamics</h2>
           <p>Kirkwood–Buff integrals turn radial distribution functions into preferential binding, activity coefficients and partial molar volumes, but only if the finite size of the box is handled properly. Load your RDFs, or explore an example where the right answer is known:</p>
           <div class="samples">
-            <button class="sample" type="button" data-sample="hs"><span class="tag good">Exact answer known</span><b>Hard-sphere fluid</b><span>η = 0.30. Carnahan–Starling gives G exactly. See how close each estimator gets.</span><i>Load example →</i></button>
-            <button class="sample" type="button" data-sample="ideal"><span class="tag bad">Finite-size artefact</span><b>Ideal gas in a box</b><span>No interactions, so G must be 0, yet the raw integral says the particles avoid each other.</span><i>Load example →</i></button>
-            <button class="sample" type="button" data-sample="binary"><span class="tag warn">Short run</span><b>Binary mixture: big + small spheres</b><span>Three RDFs give the full KB thermodynamics of a size-asymmetric mixture. The run is deliberately short, so watch how KBkit flags the noisy integrals.</span><i>Load example →</i></button>
+            <button class="sample" type="button" data-sample="hs"><span class="spec">{{ transform.ToMath `\eta = 0.30,\; N = 512` (dict "output" "htmlAndMathml") }}</span><b>Hard-sphere fluid</b><span>Reference: Carnahan–Starling, {{ transform.ToMath `G = -1.575\,\sigma^3` (dict "output" "htmlAndMathml") }}</span></button>
+            <button class="sample" type="button" data-sample="ideal"><span class="spec">{{ transform.ToMath `N = 400,\; V = 512\,\sigma^3` (dict "output" "htmlAndMathml") }}</span><b>Ideal gas</b><span>Reference: {{ transform.ToMath `G = 0` (dict "output" "htmlAndMathml") }}. Tests the closed-box correction.</span></button>
+            <button class="sample" type="button" data-sample="binary"><span class="spec">{{ transform.ToMath `x_c = 0.22,\; \sigma_c/\sigma_w = 1.3` (dict "output" "htmlAndMathml") }}</span><b>Binary hard-sphere mixture</b><span>Three RDFs from 167 frames give the KB thermodynamics.</span></button>
           </div>
         </section>
 
@@ -102,17 +102,26 @@
       <div class="grid-2">
         <div class="prose">
           <h2>Why KBkit?</h2>
-          <p>The textbook running integral G(R) = 4π∫₀ᴿ[g(r) − 1]r²dr does not converge in a closed, finite simulation box. In such a box, even an ideal gas looks as if its particles avoid each other. KBkit computes the raw integral alongside two standard corrections, shows whether they agree, and only then turns the result into thermodynamics.</p>
+          <p>The running Kirkwood–Buff integral does not converge in a closed, finite simulation box: even an ideal gas appears to avoid itself. KBkit computes the raw integral alongside two finite-size corrections, shows whether they agree, and only then turns the result into thermodynamics.</p>
           <p>Python package and command line: <code>pip install git+https://github.com/siba-p/kbkit</code>. The web app and the package give identical numbers.</p>
         </div>
-        <div class="prose">
+        <div class="prose eqs">
           <h2>Method</h2>
-          <ul>
-            <li><b>GvdV:</b> g(r) corrected for the depletion of a finite box, then integrated.</li>
-            <li><b>KV:</b> finite-volume integral with weight 1 − 3x/2 + x³/2, extrapolated through L·G<sub>V</sub>(L) = G<sub>∞</sub>L + F.</li>
-            <li><b>Reliability score:</b> agreement between the two corrected estimates, flatness of the plateau, and whether the correction could be applied.</li>
-            <li><b>Thermodynamics:</b> Δ = G<sub>cc</sub> + G<sub>ww</sub> − 2G<sub>cw</sub>; ∂ln a<sub>c</sub>/∂ln x<sub>c</sub> = 1/(1 + ρx<sub>w</sub>Δ); V̄ and κ<sub>T</sub> from η and ζ; ν<sub>pc</sub> = ρ<sub>c</sub>(G<sub>pc</sub> − G<sub>pw</sub>).</li>
-          </ul>
+          <p><b>Running integral</b></p>
+          {{ transform.ToMath `G_{ij}(R) = 4\pi \int_0^{R} \left[ g_{ij}(r) - 1 \right] r^2 \, dr` (dict "displayMode" true "output" "htmlAndMathml") }}
+          <p><b>Ganguly–van der Vegt correction</b> of the closed-box RDF</p>
+          {{ transform.ToMath `g_{ij}^{\mathrm{GvdV}}(r) = g_{ij}(r)\, \frac{N_j \left(1 - V_r/V\right)}{N_j \left(1 - V_r/V\right) - \Delta N_{ij}(r) - \delta_{ij}}` (dict "displayMode" true "output" "htmlAndMathml") }}
+          {{ transform.ToMath `V_r = \tfrac{4}{3}\pi r^3, \qquad \Delta N_{ij}(r) = \rho_j\, G_{ij}(r)` (dict "displayMode" true "output" "htmlAndMathml") }}
+          <p><b>Krüger–Vlugt finite-volume integral</b>, extrapolated to the thermodynamic limit</p>
+          {{ transform.ToMath `G_V(L) = \int_0^{L} \left[ g(r) - 1 \right] 4\pi r^2 \left(1 - \tfrac{3x}{2} + \tfrac{x^3}{2}\right) dr` (dict "displayMode" true "output" "htmlAndMathml") }}
+          {{ transform.ToMath `x = \tfrac{r}{L}, \qquad L\,G_V(L) = G_\infty\, L + F` (dict "displayMode" true "output" "htmlAndMathml") }}
+          <p><b>Binary mixture</b> (c = cosolvent, w = solvent), with {{ transform.ToMath `\Delta = G_{cc} + G_{ww} - 2G_{cw}` (dict "output" "htmlAndMathml") }}</p>
+          {{ transform.ToMath `\left(\frac{\partial \ln a_c}{\partial \ln x_c}\right)_{T,p} = \frac{1}{1 + \rho\, x_w \Delta}` (dict "displayMode" true "output" "htmlAndMathml") }}
+          {{ transform.ToMath `\bar V_c = \frac{1 + \rho_w (G_{ww} - G_{cw})}{\eta}, \qquad \kappa_T = \frac{\zeta}{\eta\, k_B T}` (dict "displayMode" true "output" "htmlAndMathml") }}
+          {{ transform.ToMath `\eta = \rho_w + \rho_c + \rho_w \rho_c \Delta` (dict "displayMode" true "output" "htmlAndMathml") }}
+          {{ transform.ToMath `\zeta = 1 + \rho_w G_{ww} + \rho_c G_{cc} + \rho_w \rho_c \left(G_{ww} G_{cc} - G_{cw}^2\right)` (dict "displayMode" true "output" "htmlAndMathml") }}
+          <p><b>Preferential binding</b> of cosolvent c to solute p</p>
+          {{ transform.ToMath `\nu_{pc} = \rho_c \left( G_{pc} - G_{pw} \right)` (dict "displayMode" true "output" "htmlAndMathml") }}
           <ol class="refs">
             <li>J. G. Kirkwood &amp; F. P. Buff, <i>J. Chem. Phys.</i> 19, 774 (1951).</li>
             <li>P. Ganguly &amp; N. F. A. van der Vegt, <i>J. Chem. Theory Comput.</i> 9, 1347 (2013).</li>

@@ -133,7 +133,9 @@
     const u = () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
     return { u, n: () => Math.sqrt(-2 * Math.log(u() + 1e-300)) * Math.cos(2 * Math.PI * u()) };
   }
+  // Inline (or display) LaTeX via KaTeX when it is loaded; plain text otherwise.
+  const tex = (s, display) => (window.katex ? window.katex.renderToString(s, { throwOnError: false, displayMode: !!display, output: "html" }) : s);
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 
-  window.APP = { toast, gauge, level, steps, tabs, download, svgString, svgToPng, chartTools, report, prefs, copy, bindDrop, rng, esc };
+  window.APP = { tex, toast, gauge, level, steps, tabs, download, svgString, svgToPng, chartTools, report, prefs, copy, bindDrop, rng, esc };
 })();

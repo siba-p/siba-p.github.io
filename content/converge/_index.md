@@ -5,4 +5,5 @@ lead: "Is your simulation converged, and are your error bars honest? Drop in any
 description: "Converge: in-browser equilibration detection, autocorrelation times, block averaging and honest error bars for molecular simulation time series."
 scripts: ["js/sm-charts.js", "js/app-shell.js", "js/converge-core.js", "js/converge-ui.js"]
 styles: ["css/apps.css"]
+math: true
 ---

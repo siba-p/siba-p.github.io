@@ -10,12 +10,11 @@
         </div>
       </div>
       <div class="app-badges">
-        <span><i style="background:#34c6b6"></i>Validated: 95% intervals cover the truth 94.8% of the time</span>
-        <span><i style="background:#8ea0ff"></i>Runs locally · nothing is uploaded</span>
+        <span>Validated: 95% intervals cover the truth 94.8% of the time</span>
+        <span>Runs locally · nothing is uploaded</span>
         <a href="https://github.com/siba-p/converge">Python package & CLI ↗</a>
         <a href="#method">Method</a>
       </div>
-      <ol class="app-steps" id="cv-steps"><li class="on"><b>1</b>Load a time series</li><li><b>2</b>Pick a quantity</li><li><b>3</b>Read the verdict</li><li><b>4</b>Export</li></ol>
     </div>
   </header>
 
@@ -71,9 +70,9 @@
           <h2>Check a simulation in seconds</h2>
           <p>Drop in a <code>gmx energy</code> file or any time series. Converge works out how much of the run to discard, how many truly independent samples you have, and whether the average is still drifting. Or start with an example:</p>
           <div class="samples">
-            <button class="sample" type="button" data-sample="npt"><span class="tag good">Converged</span><b>NPT production run</b><span>Density and pressure from a well-behaved run with a short equilibration.</span><i>Load example →</i></button>
-            <button class="sample" type="button" data-sample="drift"><span class="tag bad">Not converged</span><b>Still drifting</b><span>Potential energy that keeps creeping down: the average depends on when you stop.</span><i>Load example →</i></button>
-            <button class="sample" type="button" data-sample="slow"><span class="tag warn">Too short</span><b>Slow relaxation</b><span>An order parameter with long memory: thousands of frames, few independent samples.</span><i>Load example →</i></button>
+            <button class="sample" type="button" data-sample="npt"><span class="spec">density, pressure · 6000 frames · {{ transform.ToMath `\Delta t = 2\,\mathrm{ps}` (dict "output" "htmlAndMathml") }}</span><b>NPT production run</b><span>Short equilibration, then a stationary signal.</span></button>
+            <button class="sample" type="button" data-sample="drift"><span class="spec">potential, temperature · 8000 frames</span><b>Drifting run</b><span>Potential energy still decreasing when the run ends.</span></button>
+            <button class="sample" type="button" data-sample="slow"><span class="spec">order parameter · {{ transform.ToMath `\phi = 0.996` (dict "output" "htmlAndMathml") }} · 6000 frames</span><b>Slow relaxation</b><span>Long memory: many frames, few independent samples.</span></button>
           </div>
         </section>
 
@@ -136,15 +135,18 @@
           <p>Consecutive simulation frames are correlated, the start of a run is rarely equilibrated, and slow drifts hide in noisy data. The naive standard error ignores all three. On correlated test data it covered the true mean only 38% of the time, although it claims 95%. Converge's intervals covered it 94.8% of the time.</p>
           <p>The same algorithms are in the Python package (<code>pip install git+https://github.com/siba-p/converge</code>), and the web app and the package give identical numbers.</p>
         </div>
-        <div class="prose">
+        <div class="prose eqs">
           <h2>Method</h2>
-          <ul>
-            <li><b>Equilibration:</b> the t₀ that maximises the number of independent samples, cross-checked with MSER-5.</li>
-            <li><b>Autocorrelation:</b> FFT autocorrelation with Sokal's automatic window; g = 2τ<sub>int</sub>.</li>
-            <li><b>Block averaging:</b> Flyvbjerg–Petersen, with automatic plateau detection.</li>
-            <li><b>Stationarity:</b> a first-half versus second-half z-test and a linear-trend test.</li>
-            <li><b>Score:</b> starts at 100 and loses points for drift, few independent samples, disagreement between the two error estimates, and a long equilibration.</li>
-          </ul>
+          <p><b>Autocorrelation time</b> (Sokal window {{ transform.ToMath `M \geq 5\,\tau_{\mathrm{int}}(M)` (dict "output" "htmlAndMathml") }}) and <b>statistical inefficiency</b></p>
+          {{ transform.ToMath `\tau_{\mathrm{int}} = \tfrac{1}{2} + \sum_{t=1}^{M} \rho(t), \qquad g = 2\tau_{\mathrm{int}}, \qquad N_{\mathrm{eff}} = \frac{N}{g}` (dict "displayMode" true "output" "htmlAndMathml") }}
+          <p><b>Standard error</b> of the production mean</p>
+          {{ transform.ToMath `\mathrm{SEM} = \sigma_x \sqrt{\frac{g}{N}}` (dict "displayMode" true "output" "htmlAndMathml") }}
+          <p><b>Equilibration</b>: discard the start that leaves the most independent samples (Chodera)</p>
+          {{ transform.ToMath `t_0^{*} = \arg\max_{t_0} \; \frac{N - t_0}{g(t_0)}` (dict "displayMode" true "output" "htmlAndMathml") }}
+          <p><b>Block averaging</b> (Flyvbjerg–Petersen), plateau of</p>
+          {{ transform.ToMath `\mathrm{SEM}_b = \sqrt{\frac{\operatorname{Var}(\bar x_b)}{n_b - 1}}` (dict "displayMode" true "output" "htmlAndMathml") }}
+          <p><b>Run length for a target error</b></p>
+          {{ transform.ToMath `T_{\mathrm{needed}} = T \left(\frac{\mathrm{SEM}}{\mathrm{SEM}_{\mathrm{target}}}\right)^{2}` (dict "displayMode" true "output" "htmlAndMathml") }}
           <ol class="refs">
             <li>J. D. Chodera, <i>J. Chem. Theory Comput.</i> 12, 1799 (2016).</li>
             <li>H. Flyvbjerg &amp; H. G. Petersen, <i>J. Chem. Phys.</i> 91, 461 (1989).</li>

@@ -10,13 +10,12 @@
         </div>
       </div>
       <div class="app-badges">
-        <span><i style="background:#34c6b6"></i>Validated: WHAM within 0.2 kJ/mol of an exact PMF</span>
-        <span><i style="background:#c49cff"></i>AI/ML: GP umbrella integration + active learning</span>
-        <span><i style="background:#8ea0ff"></i>Runs locally · nothing is uploaded</span>
+        <span>Validated: WHAM within 0.2 kJ/mol of an exact PMF</span>
+        <span>AI/ML: GP umbrella integration + active learning</span>
+        <span>Runs locally · nothing is uploaded</span>
         <a href="https://github.com/siba-p/windowwise">Python package & CLI ↗</a>
         <a href="#method">Method</a>
       </div>
-      <ol class="app-steps" id="ww-steps"><li class="on"><b>1</b>Plan or load</li><li><b>2</b>Configure</li><li><b>3</b>Diagnose</li><li><b>4</b>Repair &amp; export</li></ol>
     </div>
   </header>
 
@@ -125,7 +124,10 @@
             </nav>
             <div class="rview" id="pv-layout"><div class="chart-host" id="pc-layout"></div>
               <details class="explain" open><summary>How is the design derived?</summary><div class="x-in">
-                <p>On a locally flat free-energy profile a harmonic window samples a Gaussian of width <b>σ = √(k<sub>B</sub>T/k)</b>. Two neighbours a distance d apart overlap by <b>2Φ(−d/2σ)</b>, so the target overlap fixes d/σ. A slope F′ pushes every window off its centre by <b>F′/k</b>. Choosing k ≥ (F′/z)²/k<sub>B</sub>T keeps that drift below half a spacing, so the steep parts of the profile stay covered.</p></div></details></div>
+                <p>On a locally flat profile a harmonic window samples a Gaussian, and two neighbours a distance {{ transform.ToMath `d` (dict "output" "htmlAndMathml") }} apart overlap by</p>
+                {{ transform.ToMath `\sigma = \sqrt{k_B T / k}, \qquad O = 2\,\Phi\!\left(-\frac{d}{2\sigma}\right).` (dict "displayMode" true "output" "htmlAndMathml") }}
+                <p>A slope {{ transform.ToMath `F'` (dict "output" "htmlAndMathml") }} shifts every window by {{ transform.ToMath `F'/k` (dict "output" "htmlAndMathml") }}. Keeping that below half a spacing gives the force constant</p>
+                {{ transform.ToMath `k \;\geq\; \frac{1}{k_B T}\left(\frac{|F'|_{\max}}{z}\right)^{2}, \qquad z = -\Phi^{-1}\!\left(\tfrac{O}{2}\right).` (dict "displayMode" true "output" "htmlAndMathml") }}</div></details></div>
             <div class="rview" id="pv-table" hidden><div class="tscroll"><table class="dtable" id="p-table"></table></div></div>
             <div class="rview" id="pv-files" hidden>
               <h3 style="font-size:.95rem;margin:0 0 .5rem">Pull-code settings</h3>
@@ -147,9 +149,9 @@
             <h2>Find the holes before your reviewers do</h2>
             <p>Drop the <code>pullx.xvg</code> files of your umbrella windows. WindowWise reconstructs the free-energy profile with error bars, checks every window, and proposes exactly which windows to add. Or start with an example:</p>
             <div class="samples">
-              <button class="sample" type="button" data-sample="clean"><span class="tag good">Healthy</span><b>Well-designed run</b><span>48 stiff windows across a 30 kJ/mol adsorption well; the exact profile is shown for comparison.</span><i>Load example →</i></button>
-              <button class="sample" type="button" data-sample="broken"><span class="tag bad">Broken</span><b>Gap + soft springs</b><span>Two windows are missing and the springs are too soft on the steep wall, both common mistakes.</span><i>Load example →</i></button>
-              <button class="sample" type="button" data-sample="sparse"><span class="tag info">AI/ML</span><b>Sparse windows</b><span>Only 11 widely spaced windows: WHAM cannot connect them, but the Gaussian process can, and active learning picks the next runs.</span><i>Load example →</i></button>
+              <button class="sample" type="button" data-sample="clean"><span class="spec">48 windows · {{ transform.ToMath `k = 8000\,\mathrm{kJ\,mol^{-1}\,nm^{-2}}` (dict "output" "htmlAndMathml") }}</span><b>Well-sampled run</b><span>Morse PMF with a 30 kJ/mol well; the exact profile is overlaid.</span></button>
+              <button class="sample" type="button" data-sample="broken"><span class="spec">19 windows · {{ transform.ToMath `k = 1000\,\mathrm{kJ\,mol^{-1}\,nm^{-2}}` (dict "output" "htmlAndMathml") }}</span><b>Gap and soft springs</b><span>Two windows missing; springs too soft on the steep wall.</span></button>
+              <button class="sample" type="button" data-sample="sparse"><span class="spec">11 windows · {{ transform.ToMath `\Delta\xi = 0.2\,\mathrm{nm}` (dict "output" "htmlAndMathml") }}</span><b>Sparse windows</b><span>No neighbour overlap; GP umbrella integration bridges the gaps.</span></button>
             </div>
           </section>
           <div id="a-res" hidden>
@@ -197,14 +199,16 @@
           <p>Umbrella sampling fails quietly. Windows that are too far apart, or springs too soft for a steep wall, leave holes in the free-energy profile that WHAM smooths over. Usually you only find out after the compute is spent. WindowWise brings design, post-mortem and repair into one place.</p>
           <p>Python package and CLI: <code>pip install git+https://github.com/siba-p/windowwise</code>. Validated against an analytic Morse-type PMF: WHAM RMSE 0.19 kJ/mol; GP 0.18–0.86 kJ/mol with 41 to 11 windows.</p>
         </div>
-        <div class="prose">
+        <div class="prose eqs">
           <h2>Method</h2>
-          <ul>
-            <li><b>WHAM:</b> self-consistent 1D WHAM, bias ½k(ξ − ξ₀)² as in the GROMACS pull code, with block-bootstrap errors (block length 2g).</li>
-            <li><b>Diagnostics:</b> neighbour overlap, drift of each window from its centre, independent samples per window.</li>
-            <li><b>Repair:</b> new windows spaced for the target overlap, k raised where the slope is steep, centres offset by F′/k.</li>
-            <li><b>GP umbrella integration (ML):</b> mean forces k(c − ⟨ξ⟩) as derivative observations of a GP prior; hyperparameters by marginal likelihood; active learning by maximum posterior mean-force uncertainty.</li>
-          </ul>
+          <p><b>Bias</b> (GROMACS pull code) and <b>WHAM</b> self-consistency</p>
+          {{ transform.ToMath `U_i(\xi) = \tfrac{1}{2} k_i (\xi - \xi_i)^2` (dict "displayMode" true "output" "htmlAndMathml") }}
+          {{ transform.ToMath `P(\xi) = \frac{\sum_i n_i(\xi)}{\sum_i N_i\, e^{\beta f_i - \beta U_i(\xi)}}` (dict "displayMode" true "output" "htmlAndMathml") }}
+          {{ transform.ToMath `e^{-\beta f_i} = \sum_{\xi} P(\xi)\, e^{-\beta U_i(\xi)}, \qquad F(\xi) = -k_B T \ln P(\xi)` (dict "displayMode" true "output" "htmlAndMathml") }}
+          <p><b>Errors</b>: block bootstrap of each window, block length {{ transform.ToMath `2g` (dict "output" "htmlAndMathml") }}. <b>Diagnostics</b>: neighbour overlap, drift {{ transform.ToMath `|\langle\xi\rangle_i - \xi_i|` (dict "output" "htmlAndMathml") }}, and {{ transform.ToMath `N_{\mathrm{eff}}` (dict "output" "htmlAndMathml") }} per window.</p>
+          <p><b>GP umbrella integration (ML)</b>: each window gives an exact estimate of its mean force</p>
+          {{ transform.ToMath `\left\langle \frac{\partial A}{\partial \xi} \right\rangle_i = k_i \left(\xi_i - \langle \xi \rangle_i\right), \qquad \operatorname{Var} = k_i^2\, \frac{g_i\, \sigma_i^2}{N_i}` (dict "displayMode" true "output" "htmlAndMathml") }}
+          <p>used as derivative observations of a Gaussian-process prior {{ transform.ToMath `A \sim \mathcal{GP}\big(0,\, s^2 e^{-(\xi-\xi')^2/2\ell^2}\big)` (dict "output" "htmlAndMathml") }}, with {{ transform.ToMath `s, \ell` (dict "output" "htmlAndMathml") }} from the marginal likelihood. Active learning places the next window where the posterior variance of {{ transform.ToMath `\partial A/\partial \xi` (dict "output" "htmlAndMathml") }} is largest.</p>
           <ol class="refs">
             <li>S. Kumar <i>et al.</i>, <i>J. Comput. Chem.</i> 13, 1011 (1992) (WHAM).</li>
             <li>J. Kästner &amp; W. Thiel, <i>J. Chem. Phys.</i> 123, 144104 (2005) (umbrella integration).</li>
