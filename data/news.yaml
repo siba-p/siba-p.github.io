@@ -1,4 +1,6 @@
 # Newest first. Markdown links allowed in "text".
+- when: "Oct 2026"
+  text: "Released [WindowWise](/windowwise/), a free in-browser tool to plan, check and repair umbrella-sampling simulations."
 - when: "2026"
   text: "Joined **QpiAI** as a Computational Materials Scientist."
 - when: "Aug 2026"

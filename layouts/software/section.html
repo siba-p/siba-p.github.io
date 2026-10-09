@@ -9,16 +9,16 @@
           <span class="chip">{{ .kind }}</span>
           <h3>{{ .name }}</h3>
         </div>
-        {{ if .public }}<span class="status live-s">Open source</span>{{ else }}<span class="status">Release in preparation</span>{{ end }}
+        {{ if .url }}<span class="status live-s">Runs in browser</span>{{ else if .public }}<span class="status live-s">Open source</span>{{ else }}<span class="status">Release in preparation</span>{{ end }}
       </header>
       <p style="margin:0;color:var(--ink)">{{ .tagline }}</p>
       <ul>{{ range .features }}<li>{{ . }}</li>{{ end }}</ul>
       {{ with .install }}<pre><code>{{ . | strings.TrimSpace }}</code></pre>{{ end }}
       <footer>
         <div class="chips">{{ range .stack }}<span class="chip">{{ . }}</span>{{ end }}</div>
-        {{ if .public }}<a class="more" href="https://github.com/{{ .repo }}">View on GitHub</a>{{ end }}
+        {{ with .url }}<a class="btn btn-primary" href="{{ . | relURL }}">Open the tool</a>{{ else }}{{ if .public }}<a class="more" href="https://github.com/{{ .repo }}">View on GitHub</a>{{ end }}{{ end }}
       </footer>
-      {{ if .public }}<span class="stars" data-repo="{{ .repo }}"></span>{{ end }}
+      {{ if and .public .repo }}<span class="stars" data-repo="{{ .repo }}"></span>{{ end }}
     </article>
     {{ end }}
   </div>
