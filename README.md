@@ -47,6 +47,9 @@ ffmpeg -ss 1.5 -i static/media/my-run.mp4 -frames:v 1 -q:v 5 static/media/my-run
 | Research studies (home + Research page) | `data/studies.yaml` |
 | Simulation Theatre gallery | `data/gallery.yaml` |
 | Positions, talks, methods (About page) | `data/cv.yaml` |
+| News list (home page) | `data/news.yaml` |
+| Collaboration map (home page): add a collaborator with lat/lon | `data/network.yaml` |
+| Publication lineage: research thread and which paper builds on which | `lane` and `builds_on` in `data/publications.yaml` |
 | About text | `content/about/_index.md` |
 | Email, Scholar, LinkedIn, ORCID, CV link | `[params]` in `hugo.toml` |
 
@@ -54,9 +57,11 @@ ffmpeg -ss 1.5 -i static/media/my-run.mp4 -frames:v 1 -q:v 5 static/media/my-run
 
 ```
 assets/css/main.css      design system (light + dark)
-assets/js/assembly.js    live Brownian-dynamics self-assembly (hero + playground)
+assets/js/assembly.js    DNA-programmable assembly simulation (hero + playground)
 assets/js/ising.js       Kawasaki Ising pattern generator (playground)
-assets/js/site.js        theme toggle, video autoplay, gallery, GitHub stats
+assets/js/site.js        theme, video autoplay, lineage graph, network map, gallery, GitHub stats
+assets/worldmap-path.txt dotted world map (generated from Natural Earth land data)
+assets/india-paths.json  dotted India detail map
 layouts/                 page templates
 content/                 pages and notebook posts
 data/                    structured content (YAML)

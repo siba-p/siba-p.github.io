@@ -1,0 +1,64 @@
+{{- $p := site.Data.publications -}}
+{{- $colx := dict "2023" 250 "2024" 390 "2025" 530 "2026" 670 "prep" 800 -}}
+{{- $lanes := dict -}}
+{{- range $i, $l := $p.lanes }}{{ $lanes = merge $lanes (dict $l.id (add 92 (mul $i 66))) }}{{ end -}}
+{{- $pos := dict -}}
+{{- $laneEnd := dict -}}
+{{- range $p.items -}}
+  {{- $c := cond (eq .status "preparation") "prep" (string .year) -}}
+  {{- $x := index $colx $c -}}
+  {{- $y := index $lanes .lane -}}
+  {{- $pos = merge $pos (dict .key (dict "x" $x "y" $y)) -}}
+  {{- $cur := index $laneEnd .lane -}}
+  {{- if or (not $cur) (gt $x $cur.x) }}{{ $laneEnd = merge $laneEnd (dict .lane (dict "x" $x "key" .key)) }}{{ end -}}
+{{- end -}}
+{{- $bottom := add 92 (mul (sub (len $p.lanes) 1) 66) -}}
+<div class="lineage">
+  <div class="lineage-head">
+    <h2>Research lineage</h2>
+    <div class="legend" aria-hidden="true">
+      <span><svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="5.5" fill="var(--accent)"/></svg>Journal</span>
+      <span><svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="5.5" fill="var(--teal)"/></svg>Workshop</span>
+      <span><svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="5" fill="none" stroke="var(--gold)" stroke-width="2"/></svg>Under review</span>
+      <span><svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="5" fill="none" stroke="var(--ink-3)" stroke-width="1.6" stroke-dasharray="2 2"/></svg>In preparation</span>
+      <span><svg viewBox="0 0 14 14"><path d="M1 7h12" stroke="var(--ink-3)" stroke-width="1.6"/></svg>builds on</span>
+    </div>
+  </div>
+  <div class="lineage-scroll">
+    <svg class="graph" viewBox="0 0 1000 {{ add $bottom 58 }}" role="group" aria-label="Graph of publications by year and research thread, showing which papers build on which">
+      {{- range $k, $x := $colx }}
+      <line class="col-line" x1="{{ $x }}" x2="{{ $x }}" y1="54" y2="{{ add $bottom 26 }}"/>
+      <text class="col-label" x="{{ $x }}" y="40">{{ cond (eq $k "prep") "In prep." $k }}</text>
+      {{- end }}
+      <text class="col-label" x="935" y="40">Thesis</text>
+      {{- range $p.lanes }}
+      {{- $y := index $lanes .id }}
+      <line class="lane-line" x1="14" x2="880" y1="{{ $y }}" y2="{{ $y }}"/>
+      <text class="lane-label" x="14" y="{{ sub $y 8 }}">{{ .name }}</text>
+      {{- end }}
+      <g class="thesis">
+        <rect x="900" y="64" width="70" height="{{ sub $bottom 44 }}" rx="10"/>
+        <text x="935" y="{{ add 64 (div (sub $bottom 44) 2) }}" transform="rotate(-90 935 {{ add 64 (div (sub $bottom 44) 2) }})" dy="4">PhD thesis · IIT Delhi 2026</text>
+      </g>
+      {{- range $p.items }}
+        {{- $to := index $pos .key }}{{ $toKey := .key }}
+        {{- range .builds_on }}
+          {{- $from := index $pos . }}
+          <path class="edge" data-from="{{ . }}" data-to="{{ $toKey }}" d="M{{ $from.x }} {{ $from.y }} C{{ add $from.x 70 }} {{ $from.y }} {{ sub $to.x 70 }} {{ $to.y }} {{ $to.x }} {{ $to.y }}"/>
+        {{- end }}
+      {{- end }}
+      {{- range $lane, $e := $laneEnd }}
+        {{- $y := index $lanes $lane }}
+        <path class="edge to-thesis" data-from="{{ $e.key }}" data-to="thesis" d="M{{ $e.x }} {{ $y }} L900 {{ $y }}"/>
+      {{- end }}
+      {{- range $p.items }}
+        {{- $q := index $pos .key }}
+        <a class="node {{ .status }}" href="#pub-{{ .key }}" data-key="{{ .key }}" data-title="{{ .title }}" data-take="{{ .takeaway }}" aria-label="{{ .title }}">
+          <circle class="ring" cx="{{ $q.x }}" cy="{{ $q.y }}" r="11"/>
+          <text x="{{ $q.x }}" y="{{ add $q.y 29 }}">{{ .short_venue | default "Manuscript" }}</text>
+        </a>
+      {{- end }}
+    </svg>
+  </div>
+  <p class="graph-tip" aria-live="polite"><b>Hover or tap a paper</b> to trace what it builds on and see its main result.</p>
+</div>

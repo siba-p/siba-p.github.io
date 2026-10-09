@@ -1,0 +1,76 @@
+{{- $net := site.Data.network -}}
+{{- $nodes := $net.nodes -}}
+{{- $hub := index (where $nodes "id" $net.hub) 0 -}}
+{{- $kinds := dict "current" "Current role" "home" "PhD" "collaboration" "Collaboration" "education" "Education" "computing" "Computing" "venue" "Venue" -}}
+{{- $world := (resources.Get "worldmap-path.txt").Content -}}
+{{- $india := (resources.Get "india-paths.json").Content | transform.Unmarshal -}}
+{{- /* World map: equirectangular, lon -180..180 -> 0..1000, lat 80..-58 -> 0..383.33 */ -}}
+{{- $hx := mul (div (add $hub.lon 180.0) 360.0) 1000.0 -}}
+{{- $hy := mul (div (sub 80.0 $hub.lat) 138.0) 383.33 -}}
+<div class="netgrid" data-net>
+  <div class="mapcard">
+    <h3>Worldwide</h3>
+    <svg viewBox="0 0 1000 383.33" role="img" aria-label="World map of institutions and venues connected to Sibasankar Panigrahy's research">
+      <defs><linearGradient id="ag-w" x1="0" x2="1"><stop offset="0" stop-color="#6f88ff"/><stop offset="1" stop-color="#34c6b6"/></linearGradient></defs>
+      <path class="map-dots" stroke-width="2.6" d="{{ $world }}"/>
+      <rect class="map-region" x="680.6" y="119.4" width="88.9" height="88.9" rx="6"/>
+      <text x="725" y="224" text-anchor="middle" style="font:600 10px var(--f-body);fill:#9ba6bf">India · detail →</text>
+      {{- range $nodes }}
+        {{- if not .india }}
+          {{- $x := mul (div (add .lon 180.0) 360.0) 1000.0 }}
+          {{- $y := mul (div (sub 80.0 .lat) 138.0) 383.33 }}
+          {{- $mx := div (add $x $hx) 2.0 }}{{ $len := math.Abs (sub $x $hx) }}
+          {{- $cy := sub (div (add $y $hy) 2.0) (mul $len 0.22) }}
+          <path class="arc" stroke="url(#ag-w)" d="M{{ $hx }} {{ $hy }} Q{{ $mx }} {{ math.Max $cy 12.0 }} {{ $x }} {{ $y }}"/>
+        {{- end }}
+      {{- end }}
+      {{- range $nodes }}
+        {{- $x := mul (div (add .lon 180.0) 360.0) 1000.0 }}
+        {{- $y := mul (div (sub 80.0 .lat) 138.0) 383.33 }}
+        <g class="mnode" data-node="{{ .id }}">
+          <circle class="halo nk-{{ .kind }}" cx="{{ $x }}" cy="{{ $y }}" r="{{ cond .india 4 6 }}"/>
+          <circle class="core nk-{{ .kind }}" cx="{{ $x }}" cy="{{ $y }}" r="{{ cond .india 3 4.5 }}"/>
+          {{- if not .india }}
+          <text x="{{ add $x 10 }}" y="{{ sub $y 4 }}">{{ .name }}</text>
+          <text class="sub" x="{{ add $x 10 }}" y="{{ add $y 9 }}">{{ .place }}</text>
+          {{- end }}
+        </g>
+      {{- end }}
+    </svg>
+  </div>
+  <div class="mapcard">
+    <h3>India</h3>
+    {{- /* India panel: lon 66..98 -> 0..400, lat 37..5 -> 0..400 */ -}}
+    {{- $ix := mul (div (sub $hub.lon 66.0) 32.0) 400.0 }}{{ $iy := mul (div (sub 37.0 $hub.lat) 32.0) 400.0 }}
+    <svg viewBox="0 0 400 400" role="img" aria-label="Map of India showing IIT Delhi connected to collaborators and institutions">
+      <defs><linearGradient id="ag-i" x1="0" x2="1"><stop offset="0" stop-color="#6f88ff"/><stop offset="1" stop-color="#34c6b6"/></linearGradient></defs>
+      <path class="map-dots" stroke-width="3.6" d="{{ $india.other }}"/>
+      <path class="map-dots india" stroke-width="3.6" d="{{ $india.india }}"/>
+      {{- range $nodes }}
+        {{- if and .india (ne .id $hub.id) }}
+          {{- $x := mul (div (sub .lon 66.0) 32.0) 400.0 }}{{ $y := mul (div (sub 37.0 .lat) 32.0) 400.0 }}
+          {{- $dx := sub $x $ix }}{{ $dy := sub $y $iy }}
+          {{- $cx := sub (div (add $x $ix) 2.0) (mul $dy 0.22) }}{{ $cy := add (div (add $y $iy) 2.0) (mul $dx 0.22) }}
+          <path class="arc" stroke="url(#ag-i)" d="M{{ $ix }} {{ $iy }} Q{{ $cx }} {{ $cy }} {{ $x }} {{ $y }}"/>
+        {{- end }}
+      {{- end }}
+      {{- range $nodes }}
+        {{- if .india }}
+          {{- $x := mul (div (sub .lon 66.0) 32.0) 400.0 }}{{ $y := mul (div (sub 37.0 .lat) 32.0) 400.0 }}
+          {{- $left := in (slice "iitd" "diat") .id }}
+          <g class="mnode" data-node="{{ .id }}">
+            <circle class="halo nk-{{ .kind }}" cx="{{ $x }}" cy="{{ $y }}" r="7"/>
+            <circle class="core nk-{{ .kind }}" cx="{{ $x }}" cy="{{ $y }}" r="{{ cond (eq .id $hub.id) 6.5 5 }}"/>
+            <text x="{{ cond $left (sub $x 11) (add $x 11) }}" y="{{ sub $y 3 }}" text-anchor="{{ cond $left "end" "start" }}">{{ .name }}</text>
+            <text class="sub" x="{{ cond $left (sub $x 11) (add $x 11) }}" y="{{ add $y 10 }}" text-anchor="{{ cond $left "end" "start" }}">{{ .place }}</text>
+          </g>
+        {{- end }}
+      {{- end }}
+    </svg>
+  </div>
+</div>
+<ul class="netlist">
+  {{- range $nodes }}
+  <li data-node="{{ .id }}" tabindex="0"><span class="dot nk-{{ .kind }}"></span><div><b>{{ .name }}</b>{{ .role }}<br><small>{{ index $kinds .kind }} · {{ .place }}</small></div></li>
+  {{- end }}
+</ul>

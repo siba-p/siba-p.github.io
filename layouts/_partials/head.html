@@ -6,7 +6,7 @@
 {{- $desc := cond .IsHome site.Params.description (.Description | default .Summary | default site.Params.description) | plainify | truncate 180 }}
 <meta name="description" content="{{ $desc }}">
 <meta name="author" content="{{ site.Params.author }}">
-<meta name="theme-color" content="#080b13">
+<meta name="theme-color" content="#090f1f">
 <link rel="canonical" href="{{ .Permalink }}">
 <meta property="og:type" content="{{ if eq .Section "notebook" }}{{ if .IsPage }}article{{ else }}website{{ end }}{{ else }}website{{ end }}">
 <meta property="og:title" content="{{ $title }}">
@@ -20,7 +20,7 @@
 {{ with site.GetPage "/notebook" }}{{ with .OutputFormats.Get "rss" }}<link rel="alternate" type="application/rss+xml" href="{{ .Permalink }}" title="Lab Notebook — {{ site.Title }}">{{ end }}{{ end }}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap">
 {{ $css := resources.Get "css/main.css" | minify | fingerprint }}
 <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
 {{ if .Page.Store.Get "hasMath" }}<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css" crossorigin="anonymous">{{ end }}

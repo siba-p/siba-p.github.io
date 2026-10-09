@@ -1,9 +1,25 @@
 <footer class="site-footer">
   <div class="wrap">
-    <div>© {{ now.Year }} {{ site.Params.author }} · {{ site.Params.role }}, {{ site.Params.affiliation }}</div>
-    <nav aria-label="Elsewhere">
-      {{ partial "social.html" (dict "plain" true) }}
-      {{ with site.GetPage "/notebook" }}{{ with .OutputFormats.Get "rss" }}<a href="{{ .RelPermalink }}">RSS</a>{{ end }}{{ end }}
-    </nav>
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a class="brand" href="{{ "/" | relURL }}">{{ partial "logo.html" . }}<span>Sibasankar Panigrahy<small>{{ site.Params.role }}, {{ site.Params.affiliation }}</small></span></a>
+        <p>Programmable nanomaterials, molecular simulation and machine learning for materials design.</p>
+      </div>
+      <div>
+        <h4>Explore</h4>
+        <ul>{{ range site.Menus.main }}<li><a href="{{ .URL }}">{{ .Name }}</a></li>{{ end }}</ul>
+      </div>
+      <div>
+        <h4>Connect</h4>
+        <ul>
+          {{ partial "social.html" (dict "plain" true "li" true) }}
+          {{ with site.GetPage "/notebook" }}{{ with .OutputFormats.Get "rss" }}<li><a href="{{ .RelPermalink }}">Notebook RSS</a></li>{{ end }}{{ end }}
+        </ul>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© {{ now.Year }} {{ site.Params.author }}</span>
+      <span>Simulation movies and renders are the author's own work.</span>
+    </div>
   </div>
 </footer>

@@ -48,11 +48,12 @@
 
 - id: ml-adhesion
   number: "05"
-  scale: "design space · ~0.5 M free-energy profiles"
+  scale: "design space · ~470k free-energy profiles"
   title: "Learning adhesion, then running it backwards"
   short: "A CNN–GRU–attention network predicts full PMF profiles from sequence and surface pattern, and a tandem model designs surfaces for a target."
   media: { type: video, src: "media/polymer-surface.mp4", poster: "media/polymer-surface.jpg", alt: "Coarse-grained polymer adsorbing onto a chemically patterned surface" }
+  image2: { src: "img/ml-architecture.jpg", alt: "Hybrid CNN, GRU and attention network architecture" }
   question: "Can a model trained on simulation data replace umbrella sampling, and then solve the inverse problem of designing a surface?"
-  approach: "Polymer sequences and surface patterns were generated with 1D/2D Monte Carlo Ising models at fixed composition. About half a million umbrella-sampling free-energy simulations were used to train a hybrid CNN (surface) + GRU (sequence) + transformer-attention model. A tandem network and Boolean particle swarm optimisation were used for inverse design."
+  approach: "Polymer sequences and surface patterns were generated with 1D/2D Monte Carlo Ising models at fixed composition. About 470,000 umbrella-sampling free-energy simulations were used to train a hybrid CNN (surface) + GRU (sequence) + transformer-attention model. A tandem network and Boolean particle swarm optimisation were used for inverse design."
   finding: "The forward model reaches R² = 0.995 (MAE ≈ 0.45) on held-out PMF profiles, against 0.980 for a DNN baseline. The tandem inverse-design model generates surface patterns whose MD-validated PMFs match target free-energy landscapes, including outside the training distribution."
   paper: { label: "NeurIPS AI4Mat 2025 · MSDE (under review)" }

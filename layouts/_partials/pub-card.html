@@ -1,0 +1,34 @@
+{{- $me := site.Data.publications.me -}}
+{{- $labels := dict "published" "Journal article" "workshop" "Workshop paper" "review" "Under review" "preparation" "In preparation" -}}
+{{- $lane := index (where site.Data.publications.lanes "id" .lane) 0 -}}
+<article class="card pub-card" id="pub-{{ .key }}" data-lane="{{ .lane }}">
+  <div class="thumb">{{ with .image }}<img src="{{ . | relURL }}" alt="" loading="lazy" decoding="async">{{ end }}</div>
+  <div class="txt">
+    <div class="chips"><span class="badge {{ .status }}">{{ index $labels .status }}</span>{{ with $lane }}<span class="chip">{{ .name }}</span>{{ end }}</div>
+    <h3>{{ with .doi }}<a href="https://doi.org/{{ . }}">{{ $.title }}</a>{{ else }}{{ .title }}{{ end }}</h3>
+    <p class="authors">{{ range $i, $a := .authors }}{{ if $i }}, {{ end }}{{ if eq $a $me }}<b>{{ $a }}</b>{{ else }}{{ $a }}{{ end }}{{ end }}</p>
+    {{- $venue := .venue }}
+    <p class="venue">{{ with $venue }}<i>{{ . }}</i>{{ end }}{{ with .volume }} {{ . }}{{ end }}{{ with .pages }}, {{ . }}{{ end }}{{ with .year }} ({{ . }}){{ end }}{{ with .note }}{{ if $venue }} · {{ end }}{{ . }}{{ end }}</p>
+    {{ if not .compact }}{{ with .takeaway }}<p class="take">{{ . }}</p>{{ end }}{{ end }}
+    <div class="actions">
+      {{ with .doi }}<a class="chip" href="https://doi.org/{{ . }}">DOI ↗</a>{{ end }}
+      {{ if and .venue (not .compact) }}
+      <details>
+        <summary class="chip">Cite (BibTeX)</summary>
+        {{- $type := cond (eq .status "workshop") "inproceedings" "article" }}
+        {{- $field := cond (eq .status "workshop") "booktitle" "journal" }}
+        <pre id="bib-{{ .key }}">@{{ $type }}{ {{- .key }},
+  title   = { {{- .title -}} },
+  author  = { {{- delimit .authors " and " -}} },
+  {{ $field }} = { {{- .venue -}} },{{ with .volume }}
+  volume  = { {{- . -}} },{{ end }}{{ with .pages }}
+  pages   = { {{- . -}} },{{ end }}{{ with .year }}
+  year    = { {{- . -}} },{{ end }}{{ with .doi }}
+  doi     = { {{- . -}} },{{ end }}
+}</pre>
+        <button class="chip" type="button" data-copy="bib-{{ .key }}" style="margin-top:.5rem;cursor:pointer">Copy</button>
+      </details>
+      {{ end }}
+    </div>
+  </div>
+</article>

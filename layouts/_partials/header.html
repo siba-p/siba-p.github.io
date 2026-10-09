@@ -2,9 +2,9 @@
   <div class="wrap">
     <a class="brand" href="{{ "/" | relURL }}" aria-label="{{ site.Title }}, home">
       {{ partial "logo.html" . }}
-      <span>S. Panigrahy<small>Assembly · Learning</small></span>
+      <span>Sibasankar Panigrahy<small>{{ site.Params.role }}</small></span>
     </a>
-    <div style="display:flex;align-items:center;gap:.4rem">
+    <div class="header-right">
       <nav class="nav" id="site-nav" aria-label="Main">
         {{- $cur := . }}
         {{- range site.Menus.main }}

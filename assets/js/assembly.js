@@ -1,60 +1,67 @@
 /*
- * Live 2D self-assembly: overdamped Langevin (Brownian) dynamics of Lennard-Jones
- * particles in a periodic box, reduced units (sigma = epsilon = gamma = 1).
- * Particles are coloured by coordination number; bonded crystalline neighbours are drawn
- * as a graph, and an "attention head" overlay shows softmax weights from a query particle
- * to its neighbours.
+ * DNA-programmable nanoparticle assembly in 2D.
+ * Overdamped Langevin (Brownian) dynamics in a periodic box, reduced units (sigma = epsilon = gamma = 1).
+ * Two species, A and B, each carrying one DNA "strand". The program is a 2x2 matrix saying which pairs
+ * hybridise: hybridising pairs feel a Lennard-Jones attraction, all other pairs are purely repulsive (WCA).
+ *   complementary  A–B only     -> binary square (checkerboard) lattice
+ *   self           A–A and B–B  -> demixing into two hexagonal crystals
+ *   universal      all pairs    -> hexagonal substitutional alloy
  */
 (function () {
   "use strict";
 
-  const RC = 2.5, RC2 = RC * RC, BOND2 = 1.32 * 1.32, MAXSTEP = 0.08;
+  const RC = 2.5, RC2 = RC * RC, WCA2 = Math.pow(2, 1 / 3), SL2 = 1.25 * 1.25, BOND2 = 1.32 * 1.32, MAXSTEP = 0.08;
+  const PROGRAMS = {
+    complementary: { m: [0, 1, 1, 0] },
+    self: { m: [1, 0, 0, 1] },
+    universal: { m: [1, 1, 1, 1] }
+  };
+  const SPECIES = [
+    { corona: [96, 126, 255], name: "A" },
+    { corona: [255, 159, 90], name: "B" }
+  ];
 
-  function sprite(size, stops, glow) {
+  function particleSprite(d, rgb, bound) {
     const c = document.createElement("canvas");
-    const pad = Math.ceil(size * 0.35);
-    c.width = c.height = size + pad * 2;
-    const g = c.getContext("2d");
-    const cx = c.width / 2, r = size / 2;
-    if (glow) {
-      const halo = g.createRadialGradient(cx, cx, r * 0.8, cx, cx, r + pad);
-      halo.addColorStop(0, glow);
-      halo.addColorStop(1, "rgba(0,0,0,0)");
-      g.fillStyle = halo;
-      g.fillRect(0, 0, c.width, c.height);
-    }
-    const grad = g.createRadialGradient(cx - r * 0.38, cx - r * 0.42, r * 0.05, cx, cx, r);
-    stops.forEach(([o, col]) => grad.addColorStop(o, col));
-    g.fillStyle = grad;
-    g.beginPath(); g.arc(cx, cx, r, 0, Math.PI * 2); g.fill();
+    const pad = Math.ceil(d * 0.2);
+    c.width = c.height = d + pad * 2;
+    const g = c.getContext("2d"), cx = c.width / 2, R = d / 2, core = R * 0.5;
+    const [r, gg, b] = rgb;
+    const halo = g.createRadialGradient(cx, cx, core * 0.9, cx, cx, R);
+    halo.addColorStop(0, `rgba(${r},${gg},${b},${bound ? 0.8 : 0.4})`);
+    halo.addColorStop(1, `rgba(${r},${gg},${b},${bound ? 0.35 : 0.12})`);
+    g.fillStyle = halo; g.beginPath(); g.arc(cx, cx, R, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = `rgba(${r},${gg},${b},${bound ? 0.95 : 0.55})`;
+    g.lineWidth = Math.max(1, d * 0.05);
+    g.beginPath(); g.arc(cx, cx, R - g.lineWidth / 2, 0, Math.PI * 2); g.stroke();
+    const grad = g.createRadialGradient(cx - core * 0.35, cx - core * 0.4, core * 0.08, cx, cx, core);
+    if (bound) { grad.addColorStop(0, "#fff8dc"); grad.addColorStop(0.35, "#f2c75a"); grad.addColorStop(0.8, "#a8770e"); grad.addColorStop(1, "#4d3405"); }
+    else { grad.addColorStop(0, "#f3e9cf"); grad.addColorStop(0.4, "#c9ab6a"); grad.addColorStop(1, "#5c4a22"); }
+    g.fillStyle = grad; g.beginPath(); g.arc(cx, cx, core, 0, Math.PI * 2); g.fill();
     return { img: c, off: c.width / 2 };
   }
 
   function AssemblySim(canvas, opts) {
     opts = Object.assign({
-      sigmaPx: 22, phi: 0.22, maxN: 720, T: 0.36, startT: 1.25, anneal: true,
-      tau: 1.0, bonds: true, attention: true, onStats: null, interactive: true
+      sigmaPx: 20, phi: 0.44, maxN: 620, T: 0.45, startT: 1.0, anneal: true, program: "complementary",
+      xA: 0.5, tau: 1.0, bonds: true, attention: false, onStats: null, interactive: true, prewarm: 0
     }, opts || {});
 
     const ctx = canvas.getContext("2d");
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let W = 0, H = 0, dpr = 1, Lx = 0, Ly = 0, N = 0, sPx = opts.sigmaPx;
-    let x, y, coord, head, next, ncx, ncy, cw, ch;
+    let x, y, sp, coord, head, next, ncx, ncy, cw, ch, fx, fy;
     let bonds = new Float32Array(0), nb = 0;
+    let prog = PROGRAMS[opts.program] || PROGRAMS.complementary;
     let T = opts.anneal ? opts.startT : opts.T, targetT = opts.T, annealing = opts.anneal;
-    let running = false, visible = true, raf = 0, frame = 0;
-    let sprites = null;
-    const pointer = { x: 0, y: 0, px: 0, py: 0, in: false, down: false, t: 0 };
+    let running = false, visible = true, raf = 0, frame = 0, sprites = null;
+    const pointer = { x: 0, y: 0, px: 0, py: 0, in: false, down: false };
     let autoQuery = -1, autoTimer = 0;
     const history = [];
 
     function makeSprites() {
-      const d = Math.max(6, Math.round(sPx * 1.02 * dpr));
-      sprites = [
-        sprite(d, [[0, "#f4f7ff"], [0.35, "#9fb0cf"], [1, "#2c3954"]]),
-        sprite(d, [[0, "#fff6d8"], [0.35, "#d9c27e"], [1, "#5b4a1d"]]),
-        sprite(d, [[0, "#fffbe6"], [0.3, "#f3c64e"], [0.75, "#b07d0d"], [1, "#4a3203"]], "rgba(226,177,60,0.22)")
-      ];
+      const d = Math.max(8, Math.round(sPx * 1.05 * dpr));
+      sprites = SPECIES.map(s => [particleSprite(d, s.corona, false), particleSprite(d, s.corona, true)]);
     }
 
     function resize() {
@@ -62,15 +69,18 @@
       dpr = Math.min(window.devicePixelRatio || 1, 2);
       W = Math.max(1, r.width); H = Math.max(1, r.height);
       canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
-      sPx = W < 640 ? opts.sigmaPx * 0.82 : opts.sigmaPx;
+      sPx = W < 520 ? opts.sigmaPx * 0.85 : opts.sigmaPx;
       Lx = W / sPx; Ly = H / sPx;
       N = Math.min(opts.maxN, Math.floor(opts.phi * Lx * Ly * 4 / Math.PI));
       ncx = Math.max(3, Math.floor(Lx / RC)); ncy = Math.max(3, Math.floor(Ly / RC));
       cw = Lx / ncx; ch = Ly / ncy;
       head = new Int32Array(ncx * ncy); next = new Int32Array(N);
-      x = new Float32Array(N); y = new Float32Array(N); coord = new Uint8Array(N);
+      x = new Float32Array(N); y = new Float32Array(N); sp = new Uint8Array(N); coord = new Uint8Array(N);
+      fx = new Float32Array(N); fy = new Float32Array(N);
       bonds = new Float32Array(N * 4 * 4);
+      const nA = Math.round(N * opts.xA);
       for (let i = 0; i < N; i++) {
+        sp[i] = i < nA ? 0 : 1;
         let tries = 0, ok = false;
         while (!ok && tries++ < 40) {
           x[i] = Math.random() * Lx; y[i] = Math.random() * Ly; ok = true;
@@ -95,12 +105,11 @@
       }
     }
 
-    const fx = [], fy = [];
     function step(dt, record) {
       build();
-      if (fx.length !== N) { fx.length = fy.length = N; }
-      for (let i = 0; i < N; i++) { fx[i] = 0; fy[i] = 0; }
+      fx.fill(0); fy.fill(0);
       if (record) { coord.fill(0); nb = 0; }
+      const m = prog.m;
       for (let cy = 0; cy < ncy; cy++) for (let cx = 0; cx < ncx; cx++) {
         for (let i = head[cy * ncx + cx]; i >= 0; i = next[i]) {
           for (let oy = -1; oy <= 1; oy++) for (let ox = -1; ox <= 1; ox++) {
@@ -110,11 +119,14 @@
               let dx = x[j] - x[i], dy = y[j] - y[i];
               dx -= Lx * Math.round(dx / Lx); dy -= Ly * Math.round(dy / Ly);
               const r2 = dx * dx + dy * dy;
-              if (r2 >= RC2) continue;
-              const inv2 = 1 / Math.max(r2, 0.64), inv6 = inv2 * inv2 * inv2;
-              const f = 24 * inv2 * inv6 * (2 * inv6 - 1);
+              const attract = m[sp[i] * 2 + sp[j]];
+              if (r2 >= (attract ? RC2 : WCA2 * SL2)) continue;
+              // Non-hybridising coronas repel over a slightly larger range (steric/electrostatic shell).
+              const q2 = attract ? r2 : r2 / SL2;
+              const inv2 = 1 / Math.max(q2, 0.64), inv6 = inv2 * inv2 * inv2;
+              const f = 24 * inv2 * inv6 * (2 * inv6 - 1) / (attract ? 1 : SL2);
               fx[i] -= f * dx; fy[i] -= f * dy; fx[j] += f * dx; fy[j] += f * dy;
-              if (record && r2 < BOND2) {
+              if (record && attract && r2 < BOND2) {
                 coord[i]++; coord[j]++;
                 if (nb < bonds.length / 4) {
                   const k = nb * 4;
@@ -125,7 +137,7 @@
           }
         }
       }
-      const amp = Math.sqrt(2 * T * dt) * 2; // uniform-sum gaussian has unit variance after *2
+      const amp = Math.sqrt(2 * T * dt) * 2;
       for (let i = 0; i < N; i++) {
         let sx = fx[i] * dt + amp * (Math.random() + Math.random() + Math.random() - 1.5);
         let sy = fy[i] * dt + amp * (Math.random() + Math.random() + Math.random() - 1.5);
@@ -165,7 +177,7 @@
       return best;
     }
 
-    function attentionFor(q) {
+    function drawAttention(q) {
       const out = [];
       for (let j = 0; j < N; j++) {
         if (j === q) continue;
@@ -176,19 +188,29 @@
       }
       out.sort((a, b) => a.d - b.d);
       const top = out.slice(0, 12);
-      // Score: closeness plus a bonus for crystalline neighbours, a stand-in for learned relevance.
+      // Score: closeness, plus a bonus for partners the program lets this particle bind (a stand-in for learned relevance).
       let z = 0;
-      top.forEach(o => { o.s = Math.exp((-o.d + 0.35 * coord[o.j]) / opts.tau); z += o.s; });
+      top.forEach(o => { o.s = Math.exp((-o.d + 1.2 * prog.m[sp[q] * 2 + sp[o.j]]) / opts.tau); z += o.s; });
       top.forEach(o => { o.w = o.s / z; });
-      return top;
+      const qx = x[q] * sPx, qy = y[q] * sPx;
+      ctx.font = "500 10px 'JetBrains Mono', ui-monospace, monospace";
+      top.forEach((o, idx) => {
+        const tx = qx + o.dx * sPx, ty = qy + o.dy * sPx, a = 0.2 + 0.8 * Math.min(1, o.w * 4);
+        ctx.strokeStyle = `rgba(255,255,255,${a})`;
+        ctx.lineWidth = 0.6 + 6 * o.w;
+        ctx.beginPath(); ctx.moveTo(qx, qy); ctx.lineTo(tx, ty); ctx.stroke();
+        if (idx < 3) { ctx.fillStyle = "rgba(255,255,255,.9)"; ctx.fillText(o.w.toFixed(2), tx + sPx * 0.6, ty - sPx * 0.5); }
+      });
+      ctx.beginPath(); ctx.arc(qx, qy, sPx * 0.8, 0, Math.PI * 2);
+      ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.stroke();
     }
 
     function draw() {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, W, H);
       if (opts.bonds && nb) {
-        ctx.strokeStyle = "rgba(226,177,60,0.28)";
-        ctx.lineWidth = 1;
+        ctx.strokeStyle = "rgba(226,232,255,0.38)";
+        ctx.lineWidth = 1.2;
         ctx.beginPath();
         for (let k = 0; k < nb; k++) {
           const b = k * 4;
@@ -199,7 +221,7 @@
       }
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       for (let i = 0; i < N; i++) {
-        const c = coord[i], s = sprites[c >= 5 ? 2 : c >= 2 ? 1 : 0];
+        const s = sprites[sp[i]][coord[i] >= 2 ? 1 : 0];
         ctx.drawImage(s.img, x[i] * sPx * dpr - s.off, y[i] * sPx * dpr - s.off);
       }
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -211,34 +233,10 @@
       }
     }
 
-    function drawAttention(q) {
-      const top = attentionFor(q);
-      const qx = x[q] * sPx, qy = y[q] * sPx;
-      top.forEach((o, idx) => {
-        const tx = qx + o.dx * sPx, ty = qy + o.dy * sPx;
-        ctx.strokeStyle = `rgba(70,194,204,${0.18 + 0.82 * Math.min(1, o.w * 4)})`;
-        ctx.lineWidth = 0.6 + 6 * o.w;
-        ctx.beginPath(); ctx.moveTo(qx, qy); ctx.lineTo(tx, ty); ctx.stroke();
-        ctx.beginPath(); ctx.arc(tx, ty, sPx * 0.62, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(70,194,204,${0.25 + 0.75 * Math.min(1, o.w * 4)})`;
-        ctx.lineWidth = 1; ctx.stroke();
-        if (idx < 3) {
-          ctx.font = "500 10px 'JetBrains Mono', monospace";
-          ctx.fillStyle = "rgba(200,240,244,0.95)";
-          ctx.fillText(o.w.toFixed(2), tx + sPx * 0.6, ty - sPx * 0.55);
-        }
-      });
-      ctx.beginPath(); ctx.arc(qx, qy, sPx * 0.85, 0, Math.PI * 2);
-      ctx.strokeStyle = "rgba(70,194,204,1)"; ctx.lineWidth = 2; ctx.stroke();
-      ctx.font = "500 10px 'JetBrains Mono', monospace";
-      ctx.fillStyle = "rgba(200,240,244,0.9)";
-      ctx.fillText("query · attention head", qx + sPx, qy + sPx * 1.3);
-    }
-
     function stats() {
-      let solid = 0, sum = 0;
-      for (let i = 0; i < N; i++) { sum += coord[i]; if (coord[i] >= 5) solid++; }
-      const s = { T, N, solid: N ? solid / N : 0, z: N ? sum / N : 0 };
+      let done = 0, sum = 0;
+      for (let i = 0; i < N; i++) { sum += coord[i]; if (coord[i] >= 3) done++; }
+      const s = { T, N, solid: N ? done / N : 0, z: N ? sum / N : 0, program: opts.program };
       history.push(s.solid); if (history.length > 160) history.shift();
       s.history = history;
       if (opts.onStats) opts.onStats(s);
@@ -254,14 +252,11 @@
       }
       stir();
       for (let s = 0; s < 8; s++) step(0.003, s === 7);
-      if (!pointer.in) {
-        autoTimer--;
-        if (autoTimer <= 0) {
-          autoTimer = 170;
-          const cands = [];
-          for (let i = 0; i < N; i++) if (coord[i] >= 4) cands.push(i);
-          autoQuery = cands.length ? cands[(Math.random() * cands.length) | 0] : (Math.random() * N) | 0;
-        }
+      if (opts.attention && !pointer.in && --autoTimer <= 0) {
+        autoTimer = 170;
+        const c = [];
+        for (let i = 0; i < N; i++) if (coord[i] >= 3) c.push(i);
+        autoQuery = c.length ? c[(Math.random() * c.length) | 0] : (Math.random() * N) | 0;
       }
       draw();
       if (frame % 8 === 0) stats();
@@ -270,11 +265,13 @@
 
     function start() { running = true; if (!raf) raf = requestAnimationFrame(tick); }
     function stop() { running = false; if (raf) cancelAnimationFrame(raf); raf = 0; }
-
-    function local(e) {
-      const r = canvas.getBoundingClientRect();
-      return { x: e.clientX - r.left, y: e.clientY - r.top };
+    function warm() {
+      T = targetT; annealing = false;
+      for (let s = 0; s < 1800; s++) step(0.003, s === 1799);
+      stats();
     }
+
+    function local(e) { const r = canvas.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; }
     if (opts.interactive) {
       canvas.addEventListener("pointermove", e => {
         const p = local(e); pointer.x = p.x; pointer.y = p.y; pointer.in = e.pointerType === "mouse" || pointer.down;
@@ -287,11 +284,10 @@
       window.addEventListener("pointerup", () => { pointer.down = false; });
     }
 
-    const io = new IntersectionObserver(es => {
+    new IntersectionObserver(es => {
       visible = es[0].isIntersecting;
       if (visible && running && !raf) raf = requestAnimationFrame(tick);
-    });
-    io.observe(canvas);
+    }).observe(canvas);
     document.addEventListener("visibilitychange", () => {
       visible = !document.hidden;
       if (visible && running && !raf) raf = requestAnimationFrame(tick);
@@ -301,25 +297,30 @@
       clearTimeout(rt);
       rt = setTimeout(() => {
         const r = canvas.getBoundingClientRect();
-        if (Math.abs(r.width - W) > 40 || Math.abs(r.height - H) > 120) { resize(); if (!running) { warm(); draw(); } }
+        if (Math.abs(r.width - W) > 40 || Math.abs(r.height - H) > 80) { resize(); if (!running) { warm(); draw(); } }
       }, 200);
     });
 
-    function warm() {
-      T = targetT; annealing = false;
-      for (let s = 0; s < 1600; s++) step(0.003, s === 1599);
-      autoQuery = -1; stats();
-    }
-
     resize();
-    if (reduce) { warm(); draw(); } else { step(0.0025, true); draw(); start(); }
+    if (reduce) { warm(); draw(); }
+    else if (opts.prewarm) {
+      T = targetT; annealing = false;
+      for (let s = 0; s < opts.prewarm; s++) step(0.003, s === opts.prewarm - 1);
+      stats(); draw(); start();
+    } else { step(0.003, true); draw(); start(); }
 
     return {
       get running() { return running; },
       start, stop,
       setT(v) { targetT = v; T = v; annealing = false; },
       anneal(to) { targetT = to; annealing = true; if (!running) start(); },
-      heat() { T = 1.6; targetT = opts.T; annealing = false; if (!running) start(); },
+      heat() { T = 1.4; targetT = opts.T; annealing = false; if (!running) start(); },
+      setProgram(name) {
+        if (!PROGRAMS[name]) return;
+        opts.program = name; prog = PROGRAMS[name];
+        T = Math.max(T, 0.9); targetT = opts.T; annealing = true;
+        if (reduce) { warm(); draw(); } else start();
+      },
       setDensity(phi) { opts.phi = phi; resize(); if (!running) { warm(); draw(); } },
       setTau(v) { opts.tau = v; if (!running) draw(); },
       toggle(key, v) { opts[key] = v; if (!running) draw(); },

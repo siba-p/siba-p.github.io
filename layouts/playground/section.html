@@ -4,39 +4,46 @@
   <section class="section" id="assembly">
     <div class="section-head">
       <div>
-        <p class="eyebrow"><b>Bench 1</b> · Self-assembly</p>
-        <h2>Watch a colloidal crystal nucleate</h2>
+        <span class="label">Bench 1 · Programmable assembly</span>
+        <h2>Program the bonds, watch the structure</h2>
+        <p>Two species of DNA-coated gold nanoparticles. Choose which strands hybridise and the same particles build a binary lattice, sort into two crystals, or form a random alloy.</p>
       </div>
     </div>
     <div class="bench">
       <div class="bench-stage">
-        <canvas data-sim data-panel="bench-panel" data-sigma="18" data-max="900" data-phi="0.24" aria-label="Interactive Brownian dynamics simulation" role="img"></canvas>
+        <canvas data-sim data-panel="bench-panel" data-sigma="17" data-max="900" data-phi="0.42" data-attention="true" aria-label="Interactive Brownian dynamics simulation of programmable nanoparticle assembly" role="img"></canvas>
       </div>
       <aside class="bench-controls" id="bench-panel" aria-label="Simulation controls">
+        <div class="seg" role="group" aria-label="Binding program">
+          <button type="button" data-program="complementary" aria-pressed="true">a ↔ a′</button>
+          <button type="button" data-program="self">Self</button>
+          <button type="button" data-program="universal">Universal</button>
+        </div>
+        <p class="muted" style="font-size:.8rem;margin:0" data-program-note>Complementary strands bind only unlike particles, so the system builds an alternating binary lattice.</p>
         <div class="sim-row">
-          <label for="b-T">Temperature k<sub>B</sub>T/ε</label><output data-out="T">1.25</output>
-          <input id="b-T" type="range" min="0.2" max="1.6" step="0.01" value="1.25" data-ctl="T">
+          <label for="b-T">Temperature k<sub>B</sub>T/ε</label><output data-out="T">1.00</output>
+          <input id="b-T" type="range" min="0.2" max="1.4" step="0.01" value="1" data-ctl="T">
         </div>
         <div class="sim-row">
-          <label for="b-phi">Area fraction φ</label><output data-out="phi">0.24</output>
-          <input id="b-phi" type="range" min="0.08" max="0.5" step="0.01" value="0.24" data-ctl="phi">
+          <label for="b-phi">Area fraction φ</label><output data-out="phi">0.42</output>
+          <input id="b-phi" type="range" min="0.1" max="0.5" step="0.01" value="0.42" data-ctl="phi">
         </div>
         <div class="sim-row">
           <label for="b-tau">Attention temperature τ</label><output data-out="tau">1.0</output>
           <input id="b-tau" type="range" min="0.2" max="3" step="0.1" value="1" data-ctl="tau">
         </div>
         <div class="sim-stats">
-          <div><b data-stat="solid">0%</b><span>crystalline</span></div>
-          <div><b data-stat="z">0.00</b><span>mean coordination</span></div>
+          <div><b data-stat="solid">0%</b>in crystallites</div>
+          <div><b data-stat="z">0.00</b>links per particle</div>
         </div>
-        <div class="sim-buttons" style="margin-bottom:.4rem">
+        <div class="sim-buttons">
           <button type="button" data-act="melt">Melt</button>
           <button type="button" data-act="quench">Quench</button>
           <button type="button" data-act="reset">Reset</button>
         </div>
         <div class="sim-buttons">
           <button type="button" data-act="attention" aria-pressed="true">Attention</button>
-          <button type="button" data-act="bonds" aria-pressed="true">Bonds</button>
+          <button type="button" data-act="bonds" aria-pressed="true">Links</button>
           <button type="button" data-act="pause">Pause</button>
         </div>
       </aside>
@@ -44,27 +51,27 @@
     <div class="grid-2" style="margin-top:28px">
       <div class="prose" style="font-size:.98rem">
         <h3 style="margin-top:0">What's being simulated</h3>
-        <p>Overdamped Langevin dynamics of Lennard-Jones particles in a periodic box (reduced units, cut-off 2.5σ). Each frame integrates eight Brownian steps with a cell list. Particles turn <b style="color:var(--gold)">gold</b> when they have five or more neighbours within 1.32σ, which is a simple crystallinity criterion. Below k<sub>B</sub>T ≈ 0.45 the gas condenses into hexagonal crystallites that slowly coarsen.</p>
+        <p>Overdamped Langevin dynamics in a periodic box (reduced units). Each particle has a gold core and a corona of one DNA strand, either a or a′. Pairs whose strands hybridise feel a Lennard-Jones attraction (cut-off 2.5σ). All other pairs are purely repulsive (WCA), with a core 1.25σ wide to mimic the steric and electrostatic repulsion of non-complementary DNA shells. White lines are hybridised links. "In crystallites" counts particles bonded to at least three partners.</p>
       </div>
       <div class="prose" style="font-size:.98rem">
-        <h3 style="margin-top:0">Why the cyan lines?</h3>
-        <p>They illustrate what an attention layer does to a particle graph. A query particle scores its neighbours, here by distance plus a bonus for being crystalline, and a softmax turns the scores into weights. Lower τ concentrates attention on a few neighbours; higher τ spreads it out. My adhesion model uses the same mechanism to decide which surface sites matter for which polymer beads.</p>
+        <h3 style="margin-top:0">Why the attention lines?</h3>
+        <p>They show what an attention layer does to a particle graph. A query particle scores its neighbours, here by distance plus a bonus for partners it can bind, and a softmax turns the scores into weights. Lower τ focuses attention on a few neighbours. My adhesion model uses the same mechanism to decide which surface sites matter for which polymer beads.</p>
       </div>
     </div>
   </section>
 
-  <section class="section" id="ising">
+  <section class="section" id="ising" style="border-top:1px solid var(--line)">
     <div class="section-head">
       <div>
-        <p class="eyebrow"><b>Bench 2</b> · Pattern generator</p>
+        <span class="label">Bench 2 · Pattern generator</span>
         <h2>Design-space sampler for surfaces and sequences</h2>
+        <p>How the training data for the adhesion network were made. Kawasaki-exchange Monte Carlo on an Ising lattice swaps unlike neighbours, so the fraction of strongly attracting sites stays exactly fixed while the coupling J/k<sub>B</sub>T tunes the pattern from random to blocky.</p>
       </div>
     </div>
-    <p class="lead" style="margin-bottom:28px">This is how the training data for the adhesion network was made. Kawasaki-exchange Monte Carlo on an Ising lattice swaps unlike neighbours, so the fraction of strongly attracting sites stays exactly fixed while the coupling J/k<sub>B</sub>T tunes the patterns from random to blocky.</p>
     <div class="ising-out">
       <div>
         <canvas class="ising-canvas" aria-label="Generated surface pattern"></canvas>
-        <div class="legend"><span><i style="background:#e2352a"></i>A · strong site</span><span><i style="background:#e4e7eb;border:1px solid #bbb"></i>B · weak site</span></div>
+        <div class="legend" style="margin-top:.6rem"><span><i style="background:#e2352a"></i>A · strong site</span><span><i style="background:#e4e7eb;border:1px solid #bbb"></i>B · weak site</span></div>
       </div>
       <div class="bench-controls">
         <div class="sim-row"><label for="is-f">Fraction of A sites f<sub>A</sub></label><output for="is-f"></output>
@@ -76,17 +83,17 @@
         <div class="sim-row"><label for="is-np">Polymer length N</label><output for="is-np"></output>
           <input id="is-np" type="range" min="10" max="60" step="2" value="20"></div>
         <div class="sim-stats">
-          <div><b data-stat="fa">–</b><span>f<sub>A</sub> (conserved)</span></div>
-          <div><b data-stat="nA">–</b><span>A sites</span></div>
-          <div><b data-stat="unlike">–</b><span>A–B contacts</span></div>
-          <div><b data-stat="order">–</b><span>clustering vs random</span></div>
+          <div><b data-stat="fa">–</b>f<sub>A</sub> (conserved)</div>
+          <div><b data-stat="nA">–</b>A sites</div>
+          <div><b data-stat="unlike">–</b>A–B contacts</div>
+          <div><b data-stat="order">–</b>clustering vs random</div>
         </div>
-        <p class="muted" style="font-size:.8rem;margin:.2rem 0 .8rem">Sweeps: <span data-stat="sweeps">0</span> · polymer f<sub>A</sub> = <span data-stat="seqfa">–</span></p>
+        <p class="muted" style="font-size:.8rem;margin:0">Sweeps: <span data-stat="sweeps">0</span> · polymer f<sub>A</sub> = <span data-stat="seqfa">–</span></p>
         <div class="sim-buttons">
           <button type="button" data-act="gen">Generate</button>
           <button type="button" data-act="copy">Copy as text</button>
         </div>
-        <p class="eyebrow" style="margin:1.2rem 0 0">Polymer sequence (1D Ising, same f<sub>A</sub>)</p>
+        <p class="eyebrow" style="margin:.4rem 0 0">Polymer sequence (1D Ising, same f<sub>A</sub>)</p>
         <div class="seq" aria-label="Generated polymer sequence"></div>
       </div>
     </div>

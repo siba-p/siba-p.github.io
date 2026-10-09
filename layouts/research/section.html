@@ -9,7 +9,7 @@
   <article class="study" id="{{ .id }}">
     <div class="study-media">
       {{ partial "media.html" (dict "m" .media "tag" .scale) }}
-      {{ with .image2 }}{{ partial "media.html" (dict "m" (merge . (dict "type" "image")) "cls" "cover") }}{{ end }}
+      {{ with .image2 }}{{ partial "media.html" (dict "m" (merge . (dict "type" "image"))) }}{{ end }}
     </div>
     <div>
       <div class="num">{{ .number }}</div>

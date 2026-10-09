@@ -1,0 +1,61 @@
+# Collaboration & career network shown as a map on the home page.
+# kind: current | home | education | collaboration | computing | venue
+# Add collaborators by appending a node with lat/lon (decimal degrees). Nodes with india: true
+# are drawn on the India detail panel; all nodes also appear on the world map.
+hub: iitd
+nodes:
+  - id: iitd
+    name: "IIT Delhi"
+    place: "New Delhi"
+    lat: 28.545
+    lon: 77.193
+    kind: home
+    india: true
+    role: "PhD · Computational Soft Matter Lab (Prof. Divya Nayar)"
+  - id: qpiai
+    name: "QpiAI"
+    place: "Bengaluru"
+    lat: 12.972
+    lon: 77.594
+    kind: current
+    india: true
+    role: "Computational Materials Scientist"
+  - id: iitkgp
+    name: "IIT Kharagpur"
+    place: "Kharagpur"
+    lat: 22.314
+    lon: 87.310
+    kind: collaboration
+    india: true
+    role: "Collaboration · Prof. Sandeep K. Reddy (force fields, PCCP 2023)"
+  - id: iitk
+    name: "IIT Kanpur"
+    place: "Kanpur"
+    lat: 26.512
+    lon: 80.233
+    kind: computing
+    india: true
+    role: "HPC resources for thesis simulations"
+  - id: diat
+    name: "DIAT"
+    place: "Pune"
+    lat: 18.423
+    lon: 73.759
+    kind: education
+    india: true
+    role: "M.Tech, Materials Engineering"
+  - id: neurips
+    name: "NeurIPS 2025 · AI4Mat"
+    place: "San Diego, USA"
+    lat: 32.716
+    lon: -117.161
+    kind: venue
+    role: "Workshop paper: data-driven prediction of polymer–surface adhesion"
+  # To add: CECAM and AIMS 2025 venues, co-author institutions, future collaborators.
+  # - id: cecam
+  #   name: "CECAM workshop"
+  #   place: "City, Country"
+  #   lat: 0.0
+  #   lon: 0.0
+  #   kind: venue
+  #   role: "Poster"
