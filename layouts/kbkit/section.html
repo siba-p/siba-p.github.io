@@ -1,53 +1,127 @@
 {{ define "main" }}
-{{ partial "page-head.html" . }}
-<div class="wrap ww" id="kb" data-demo="{{ "data/kbkit-hard-spheres.xvg" | relURL }}">
-  <div class="ww-tabs" role="tablist" aria-label="KBkit modes">
-    <button role="tab" data-mode="single" aria-selected="true">Single RDF</button>
-    <button role="tab" data-mode="binary" aria-selected="false">Binary mixture</button>
-    <button role="tab" data-mode="pb" aria-selected="false">Preferential binding</button>
-    <span class="ww-private">Runs entirely in your browser. Files never leave your computer.</span>
-  </div>
-
-  <div class="ww-grid">
-    <form class="ww-card ww-form" id="kb-form" autocomplete="off">
-      <h3>System</h3>
-      <label><span>Box volume V <small>(r unit³, e.g. nm³)</small></span> <input name="V" type="number" step="any" required></label>
-      <div class="ww-2" data-show="single"><label><span>N<sub>j</sub> (particles of j)</span> <input name="nj" type="number" step="any"></label>
-        <label class="ww-check"><input type="checkbox" name="same"> i and j are the same species</label></div>
-      <div class="ww-2" data-show="binary pb"><label><span>N<sub>w</sub> (solvent)</span> <input name="nw" type="number" step="any"></label>
-        <label><span>N<sub>c</sub> (cosolvent)</span> <input name="nc" type="number" step="any"></label></div>
-      <div class="ww-2" data-show="binary"><label>Temperature (K) <input name="T" type="number" step="any" value="298.15"></label><span></span></div>
-      <h3>RDF files <small class="muted">(gmx rdf .xvg or two columns r, g)</small></h3>
-      <div id="kb-slots"></div>
-      <h3>Ranges <small class="muted">(blank = automatic)</small></h3>
-      <div class="ww-2"><label>Plateau from <input name="p1" type="number" step="any"></label><label>to <input name="p2" type="number" step="any"></label></div>
-      <div class="ww-2"><label>KV fit L from <input name="f1" type="number" step="any"></label><label>to <input name="f2" type="number" step="any"></label></div>
-      <button type="submit" class="btn btn-primary ww-run">Compute KB integrals</button>
-      <button type="button" id="kb-demo">Load demo: hard spheres (exact answer known)</button>
-      <p class="ww-hint" id="kb-status" aria-live="polite"></p>
-    </form>
-    <div class="ww-out" id="kb-out">
-      <div class="ww-card"><p class="ww-hint" style="font-size:.92rem">Load your RDFs, or try the demo: a hard-sphere fluid at packing fraction 0.30, whose Kirkwood–Buff integral is known exactly from the Carnahan–Starling equation of state. You will see how the closed-box bias in the raw integral is removed by the Ganguly–van der Vegt and Krüger–Vlugt corrections.</p></div>
-    </div>
-  </div>
-
-  <section class="ww-about">
-    <div class="grid-2">
-      <div class="prose">
-        <h2>Why KBkit?</h2>
-        <p>Kirkwood–Buff integrals connect RDFs to thermodynamics: preferential binding, activity derivatives, partial molar volumes and compressibility. The textbook running integral does not converge in a closed, finite simulation box, and even a pure ideal gas appears attractive. KBkit computes the raw integral alongside two standard corrections, so you can see at a glance whether your number can be trusted.</p>
+<div class="app" id="kb" data-base="{{ "data/" | relURL }}">
+  <header class="app-bar">
+    <div class="wrap">
+      <div class="app-id">
+        <span class="app-logo">{{ partial "toolkit-icon.html" "solvation" }}</span>
+        <div>
+          <h1>KBkit</h1>
+          <p>Kirkwood–Buff integrals from simulation RDFs, with the finite-size corrections that make them trustworthy, turned into solvation thermodynamics.</p>
+        </div>
       </div>
-      <div class="prose">
-        <h2>Method</h2>
-        <ul>
-          <li><b>Raw:</b> G(R) = 4π∫₀ᴿ[g(r) − 1]r²dr.</li>
-          <li><b>GvdV:</b> g(r) corrected for the depletion of a finite box (Ganguly &amp; van der Vegt, <i>JCTC</i> 2013).</li>
-          <li><b>KV:</b> finite-volume integral with weight 1 − 3x/2 + x³/2, extrapolated as L·G<sub>V</sub>(L) = G<sub>∞</sub>L + F (Krüger, Vlugt <i>et al.</i>, <i>JPCL</i> 2013).</li>
-          <li><b>Thermodynamics:</b> standard KB relations for binary mixtures and preferential binding.</li>
-        </ul>
-        <p class="muted">Validated against hard spheres and the ideal gas (KV within 1% of the exact result). Python package and CLI: <a href="https://github.com/siba-p/kbkit">github.com/siba-p/kbkit</a>.</p>
+      <div class="app-badges">
+        <span><i style="background:#34c6b6"></i>Validated: hard spheres to within 1% of the exact result</span>
+        <span><i style="background:#8ea0ff"></i>Runs locally · nothing is uploaded</span>
+        <a href="https://github.com/siba-p/kbkit">Python package & CLI ↗</a>
+        <a href="#method">Method</a>
+      </div>
+      <ol class="app-steps" id="kb-steps"><li class="on"><b>1</b>Choose a calculation</li><li><b>2</b>Load RDFs &amp; system</li><li><b>3</b>Read the thermodynamics</li><li><b>4</b>Export</li></ol>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="app-modes" role="group" aria-label="Calculation">
+      <button class="app-mode" type="button" data-mode="single" aria-pressed="true">
+        <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 26c3 0 3-20 6-20s3 12 6 12 3-5 6-5 5 3 8 3"/></svg>
+        <b>Single RDF</b><small>One KB integral G<sub>ij</sub>, with raw and corrected estimates</small></button>
+      <button class="app-mode" type="button" data-mode="binary" aria-pressed="false">
+        <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="16" r="6"/><circle cx="22" cy="16" r="4"/><circle cx="25" cy="7" r="2.5"/><circle cx="6" cy="27" r="2.5"/></svg>
+        <b>Binary mixture</b><small>Activity derivatives, partial molar volumes, compressibility</small></button>
+      <button class="app-mode" type="button" data-mode="pb" aria-pressed="false">
+        <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="16" cy="16" r="7"/><circle cx="16" cy="16" r="12" stroke-dasharray="2 3"/><circle cx="27" cy="9" r="2" fill="currentColor"/></svg>
+        <b>Preferential binding</b><small>Does a cosolvent accumulate at a solute or get excluded?</small></button>
+    </div>
+
+    <div class="app-body">
+      <aside class="app-side" aria-label="Inputs">
+        <details class="sec" open>
+          <summary><span><span class="n">1</span>System</span></summary>
+          <div class="sec-in">
+            <div class="fld-row">
+              <label class="fld"><span class="fld-l">Box volume <i class="tip" tabindex="0" data-tip="Average simulation box volume, in the same length unit as r in your RDF files (gmx rdf uses nm).">?</i></span><span class="fld-in"><input id="kb-V" type="number" step="any" min="0"><em class="lu3">nm³</em></span></label>
+              <label class="fld"><span class="fld-l">Length unit <i class="tip" tabindex="0" data-tip="Unit of r in the RDF files. Laboratory units (cm³/mol, GPa⁻¹) are shown only for nm.">?</i></span><span class="fld-in"><select id="kb-lu"><option value="nm">nm</option><option value="Å">Å</option><option value="σ">σ (reduced)</option></select></span></label>
+            </div>
+            <div class="fld-row" data-show="single">
+              <label class="fld"><span class="fld-l">N<sub>j</sub> <i class="tip" tabindex="0" data-tip="Number of j particles (molecules or the atom type used in the RDF) in the box. Needed for the Ganguly–van der Vegt finite-size correction.">?</i></span><span class="fld-in"><input id="kb-nj" type="number" step="any" min="0"></span></label>
+              <label class="check" style="align-self:end;padding-bottom:.55em"><input type="checkbox" id="kb-same"> i = j (same species)</label>
+            </div>
+            <div class="fld-row" data-show="binary pb">
+              <label class="fld"><span class="fld-l">N solvent <i class="tip" tabindex="0" data-tip="Number of solvent (w) molecules in the box.">?</i></span><span class="fld-in"><input id="kb-nw" type="number" step="any" min="0"></span></label>
+              <label class="fld"><span class="fld-l">N cosolvent <i class="tip" tabindex="0" data-tip="Number of cosolvent (c) molecules in the box.">?</i></span><span class="fld-in"><input id="kb-nc" type="number" step="any" min="0"></span></label>
+            </div>
+            <label class="fld" data-show="binary"><span class="fld-l">Temperature</span><span class="fld-in"><input id="kb-T" type="number" step="any" value="298.15"><em>K</em></span></label>
+          </div>
+        </details>
+        <details class="sec" open>
+          <summary><span><span class="n">2</span>RDF files</span></summary>
+          <div class="sec-in"><div id="kb-slots" style="display:grid;gap:8px"></div><p class="hint">Output of <code>gmx rdf</code> (.xvg) or two columns r, g(r). Use a cutoff of at least half the box.</p></div>
+        </details>
+        <details class="sec">
+          <summary><span><span class="n">3</span>Advanced ranges</span></summary>
+          <div class="sec-in">
+            <p class="hint">Leave blank for automatic choices: plateau over the last 30% of r, Krüger–Vlugt fit over 40–90% of r<sub>max</sub>.</p>
+            <div class="fld-row"><label class="fld"><span class="fld-l">Plateau from</span><span class="fld-in"><input id="kb-p1" type="number" step="any"></span></label><label class="fld"><span class="fld-l">to</span><span class="fld-in"><input id="kb-p2" type="number" step="any"></span></label></div>
+            <div class="fld-row"><label class="fld"><span class="fld-l">KV fit L from</span><span class="fld-in"><input id="kb-f1" type="number" step="any"></span></label><label class="fld"><span class="fld-l">to</span><span class="fld-in"><input id="kb-f2" type="number" step="any"></span></label></div>
+          </div>
+        </details>
+        <div class="side-foot">
+          <button type="button" class="btn btn-primary" id="kb-run">Compute</button>
+          <div class="btn-row" style="justify-content:stretch"><button type="button" class="btn-sm" id="kb-report" disabled style="flex:1;justify-content:center">Report</button><button type="button" class="btn-sm" id="kb-csv" disabled style="flex:1;justify-content:center">CSV</button><button type="button" class="btn-sm" id="kb-copy" disabled style="flex:1;justify-content:center">Copy</button></div>
+        </div>
+      </aside>
+
+      <div class="app-main">
+        <section class="panel2 empty" id="kb-empty">
+          <svg class="art" viewBox="0 0 120 120" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <circle cx="60" cy="60" r="12" fill="currentColor" fill-opacity=".15"/><circle cx="60" cy="60" r="28" stroke-dasharray="3 5" opacity=".7"/><circle cx="60" cy="60" r="46" stroke-dasharray="2 7" opacity=".4"/>
+            <circle cx="88" cy="48" r="5"/><circle cx="34" cy="80" r="5"/><circle cx="80" cy="88" r="4"/><circle cx="30" cy="40" r="4"/>
+          </svg>
+          <h2>From g(r) to thermodynamics</h2>
+          <p>Kirkwood–Buff integrals turn radial distribution functions into preferential binding, activity coefficients and partial molar volumes, but only if the finite size of the box is handled properly. Load your RDFs, or explore an example where the right answer is known:</p>
+          <div class="samples">
+            <button class="sample" type="button" data-sample="hs"><span class="tag good">Exact answer known</span><b>Hard-sphere fluid</b><span>η = 0.30. Carnahan–Starling gives G exactly. See how close each estimator gets.</span><i>Load example →</i></button>
+            <button class="sample" type="button" data-sample="ideal"><span class="tag bad">Finite-size artefact</span><b>Ideal gas in a box</b><span>No interactions, so G must be 0, yet the raw integral says the particles avoid each other.</span><i>Load example →</i></button>
+            <button class="sample" type="button" data-sample="binary"><span class="tag warn">Short run</span><b>Binary mixture: big + small spheres</b><span>Three RDFs give the full KB thermodynamics of a size-asymmetric mixture. The run is deliberately short, so watch how KBkit flags the noisy integrals.</span><i>Load example →</i></button>
+          </div>
+        </section>
+
+        <div id="kb-res" hidden>
+          <section class="panel2 insight" id="kb-insight">
+            <div id="kb-gauge"></div>
+            <div><h2 id="kb-headline"></h2><p class="story" id="kb-story"></p><div class="kpis" id="kb-kpis"></div></div>
+          </section>
+          <section class="panel2" style="margin-top:18px">
+            <nav class="rtabs" role="tablist" id="kb-tabs"></nav>
+            <div id="kb-views"></div>
+          </section>
+        </div>
       </div>
     </div>
-  </section>
+
+    <section class="app-method" id="method">
+      <div class="grid-2">
+        <div class="prose">
+          <h2>Why KBkit?</h2>
+          <p>The textbook running integral G(R) = 4π∫₀ᴿ[g(r) − 1]r²dr does not converge in a closed, finite simulation box. In such a box, even an ideal gas looks as if its particles avoid each other. KBkit computes the raw integral alongside two standard corrections, shows whether they agree, and only then turns the result into thermodynamics.</p>
+          <p>Python package and command line: <code>pip install git+https://github.com/siba-p/kbkit</code>. The web app and the package give identical numbers.</p>
+        </div>
+        <div class="prose">
+          <h2>Method</h2>
+          <ul>
+            <li><b>GvdV:</b> g(r) corrected for the depletion of a finite box, then integrated.</li>
+            <li><b>KV:</b> finite-volume integral with weight 1 − 3x/2 + x³/2, extrapolated through L·G<sub>V</sub>(L) = G<sub>∞</sub>L + F.</li>
+            <li><b>Reliability score:</b> agreement between the two corrected estimates, flatness of the plateau, and whether the correction could be applied.</li>
+            <li><b>Thermodynamics:</b> Δ = G<sub>cc</sub> + G<sub>ww</sub> − 2G<sub>cw</sub>; ∂ln a<sub>c</sub>/∂ln x<sub>c</sub> = 1/(1 + ρx<sub>w</sub>Δ); V̄ and κ<sub>T</sub> from η and ζ; ν<sub>pc</sub> = ρ<sub>c</sub>(G<sub>pc</sub> − G<sub>pw</sub>).</li>
+          </ul>
+          <ol class="refs">
+            <li>J. G. Kirkwood &amp; F. P. Buff, <i>J. Chem. Phys.</i> 19, 774 (1951).</li>
+            <li>P. Ganguly &amp; N. F. A. van der Vegt, <i>J. Chem. Theory Comput.</i> 9, 1347 (2013).</li>
+            <li>P. Krüger, S. K. Schnell, D. Bedeaux, S. Kjelstrup, T. J. H. Vlugt, J.-M. Simon, <i>J. Phys. Chem. Lett.</i> 4, 235 (2013).</li>
+            <li>A. Ben-Naim, <i>Molecular Theory of Solutions</i>, Oxford (2006).</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+  </div>
 </div>
 {{ end }}

@@ -69,7 +69,8 @@
     const rho = rw + rc, xc = rc / rho, xw = rw / rho, d = Gcc + Gww - 2 * Gcw;
     const eta = rw + rc + rw * rc * d, zeta = 1 + rw * Gww + rc * Gcc + rw * rc * (Gww * Gcc - Gcw * Gcw);
     const kt = KB[unit || "kJ/mol"] * (T || 298.15);
-    return { x_c: xc, Delta: d, dlna_dlnx: 1 / (1 + rho * xw * d), dlna_dlnrho: 1 / (1 + rc * (Gcc - Gcw)),
+    return { eta, zeta, v_c: (1 + rw * (Gww - Gcw)) / eta, v_w: (1 + rc * (Gcc - Gcw)) / eta, kTkappa: zeta / eta,
+      x_c: xc, Delta: d, dlna_dlnx: 1 / (1 + rho * xw * d), dlna_dlnrho: 1 / (1 + rc * (Gcc - Gcw)),
       V_c: (1 + rw * (Gww - Gcw)) / eta * NA, V_w: (1 + rc * (Gcc - Gcw)) / eta * NA,
       kappa: zeta / (eta * kt) / PU_GPA, N_cc: rc * Gcc, N_cw: rw * Gcw, N_ww: rw * Gww };
   }

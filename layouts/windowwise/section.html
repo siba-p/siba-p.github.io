@@ -1,172 +1,218 @@
 {{ define "main" }}
-{{ partial "page-head.html" . }}
-<div class="wrap ww" id="ww">
-  <div class="ww-tabs" role="tablist" aria-label="WindowWise modes">
-    <button role="tab" id="tab-plan" aria-controls="panel-plan" aria-selected="true">1 · Plan windows</button>
-    <button role="tab" id="tab-analyze" aria-controls="panel-analyze" aria-selected="false">2 · Analyse &amp; repair</button>
-    <span class="ww-private">Runs entirely in your browser. Files never leave your computer.</span>
+<div class="app" id="ww">
+  <header class="app-bar">
+    <div class="wrap">
+      <div class="app-id">
+        <span class="app-logo">{{ partial "toolkit-icon.html" "umbrella" }}</span>
+        <div>
+          <h1>WindowWise</h1>
+          <p>Plan, check and repair umbrella-sampling simulations. Design windows from first principles, diagnose finished runs, and get the exact windows to add, with Gaussian-process active learning.</p>
+        </div>
+      </div>
+      <div class="app-badges">
+        <span><i style="background:#34c6b6"></i>Validated: WHAM within 0.2 kJ/mol of an exact PMF</span>
+        <span><i style="background:#c49cff"></i>AI/ML: GP umbrella integration + active learning</span>
+        <span><i style="background:#8ea0ff"></i>Runs locally · nothing is uploaded</span>
+        <a href="https://github.com/siba-p/windowwise">Python package & CLI ↗</a>
+        <a href="#method">Method</a>
+      </div>
+      <ol class="app-steps" id="ww-steps"><li class="on"><b>1</b>Plan or load</li><li><b>2</b>Configure</li><li><b>3</b>Diagnose</li><li><b>4</b>Repair &amp; export</li></ol>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="app-modes" role="group" aria-label="Mode">
+      <button class="app-mode" type="button" data-mode="plan" aria-pressed="true">
+        <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 24c2-8 4-8 6 0M10 24c2-8 4-8 6 0M16 24c2-8 4-8 6 0M22 24c2-8 4-8 6 0"/><path d="M4 8h24" stroke-dasharray="2 3"/></svg>
+        <b>Plan new windows</b><small>Spacing, force constant, cost and GROMACS files, before you simulate</small></button>
+      <button class="app-mode" type="button" data-mode="analyze" aria-pressed="false">
+        <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 24c3 0 4-16 8-16s4 10 7 10 4-12 8-12 3 14 3 14"/><circle cx="24" cy="24" r="4"/><path d="M27 27l3 3"/></svg>
+        <b>Analyse &amp; repair</b><small>WHAM, error bars, diagnostics and the windows to add, from your pullx files</small></button>
+    </div>
+
+    <div class="app-body">
+      <aside class="app-side" aria-label="Inputs">
+        <div data-show="plan">
+          <details class="sec" open><summary><span><span class="n">1</span>Reaction coordinate</span></summary><div class="sec-in">
+            <div class="fld-row">
+              <label class="fld"><span class="fld-l">From</span><span class="fld-in"><input id="p-xmin" type="number" step="any" value="0.5"><em class="lu">nm</em></span></label>
+              <label class="fld"><span class="fld-l">To</span><span class="fld-in"><input id="p-xmax" type="number" step="any" value="2.5"><em class="lu">nm</em></span></label>
+            </div>
+            <div class="fld-row">
+              <label class="fld"><span class="fld-l">Length unit</span><span class="fld-in"><input id="p-lu" type="text" value="nm"></span></label>
+              <label class="fld"><span class="fld-l">Pull geometry <i class="tip" tabindex="0" data-tip="GROMACS pull-coord1-geometry written into the .mdp settings.">?</i></span><span class="fld-in"><select id="p-geom"><option>distance</option><option>direction</option><option>direction-periodic</option><option>cylinder</option></select></span></label>
+            </div>
+          </div></details>
+          <details class="sec" open><summary><span><span class="n">2</span>Thermodynamics</span></summary><div class="sec-in">
+            <div class="fld-row">
+              <label class="fld"><span class="fld-l">Temperature</span><span class="fld-in"><input id="p-T" type="number" step="any" value="300"><em>K</em></span></label>
+              <label class="fld"><span class="fld-l">Energy unit</span><span class="fld-in"><select id="p-unit"><option>kJ/mol</option><option>kcal/mol</option></select></span></label>
+            </div>
+            <div class="fld-range"><span class="fld-l">Overlap between neighbours <i class="tip" tabindex="0" data-tip="Fraction of probability shared by two neighbouring windows. 20–40% is a robust target for WHAM.">?</i></span><output id="p-ov-o">30%</output><input id="p-ov" type="range" min="10" max="70" step="1" value="30"></div>
+          </div></details>
+          <details class="sec" open><summary><span><span class="n">3</span>Design rule</span></summary><div class="sec-in">
+            <div class="choice" id="p-mode">
+              <label><input type="radio" name="pm" value="auto" checked> From the steepest slope <small>stiff enough that no window drifts more than half a spacing</small></label>
+              <label><input type="radio" name="pm" value="k"> Fix the force constant <small>spacing follows from the overlap</small></label>
+              <label><input type="radio" name="pm" value="spacing"> Fix the spacing <small>force constant follows from the overlap</small></label>
+            </div>
+            <div class="fld-row" data-pm="auto">
+              <label class="fld"><span class="fld-l">Steepest |dF/dξ| <i class="tip" tabindex="0" data-tip="Largest expected slope of the free-energy profile, e.g. the peak force from a short steered-MD pull. Energy per length.">?</i></span><span class="fld-in"><input id="p-slope" type="number" step="any" value="80"></span></label>
+              <label class="fld"><span class="fld-l">Minimum k</span><span class="fld-in"><input id="p-kmin" type="number" step="any" value="1000"></span></label>
+            </div>
+            <label class="fld" data-pm="k" hidden><span class="fld-l">Force constant k</span><span class="fld-in"><input id="p-k" type="number" step="any" value="1000"><em class="eu2">kJ/mol/nm²</em></span></label>
+            <label class="fld" data-pm="spacing" hidden><span class="fld-l">Spacing</span><span class="fld-in"><input id="p-sp" type="number" step="any" value="0.1"><em class="lu">nm</em></span></label>
+          </div></details>
+          <details class="sec"><summary><span><span class="n">4</span>Cost</span></summary><div class="sec-in">
+            <div class="fld-row">
+              <label class="fld"><span class="fld-l">Per window</span><span class="fld-in"><input id="p-ns" type="number" step="any" value="10"><em>ns</em></span></label>
+              <label class="fld"><span class="fld-l">Speed <i class="tip" tabindex="0" data-tip="Throughput of one simulation on your hardware, used to estimate the total wall time.">?</i></span><span class="fld-in"><input id="p-speed" type="number" step="any" value="100"><em>ns/day</em></span></label>
+            </div>
+          </div></details>
+        </div>
+
+        <div data-show="analyze" hidden>
+          <details class="sec" open><summary><span><span class="n">1</span>Windows</span></summary><div class="sec-in">
+            <label class="drop" id="a-drop" tabindex="0">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+              <b>Drop pullx.xvg files (one per window)</b>
+              <span>Optionally add a Grossfield metadata file (<code>path centre k</code>) to set centres and force constants</span>
+              <input type="file" multiple accept=".xvg,.dat,.txt,.csv">
+            </label>
+            <div id="a-files"></div>
+          </div></details>
+          <details class="sec" open><summary><span><span class="n">2</span>Settings</span></summary><div class="sec-in">
+            <div class="fld-row">
+              <label class="fld"><span class="fld-l">Temperature</span><span class="fld-in"><input id="a-T" type="number" step="any" value="300"><em>K</em></span></label>
+              <label class="fld"><span class="fld-l">Energy unit</span><span class="fld-in"><select id="a-unit"><option>kJ/mol</option><option>kcal/mol</option></select></span></label>
+            </div>
+            <div class="fld-row">
+              <label class="fld"><span class="fld-l">Default k <i class="tip" tabindex="0" data-tip="Force constant for windows without metadata (energy/length²). Edit individual windows in the Windows tab.">?</i></span><span class="fld-in"><input id="a-k" type="number" step="any" value="1000"></span></label>
+              <label class="fld"><span class="fld-l">Length unit</span><span class="fld-in"><input id="a-lu" type="text" value="nm"></span></label>
+            </div>
+            <div class="btn-row"><button type="button" class="btn-sm" id="a-names">Centres from file names</button><button type="button" class="btn-sm" id="a-kall">Apply k to all</button></div>
+          </div></details>
+          <details class="sec"><summary><span><span class="n">3</span>Advanced</span></summary><div class="sec-in">
+            <div class="fld-row">
+              <label class="fld"><span class="fld-l">Histogram bins</span><span class="fld-in"><input id="a-bins" type="number" min="20" max="600" value="120"></span></label>
+              <label class="fld"><span class="fld-l">Bootstrap</span><span class="fld-in"><input id="a-boot" type="number" min="0" max="200" value="20"><em>resamples</em></span></label>
+            </div>
+            <div class="fld-row">
+              <label class="fld"><span class="fld-l">Overlap threshold</span><span class="fld-in"><input id="a-omin" type="number" min="1" max="60" value="10"><em>%</em></span></label>
+              <label class="fld"><span class="fld-l">Data column <i class="tip" tabindex="0" data-tip="Column of ξ in the files (0 = time).">?</i></span><span class="fld-in"><input id="a-col" type="number" min="1" value="1"></span></label>
+            </div>
+            <label class="check"><input type="checkbox" id="a-gp" checked> Gaussian-process umbrella integration (ML)</label>
+          </div></details>
+        </div>
+
+        <div class="side-foot">
+          <button type="button" class="btn btn-primary" id="ww-go">Plan windows</button>
+          <div class="btn-row"><button type="button" class="btn-sm" id="ww-report" disabled style="flex:1;justify-content:center">Report</button><button type="button" class="btn-sm" id="ww-csv" disabled style="flex:1;justify-content:center">CSV</button><button type="button" class="btn-sm" id="ww-copy" disabled style="flex:1;justify-content:center">Copy</button></div>
+        </div>
+      </aside>
+
+      <div class="app-main">
+        <div data-show="plan" id="plan-out">
+          <section class="panel2 insight info" id="p-insight">
+            <div id="p-gauge"></div>
+            <div><h2 id="p-headline"></h2><p class="story" id="p-story"></p><div class="kpis" id="p-kpis"></div></div>
+          </section>
+          <section class="panel2" style="margin-top:18px">
+            <nav class="rtabs" role="tablist" id="p-tabs">
+              <button role="tab" data-view="pv-layout" aria-selected="true">Window layout</button>
+              <button role="tab" data-view="pv-table" aria-selected="false">Window table</button>
+              <button role="tab" data-view="pv-files" aria-selected="false">GROMACS files</button>
+            </nav>
+            <div class="rview" id="pv-layout"><div class="chart-host" id="pc-layout"></div>
+              <details class="explain" open><summary>How is the design derived?</summary><div class="x-in">
+                <p>On a locally flat free-energy profile a harmonic window samples a Gaussian of width <b>σ = √(k<sub>B</sub>T/k)</b>. Two neighbours a distance d apart overlap by <b>2Φ(−d/2σ)</b>, so the target overlap fixes d/σ. A slope F′ pushes every window off its centre by <b>F′/k</b>. Choosing k ≥ (F′/z)²/k<sub>B</sub>T keeps that drift below half a spacing, so the steep parts of the profile stay covered.</p></div></details></div>
+            <div class="rview" id="pv-table" hidden><div class="tscroll"><table class="dtable" id="p-table"></table></div></div>
+            <div class="rview" id="pv-files" hidden>
+              <h3 style="font-size:.95rem;margin:0 0 .5rem">Pull-code settings</h3>
+              <div class="codebox"><pre id="p-mdp"></pre><div class="btn-row"><button type="button" class="btn-sm" data-copy="p-mdp">Copy</button><button type="button" class="btn-sm" data-dl="p-mdp" data-name="umbrella_windows.mdp">Download</button></div></div>
+              <h3 style="font-size:.95rem;margin:1.2rem 0 .5rem">Script: one .mdp per window from your template</h3>
+              <div class="codebox"><pre id="p-sh"></pre><div class="btn-row"><button type="button" class="btn-sm" data-copy="p-sh">Copy</button><button type="button" class="btn-sm" data-dl="p-sh" data-name="make_windows.sh">Download</button></div></div>
+              <p class="hint" style="margin-top:.6rem">Put <code>pull-coord1-init = XINIT</code> and <code>pull-coord1-k = KVAL</code> in <code>umbrella_template.mdp</code>; the script writes <code>window_00.mdp …</code> and the matching <code>gmx grompp</code> commands.</p>
+            </div>
+          </section>
+        </div>
+
+        <div data-show="analyze" hidden>
+          <section class="panel2 empty" id="a-empty">
+            <svg class="art" viewBox="0 0 120 120" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <path d="M10 92c8 0 10-48 22-48s10 30 18 30 10-40 22-40 14 58 38 58" />
+              <path d="M14 104c4-14 8-14 12 0M28 104c4-14 8-14 12 0M42 104c4-14 8-14 12 0M70 104c4-14 8-14 12 0M84 104c4-14 8-14 12 0" opacity=".5"/>
+              <path d="M58 98v10M62 98v10" stroke="#d03b3b" stroke-width="2.5"/>
+            </svg>
+            <h2>Find the holes before your reviewers do</h2>
+            <p>Drop the <code>pullx.xvg</code> files of your umbrella windows. WindowWise reconstructs the free-energy profile with error bars, checks every window, and proposes exactly which windows to add. Or start with an example:</p>
+            <div class="samples">
+              <button class="sample" type="button" data-sample="clean"><span class="tag good">Healthy</span><b>Well-designed run</b><span>48 stiff windows across a 30 kJ/mol adsorption well; the exact profile is shown for comparison.</span><i>Load example →</i></button>
+              <button class="sample" type="button" data-sample="broken"><span class="tag bad">Broken</span><b>Gap + soft springs</b><span>Two windows are missing and the springs are too soft on the steep wall, both common mistakes.</span><i>Load example →</i></button>
+              <button class="sample" type="button" data-sample="sparse"><span class="tag info">AI/ML</span><b>Sparse windows</b><span>Only 11 widely spaced windows: WHAM cannot connect them, but the Gaussian process can, and active learning picks the next runs.</span><i>Load example →</i></button>
+            </div>
+          </section>
+          <div id="a-res" hidden>
+            <section class="panel2 insight" id="a-insight">
+              <div id="a-gauge"></div>
+              <div><h2 id="a-headline"></h2><p class="story" id="a-story"></p><div class="kpis" id="a-kpis"></div></div>
+            </section>
+            <section class="panel2" style="margin-top:18px">
+              <nav class="rtabs" role="tablist" id="a-tabs">
+                <button role="tab" data-view="av-pmf" aria-selected="true">Free energy</button>
+                <button role="tab" data-view="av-samp" aria-selected="false">Sampling</button>
+                <button role="tab" data-view="av-ovl" aria-selected="false">Overlap</button>
+                <button role="tab" data-view="av-issues" aria-selected="false">Issues <span class="cnt" id="a-nissues"></span></button>
+                <button role="tab" data-view="av-fix" aria-selected="false">Repair plan <span class="cnt" id="a-nfix"></span></button>
+                <button role="tab" data-view="av-win" aria-selected="false">Windows <span class="cnt" id="a-nwin"></span></button>
+              </nav>
+              <div class="rview" id="av-pmf"><div class="chart-host" id="ac-pmf"></div>
+                <details class="explain"><summary>What am I looking at?</summary><div class="x-in">
+                  <p><b>Blue:</b> the potential of mean force from WHAM, with a ±1σ band from block-bootstrap resampling of each window. <b>Orange dashed:</b> the Gaussian-process (GP) profile built only from each window's mean force k(c − ⟨ξ⟩), with its 95% Bayesian band. Where the two agree, the result is robust. Where the GP band widens, the data are thin. <b>Stars</b> mark the windows that active learning would run next.</p></div></details></div>
+              <div class="rview" id="av-samp" hidden><div class="chart-host" id="ac-hist"></div>
+                <details class="explain"><summary>What am I looking at?</summary><div class="x-in"><p>Each curve is one window's histogram, shaded light to dark along ξ. A healthy run tiles the coordinate with overlapping bumps. Gaps between bumps, or a bump sitting far from its restraint centre (dot), are what WHAM cannot fix.</p></div></details></div>
+              <div class="rview" id="av-ovl" hidden><div class="chart-host" id="ac-ovl"></div>
+                <details class="explain"><summary>What am I looking at?</summary><div class="x-in"><p>The overlap between each pair of neighbouring windows (sum of the minimum of their normalised histograms). Pairs below the dashed threshold are coloured, and marked <b>!</b> (warning) or <b>✕</b> (critical).</p></div></details></div>
+              <div class="rview" id="av-issues" hidden><ul class="issues" id="a-issues"></ul></div>
+              <div class="rview" id="av-fix" hidden>
+                <div class="chart-host" id="ac-fix"></div>
+                <div class="tscroll" style="margin-top:14px"><table class="dtable" id="a-fixtable"></table></div>
+                <h3 style="font-size:.95rem;margin:1.2rem 0 .5rem">Ready-to-paste settings</h3>
+                <div class="codebox"><pre id="a-fixmdp"></pre><div class="btn-row"><button type="button" class="btn-sm" data-copy="a-fixmdp">Copy</button><button type="button" class="btn-sm" data-dl="a-fixmdp" data-name="repair_windows.mdp">Download</button></div></div>
+              </div>
+              <div class="rview" id="av-win" hidden>
+                <p class="hint" style="margin:0 0 .6rem">Edit centres and force constants, then press <b>Run analysis</b> again.</p>
+                <div class="tscroll"><table class="dtable" id="a-wintable"></table></div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <section class="app-method" id="method">
+      <div class="grid-2">
+        <div class="prose">
+          <h2>Why WindowWise?</h2>
+          <p>Umbrella sampling fails quietly. Windows that are too far apart, or springs too soft for a steep wall, leave holes in the free-energy profile that WHAM smooths over. Usually you only find out after the compute is spent. WindowWise brings design, post-mortem and repair into one place.</p>
+          <p>Python package and CLI: <code>pip install git+https://github.com/siba-p/windowwise</code>. Validated against an analytic Morse-type PMF: WHAM RMSE 0.19 kJ/mol; GP 0.18–0.86 kJ/mol with 41 to 11 windows.</p>
+        </div>
+        <div class="prose">
+          <h2>Method</h2>
+          <ul>
+            <li><b>WHAM:</b> self-consistent 1D WHAM, bias ½k(ξ − ξ₀)² as in the GROMACS pull code, with block-bootstrap errors (block length 2g).</li>
+            <li><b>Diagnostics:</b> neighbour overlap, drift of each window from its centre, independent samples per window.</li>
+            <li><b>Repair:</b> new windows spaced for the target overlap, k raised where the slope is steep, centres offset by F′/k.</li>
+            <li><b>GP umbrella integration (ML):</b> mean forces k(c − ⟨ξ⟩) as derivative observations of a GP prior; hyperparameters by marginal likelihood; active learning by maximum posterior mean-force uncertainty.</li>
+          </ul>
+          <ol class="refs">
+            <li>S. Kumar <i>et al.</i>, <i>J. Comput. Chem.</i> 13, 1011 (1992) (WHAM).</li>
+            <li>J. Kästner &amp; W. Thiel, <i>J. Chem. Phys.</i> 123, 144104 (2005) (umbrella integration).</li>
+            <li>T. Stecher, N. Bernstein &amp; G. Csányi, <i>J. Chem. Theory Comput.</i> 10, 4079 (2014) (GP free energies).</li>
+          </ol>
+        </div>
+      </div>
+    </section>
   </div>
-
-  <!-- ================= PLAN ================= -->
-  <section id="panel-plan" role="tabpanel" aria-labelledby="tab-plan" class="ww-panel">
-    <div class="ww-grid">
-      <form class="ww-card ww-form" id="plan-form" autocomplete="off">
-        <h3>Reaction coordinate</h3>
-        <div class="ww-2">
-          <label>Start <input name="xmin" type="number" step="any" value="0.5" required></label>
-          <label>End <input name="xmax" type="number" step="any" value="2.5" required></label>
-        </div>
-        <div class="ww-2">
-          <label>Length unit <input name="lunit" type="text" value="nm"></label>
-          <label>Geometry (mdp)
-            <select name="geometry"><option>distance</option><option>direction</option><option>direction-periodic</option><option>cylinder</option></select>
-          </label>
-        </div>
-        <h3>Thermodynamics</h3>
-        <div class="ww-2">
-          <label>Temperature (K) <input name="T" type="number" step="any" value="300" required></label>
-          <label>Energy unit <select name="unit"><option>kJ/mol</option><option>kcal/mol</option></select></label>
-        </div>
-        <label>Target overlap between neighbouring windows (%) <input name="overlap" type="number" min="5" max="80" step="1" value="30"></label>
-        <h3>Design rule</h3>
-        <div class="ww-radio" role="radiogroup">
-          <label><input type="radio" name="mode" value="auto" checked> From the steepest expected slope</label>
-          <label><input type="radio" name="mode" value="k"> I choose the force constant</label>
-          <label><input type="radio" name="mode" value="spacing"> I choose the spacing</label>
-        </div>
-        <div class="ww-2" data-mode="auto">
-          <label><span>Steepest |dF/dξ| <small>energy / length</small></span> <input name="slope" type="number" step="any" value="60"></label>
-          <label>Minimum k <input name="kMin" type="number" step="any" value="1000"></label>
-        </div>
-        <div data-mode="k" hidden><label><span>Force constant k <small>energy / length²</small></span> <input name="k" type="number" step="any" value="1000"></label></div>
-        <div data-mode="spacing" hidden><label>Window spacing <input name="spacing" type="number" step="any" value="0.1"></label></div>
-        <p class="ww-hint">Tip: estimate the steepest slope from a short steered-MD pull (peak force) or from a related system. Overlap of 20–40% between neighbours is a common target.</p>
-      </form>
-
-      <div class="ww-out">
-        <div class="ww-card">
-          <dl class="ww-summary" id="plan-summary"></dl>
-          <div class="ww-chart" id="plan-chart" aria-label="Predicted sampling distribution of each window"></div>
-          <p class="ww-caption">Predicted distribution of each window for a locally flat PMF: Gaussians of width σ = √(k<sub>B</sub>T / k). A slope F′ shifts every window by F′/k, which the planner keeps below half a spacing.</p>
-        </div>
-        <div class="ww-card">
-          <div class="ww-cardhead"><h3>GROMACS pull settings</h3><div class="ww-actions"><button type="button" data-copy-target="plan-mdp">Copy</button><button type="button" data-download="plan-mdp" data-filename="umbrella_windows.mdp">Download</button></div></div>
-          <pre id="plan-mdp" class="ww-pre"></pre>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ================= ANALYZE ================= -->
-  <section id="panel-analyze" role="tabpanel" aria-labelledby="tab-analyze" class="ww-panel" hidden>
-    <div class="ww-card ww-drop" id="dropzone" tabindex="0">
-      <div>
-        <h3>Drop your umbrella windows here</h3>
-        <p>GROMACS <code>pullx.xvg</code> files (one per window) or any two-column <code>time ξ</code> files. Add a Grossfield-WHAM metadata file (<code>path centre k</code>) to set centres and force constants automatically.</p>
-        <div class="ww-actions">
-          <label class="ww-file">Choose files<input type="file" id="file-input" multiple accept=".xvg,.dat,.txt,.csv"></label>
-          <button type="button" id="load-demo">Load demo dataset</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="ww-grid ww-grid-wide" id="analysis-setup" hidden>
-      <form class="ww-card ww-form" id="an-form" autocomplete="off">
-        <h3>Settings</h3>
-        <div class="ww-2">
-          <label>Temperature (K) <input name="T" type="number" step="any" value="300"></label>
-          <label>Energy unit <select name="unit"><option>kJ/mol</option><option>kcal/mol</option></select></label>
-        </div>
-        <div class="ww-2">
-          <label><span>Data column <small>(0 = time)</small></span> <input name="col" type="number" min="1" step="1" value="1"></label>
-          <label>Histogram bins <input name="nbins" type="number" min="20" max="600" step="1" value="120"></label>
-        </div>
-        <div class="ww-2">
-          <label>Bootstrap samples <input name="nboot" type="number" min="0" max="200" step="1" value="20"></label>
-          <label>Overlap threshold (%) <input name="omin" type="number" min="1" max="60" step="1" value="10"></label>
-        </div>
-        <div class="ww-2">
-          <label>Default k <input name="k" type="number" step="any" value="1000"></label>
-          <label>Length unit <input name="lunit" type="text" value="nm"></label>
-        </div>
-        <h3>Assign centres</h3>
-        <div class="ww-actions ww-wrapbtns">
-          <button type="button" id="centers-names">From file names</button>
-          <button type="button" id="centers-even">Evenly spaced…</button>
-          <button type="button" id="k-all">Set k for all</button>
-        </div>
-        <div class="ww-2" id="even-row" hidden>
-          <label>First centre <input id="even-start" type="number" step="any" value="0.5"></label>
-          <label>Step <input id="even-step" type="number" step="any" value="0.1"></label>
-        </div>
-        <button type="submit" class="btn btn-primary ww-run">Run WHAM &amp; diagnostics</button>
-        <p class="ww-hint" id="an-status" aria-live="polite"></p>
-      </form>
-      <div class="ww-card ww-tablewrap">
-        <div class="ww-cardhead"><h3>Windows <span class="muted" id="win-count"></span></h3><button type="button" id="clear-files">Clear</button></div>
-        <div class="ww-scroll"><table class="ww-table" id="win-table">
-          <thead><tr><th>File</th><th>Samples</th><th>Centre</th><th>k</th><th>⟨ξ⟩</th><th>Indep.</th><th></th></tr></thead>
-          <tbody></tbody>
-        </table></div>
-      </div>
-    </div>
-
-    <div id="results" hidden>
-      <div class="ww-card ww-verdict" id="verdict"></div>
-      <div class="ww-grid ww-grid-even">
-        <div class="ww-card">
-          <div class="ww-cardhead"><h3>Potential of mean force</h3><div class="ww-actions"><label class="ww-check" style="font-size:.8rem;padding:0"><input type="checkbox" id="gp-toggle" checked> GP overlay</label><button type="button" id="pmf-csv">Download CSV</button></div></div>
-          <div class="ww-chart" id="pmf-chart"></div>
-          <p class="ww-caption" id="pmf-caption"></p>
-        </div>
-        <div class="ww-card">
-          <div class="ww-cardhead"><h3>Window histograms</h3></div>
-          <div class="ww-chart" id="hist-chart"></div>
-          <p class="ww-caption">Each curve is one window, shaded light to dark along the coordinate. Flagged regions are marked on the axis.</p>
-        </div>
-        <div class="ww-card">
-          <div class="ww-cardhead"><h3>Neighbour overlap</h3></div>
-          <div class="ww-chart" id="ovl-chart"></div>
-          <p class="ww-caption">Overlap coefficient between each pair of adjacent windows (sum of the minimum of the two normalised histograms). The dashed line is your threshold; pairs below it are coloured and marked ! (warning) or ✕ (critical).</p>
-        </div>
-        <div class="ww-card">
-          <div class="ww-cardhead"><h3>Issues</h3></div>
-          <ul class="ww-flags" id="flags"></ul>
-        </div>
-      </div>
-      <div class="ww-card" id="gp-card" style="margin-top:18px" hidden>
-        <div class="ww-cardhead"><h3>Active learning · Gaussian-process umbrella integration <span class="tk-ml" style="display:inline"><span>AI/ML</span></span></h3><div class="ww-actions"><button type="button" data-copy-target="gp-mdp">Copy</button><button type="button" data-download="gp-mdp" data-filename="next_windows_gp.mdp">Download</button></div></div>
-        <p class="ww-caption" style="margin-top:0">Each window's spring balance gives a noisy measurement of the mean force, k(c − ⟨ξ⟩). A Gaussian process turns these into a PMF with a Bayesian 95% band and finds where one more window would reduce the uncertainty most.</p>
-        <dl class="ww-summary" id="gp-summary"></dl>
-        <pre id="gp-mdp" class="ww-pre"></pre>
-      </div>
-      <div class="ww-card" id="suggest-card">
-        <div class="ww-cardhead"><h3>Suggested repair windows</h3><div class="ww-actions"><button type="button" data-copy-target="fix-mdp">Copy</button><button type="button" data-download="fix-mdp" data-filename="repair_windows.mdp">Download</button></div></div>
-        <p class="ww-caption" style="margin-top:0">Centres are offset by F′/k so that each new window samples the middle of the gap; force constants are raised where the PMF is steep.</p>
-        <pre id="fix-mdp" class="ww-pre"></pre>
-      </div>
-    </div>
-  </section>
-
-  <section class="ww-about">
-    <div class="grid-2">
-      <div class="prose">
-        <h2>Why WindowWise?</h2>
-        <p>Umbrella sampling fails quietly. Windows that are too far apart, or springs too soft for a steep wall, leave holes in the free-energy profile that WHAM bridges anyway. You usually find out only after the simulations have finished.</p>
-        <p>WindowWise brings the design and the post-mortem into one place. It plans spacing and force constants from first principles before you simulate, then runs WHAM with bootstrap errors on your <code>pullx</code> files and points to the exact windows to add or stiffen.</p>
-      </div>
-      <div class="prose">
-        <h2>Method</h2>
-        <ul>
-          <li><b>Planning.</b> Neighbouring windows of width σ = √(k<sub>B</sub>T/k) separated by d overlap by 2Φ(−d/2σ). The force constant is chosen so that the steepest slope shifts a window by at most half a spacing.</li>
-          <li><b>WHAM.</b> Self-consistent 1D WHAM (Kumar et al., 1992) on a common histogram grid. Bias U = ½k(ξ − ξ₀)², as in the GROMACS pull code.</li>
-          <li><b>Errors.</b> Block bootstrap of each time series, with block length set by the statistical inefficiency.</li>
-          <li><b>Repair.</b> Gaps below the overlap threshold get new windows. Their spacing follows the target overlap, their k is raised where the local slope is steep, and their centres are offset by F′/k.</li>
-          <li><b>GP umbrella integration (ML).</b> Window mean forces k(c − ⟨ξ⟩), with errors from the statistical inefficiency, are derivative observations of a Gaussian-process prior on the PMF (cf. Stecher, Bernstein &amp; Csányi, <i>JCTC</i> 2014). Active learning picks new windows where the posterior mean-force uncertainty is largest.</li>
-        </ul>
-        <p class="muted">Validated against an analytic Morse-type PMF: WHAM RMSE 0.19 kJ/mol over a 30 kJ/mol well; GP RMSE 0.18–0.86 kJ/mol with 41 to 11 windows. Python package and CLI: <a href="https://github.com/siba-p/windowwise">github.com/siba-p/windowwise</a>.</p>
-      </div>
-    </div>
-  </section>
 </div>
 {{ end }}

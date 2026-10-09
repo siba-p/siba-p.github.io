@@ -1,411 +1,328 @@
 (function () {
   "use strict";
-  const WW = window.WW;
-  const root = document.getElementById("ww");
-  if (!root || !WW) return;
-  const $ = (s, r = root) => r.querySelector(s);
-  const $$ = (s, r = root) => Array.from(r.querySelectorAll(s));
-  const SVGNS = "http://www.w3.org/2000/svg";
+  const W = window.WW, S = window.SMC, A = window.APP, root = document.getElementById("ww");
+  if (!W || !S || !A || !root) return;
+  const $ = s => root.querySelector(s), $$ = s => Array.from(root.querySelectorAll(s));
+  const num = id => { const v = parseFloat($(id).value); return Number.isFinite(v) ? v : null; };
+  const f = (v, d) => S.fmt(v, d == null ? 3 : d);
+  const RAMP_L = ["#86b6ef", "#6da7ec", "#5598e7", "#3987e5", "#2a78d6", "#256abf", "#1c5cab", "#184f95", "#104281"];
+  const RAMP_D = ["#cde2fb", "#b7d3f6", "#9ec5f4", "#86b6ef", "#6da7ec", "#5598e7", "#3987e5", "#2a78d6"];
+  const ramp = (t) => { const r = S.tokens().dark ? RAMP_D : RAMP_L; return r[Math.max(0, Math.min(r.length - 1, Math.round(t * (r.length - 1))))]; };
+  const ST = { warning: "#e09a00", critical: "#d03b3b", good: "#0ca30c", gp: "#8b5cf6" };
+  let mode = "plan";
+  const st = { windows: [], raw: [], meta: null, truth: null, res: null };
 
-  /* ---------------- theme-aware chart tokens ---------------- */
-  const RAMP_LIGHT = ["#86b6ef", "#6da7ec", "#5598e7", "#3987e5", "#2a78d6", "#256abf", "#1c5cab", "#184f95", "#104281"];
-  const RAMP_DARK = ["#cde2fb", "#b7d3f6", "#9ec5f4", "#86b6ef", "#6da7ec", "#5598e7", "#3987e5", "#2a78d6"];
-  const STATUS = { warning: "#fab219", critical: "#d03b3b", good: "#0ca30c" };
-  function tokens() {
-    const cs = getComputedStyle(document.documentElement);
-    const dark = cs.colorScheme === "dark" || document.documentElement.dataset.theme === "dark";
-    return {
-      dark, ramp: dark ? RAMP_DARK : RAMP_LIGHT,
-      series: dark ? "#3987e5" : "#2a78d6",
-      ink: cs.getPropertyValue("--ink").trim(), ink2: cs.getPropertyValue("--ink-2").trim(), ink3: cs.getPropertyValue("--ink-3").trim(),
-      line: cs.getPropertyValue("--line").trim(), surface: cs.getPropertyValue("--card").trim(), neutral: dark ? "#5b6782" : "#b5bdcc"
-    };
+  /* =================== mode =================== */
+  function setMode(m) {
+    mode = m;
+    $$(".app-mode").forEach(b => b.setAttribute("aria-pressed", b.dataset.mode === m));
+    $$("[data-show]").forEach(el => { el.hidden = el.dataset.show !== m; });
+    $("#ww-go").textContent = m === "plan" ? "Update plan" : "Run analysis";
+    const has = m === "plan" || !!st.res;
+    ["#ww-report", "#ww-csv", "#ww-copy"].forEach(b => { $(b).disabled = !has; });
+    A.steps($("#ww-steps"), m === "plan" ? 1 : st.res ? 2 : 0);
+    if (m === "plan") renderPlan(); else if (st.res) renderResults();
   }
-  const rampAt = (ramp, t) => ramp[Math.max(0, Math.min(ramp.length - 1, Math.round(t * (ramp.length - 1))))];
+  $$(".app-mode").forEach(b => b.addEventListener("click", () => setMode(b.dataset.mode)));
+  $("#ww-go").addEventListener("click", () => (mode === "plan" ? renderPlan() : run()));
 
-  /* ---------------- tiny SVG chart kit ---------------- */
-  function niceTicks(lo, hi, n) {
-    const span = hi - lo || 1, step0 = span / n, mag = Math.pow(10, Math.floor(Math.log10(step0)));
-    const step = [1, 2, 2.5, 5, 10].map(m => m * mag).find(s => span / s <= n) || 10 * mag;
-    const out = [];
-    for (let v = Math.ceil(lo / step) * step; v <= hi + step * 1e-9; v += step) out.push(+v.toFixed(10));
-    return out;
-  }
-  const fmt = (v, d) => (Math.abs(v) >= 1000 ? Math.round(v).toString() : (+v).toFixed(d == null ? 2 : d));
-  function el(tag, attrs, parent) {
-    const e = document.createElementNS(SVGNS, tag);
-    for (const k in attrs) e.setAttribute(k, attrs[k]);
-    if (parent) parent.appendChild(e);
-    return e;
-  }
-  function frame(host, o) {
-    host.innerHTML = "";
-    const W = 640, H = o.height || 260, m = { l: 54, r: 14, t: 14, b: 40 };
-    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": o.label || "" }, host);
-    const tk = tokens();
-    const x = v => m.l + (v - o.x0) / (o.x1 - o.x0) * (W - m.l - m.r);
-    const y = v => H - m.b - (v - o.y0) / (o.y1 - o.y0) * (H - m.t - m.b);
-    const g = el("g", {}, svg);
-    niceTicks(o.y0, o.y1, 5).forEach(v => {
-      el("line", { x1: m.l, x2: W - m.r, y1: y(v), y2: y(v), stroke: tk.line, "stroke-width": 1 }, g);
-      const t = el("text", { x: m.l - 8, y: y(v) + 4, "text-anchor": "end", class: "ww-tick" }, g); t.textContent = fmt(v, o.yd);
-    });
-    niceTicks(o.x0, o.x1, 7).forEach(v => {
-      el("line", { x1: x(v), x2: x(v), y1: H - m.b, y2: H - m.b + 4, stroke: tk.ink3 }, g);
-      const t = el("text", { x: x(v), y: H - m.b + 17, "text-anchor": "middle", class: "ww-tick" }, g); t.textContent = fmt(v, o.xd);
-    });
-    el("line", { x1: m.l, x2: W - m.r, y1: H - m.b, y2: H - m.b, stroke: tk.ink3, "stroke-width": 1 }, g);
-    const xl = el("text", { x: (m.l + W - m.r) / 2, y: H - 4, "text-anchor": "middle", class: "ww-axis" }, g); xl.textContent = o.xLabel;
-    const yl = el("text", { x: 14, y: (m.t + H - m.b) / 2, "text-anchor": "middle", class: "ww-axis", transform: `rotate(-90 14 ${(m.t + H - m.b) / 2})` }, g); yl.textContent = o.yLabel;
-    const tip = document.createElement("div"); tip.className = "ww-tip"; tip.hidden = true; host.appendChild(tip);
-    return { svg, x, y, W, H, m, tk, tip, host };
-  }
-  function showTip(f, html, px, py) {
-    f.tip.innerHTML = html; f.tip.hidden = false;
-    const r = f.host.getBoundingClientRect(), s = r.width / f.W;
-    let left = px * s + 12, top = py * s - 10;
-    if (left + f.tip.offsetWidth > r.width) left = px * s - f.tip.offsetWidth - 12;
-    f.tip.style.left = left + "px"; f.tip.style.top = Math.max(0, top) + "px";
-  }
-  function svgPoint(f, evt) {
-    const r = f.svg.getBoundingClientRect();
-    return { x: (evt.clientX - r.left) * f.W / r.width, y: (evt.clientY - r.top) * f.H / r.height };
-  }
-  function pathFrom(xs, ys, f) {
-    let d = "", pen = false;
-    for (let i = 0; i < xs.length; i++) {
-      if (!Number.isFinite(ys[i])) { pen = false; continue; }
-      d += (pen ? "L" : "M") + f.x(xs[i]).toFixed(1) + " " + f.y(ys[i]).toFixed(1); pen = true;
-    }
-    return d;
-  }
-
-  /* ---------------- Plan ---------------- */
-  const planForm = $("#plan-form");
-  let lastPlan = null;
+  /* =================== PLAN =================== */
   function readPlan() {
-    const fd = new FormData(planForm), num = k => parseFloat(fd.get(k));
-    return { xmin: num("xmin"), xmax: num("xmax"), T: num("T"), unit: fd.get("unit"), overlap: num("overlap") / 100, mode: fd.get("mode"),
-      slope: num("slope"), kMin: num("kMin"), k: num("k"), spacing: num("spacing"), lunit: fd.get("lunit") || "nm", geometry: fd.get("geometry") };
+    const m = root.querySelector('#p-mode input:checked').value;
+    return { xmin: num("#p-xmin"), xmax: num("#p-xmax"), T: num("#p-T"), unit: $("#p-unit").value, overlap: num("#p-ov") / 100, mode: m,
+      slope: num("#p-slope"), kMin: num("#p-kmin") || 0, k: num("#p-k"), spacing: num("#p-sp"), lu: $("#p-lu").value || "nm", geom: $("#p-geom").value,
+      ns: num("#p-ns") || 0, speed: num("#p-speed") || 0 };
   }
+  let plan = null;
   function renderPlan() {
     const o = readPlan();
-    $$("[data-mode]", planForm).forEach(d => { d.hidden = d.dataset.mode !== o.mode; });
-    if (!(o.xmax > o.xmin) || !(o.T > 0) || !(o.overlap > 0 && o.overlap < 1)) return;
+    $("#p-ov-o").textContent = `${Math.round(o.overlap * 100)}%`;
+    $$("[data-pm]").forEach(el => { el.hidden = el.dataset.pm !== o.mode; });
+    $$(".lu").forEach(e => { e.textContent = o.lu; }); $$(".eu2").forEach(e => { e.textContent = `${o.unit}/${o.lu}²`; });
+    if (!(o.xmax > o.xmin) || !(o.T > 0)) return;
+    if (o.mode === "auto" && !(o.slope > 0) && !(o.kMin > 0)) return;
     if (o.mode === "k" && !(o.k > 0)) return;
     if (o.mode === "spacing" && !(o.spacing > 0)) return;
-    const p = WW.plan(o); lastPlan = { p, o };
-    const L = o.lunit, E = o.unit;
-    const rows = [
-      ["Force constant k", `${Math.round(p.k).toLocaleString()} ${E}/${L}²`],
-      ["Window spacing", `${p.spacing.toFixed(4)} ${L}`],
-      ["Number of windows", p.n],
-      ["Window width σ", `${p.sigma.toFixed(4)} ${L}`],
-      ["Neighbour overlap", `${(p.overlap * 100).toFixed(1)}%`],
-      ["Max slope-induced shift", o.mode === "auto" ? `${p.shift.toFixed(4)} ${L} (${(p.shift / p.spacing * 100).toFixed(0)}% of spacing)` : "n/a"]
-    ];
-    $("#plan-summary").innerHTML = rows.map(([a, b]) => `<div><dt>${a}</dt><dd>${b}</dd></div>`).join("") + `<p class="ww-rule">${p.rule}</p>`;
-    const pad = 3 * p.sigma, f = frame($("#plan-chart"), { x0: o.xmin - pad, x1: o.xmax + pad, y0: 0, y1: 1.08, xLabel: `ξ (${L})`, yLabel: "Relative probability", yd: 1, label: "Predicted window distributions" });
-    const xs = Array.from({ length: 400 }, (_, i) => o.xmin - pad + (o.xmax - o.xmin + 2 * pad) * i / 399);
-    p.centers.forEach((c, i) => {
-      const ys = xs.map(x => Math.exp(-0.5 * ((x - c) / p.sigma) ** 2));
-      el("path", { d: pathFrom(xs, ys, f), fill: "none", stroke: rampAt(f.tk.ramp, i / Math.max(1, p.n - 1)), "stroke-width": 2, "stroke-linejoin": "round" }, f.svg);
-    });
-    const hover = el("rect", { x: f.m.l, y: f.m.t, width: f.W - f.m.l - f.m.r, height: f.H - f.m.t - f.m.b, fill: "transparent" }, f.svg);
-    hover.addEventListener("pointermove", e => {
-      const pt = svgPoint(f, e); const xv = o.xmin - pad + (pt.x - f.m.l) / (f.W - f.m.l - f.m.r) * (o.xmax - o.xmin + 2 * pad);
-      let bi = 0; p.centers.forEach((c, i) => { if (Math.abs(c - xv) < Math.abs(p.centers[bi] - xv)) bi = i; });
-      showTip(f, `<b>Window ${bi}</b><br>centre ${p.centers[bi].toFixed(4)} ${L}<br>k ${Math.round(p.k)} ${E}/${L}²`, pt.x, pt.y);
-    });
-    hover.addEventListener("pointerleave", () => { f.tip.hidden = true; });
-    $("#plan-mdp").textContent = WW.mdpSnippet(p.centers, p.centers.map(() => p.k), { geometry: o.geometry });
+    const p = W.plan(o); plan = { p, o };
+    const totalNs = p.n * o.ns, days = o.speed > 0 ? totalNs / o.speed : null;
+    $("#p-gauge").innerHTML = `<div class="bignum"><b>${p.n}</b><span>windows</span></div>`;
+    $("#p-headline").innerHTML = `k = ${Math.round(p.k).toLocaleString()} ${o.unit}/${o.lu}² · spacing ${f(p.spacing, 4)} ${o.lu}`;
+    let story = `Each window samples a width σ = <b>${f(p.sigma, 4)} ${o.lu}</b>, and neighbours overlap by <b>${(p.overlap * 100).toFixed(1)}%</b>. `;
+    if (o.mode === "auto" && o.slope > 0) story += p.k > o.kMin ? `The steepest slope you expect (${f(o.slope, 0)} ${o.unit}/${o.lu}) would push a window <b>${f(p.shift, 4)} ${o.lu}</b> off its centre, ${(p.shift / p.spacing * 100).toFixed(0)}% of a spacing, so steep walls stay covered. ` : `Your minimum force constant already keeps slope-induced drift small (${f(p.shift, 4)} ${o.lu}). `;
+    if (o.ns > 0) story += `At ${o.ns} ns per window the campaign costs <b>${f(totalNs, 0)} ns</b>${days ? `: about <b>${days >= 1 ? f(days, 1) + " days" : f(days * 24, 1) + " hours"}</b> run one after another, or ${f(o.ns / o.speed * 24, 1)} hours with all windows in parallel` : ""}.`;
+    $("#p-story").innerHTML = story;
+    $("#p-kpis").innerHTML = [["Force constant", `${Math.round(p.k).toLocaleString()}`], ["Spacing", `${f(p.spacing, 4)} ${o.lu}`], ["Window width σ", `${f(p.sigma, 4)} ${o.lu}`], ["Overlap", `${(p.overlap * 100).toFixed(1)}%`], ["Max drift", o.mode === "auto" && o.slope ? `${f(p.shift, 4)} ${o.lu}` : "–"], ["Total sampling", `${f(totalNs, 0)} ns`]]
+      .map(([a, b]) => `<div class="kpi"><small>${a}</small><b>${b}</b></div>`).join("");
+    drawLayout(p, o);
+    $("#p-table").innerHTML = `<thead><tr><th>#</th><th>pull-coord1-init (${o.lu})</th><th>pull-coord1-k</th><th>σ (${o.lu})</th><th>Drift at steepest slope</th></tr></thead><tbody>${p.centers.map((c, i) => `<tr><td>${String(i).padStart(2, "0")}</td><td>${c.toFixed(4)}</td><td>${Math.round(p.k)}</td><td>${f(p.sigma, 4)}</td><td>${o.slope ? f(p.shift, 4) : "–"}</td></tr>`).join("")}</tbody>`;
+    $("#p-mdp").textContent = W.mdpSnippet(p.centers, p.centers.map(() => p.k), { geometry: o.geom });
+    $("#p-sh").textContent = ["#!/usr/bin/env bash", "# WindowWise: write one .mdp per umbrella window from umbrella_template.mdp,", "# which must contain the placeholders XINIT and KVAL.", "set -euo pipefail",
+      `centers=(${p.centers.map(c => c.toFixed(4)).join(" ")})`, `k=${Math.round(p.k)}`, 'for i in "${!centers[@]}"; do', '  n=$(printf "%02d" "$i")',
+      '  sed -e "s/XINIT/${centers[$i]}/" -e "s/KVAL/${k}/" umbrella_template.mdp > "window_${n}.mdp"',
+      '  echo "gmx grompp -f window_${n}.mdp -c conf_${n}.gro -p topol.top -n index.ndx -o umbrella_${n}.tpr"', "done"].join("\n");
+    A.steps($("#ww-steps"), 1);
   }
-  planForm.addEventListener("input", renderPlan);
-  planForm.addEventListener("submit", e => e.preventDefault());
+  function drawLayout(p, o) {
+    const host = $("#pc-layout"), tk = S.tokens(), pad = 3 * p.sigma;
+    const x0 = o.xmin - pad, x1 = o.xmax + pad, xs = Array.from({ length: 500 }, (_, i) => x0 + (x1 - x0) * i / 499);
+    const fr = S.frame(host, { x0, x1, y0: 0, y1: 1.14, xLabel: `ξ (${o.lu})`, yLabel: "relative probability", yd: 2, label: "Predicted window distributions", height: 290 });
+    const mid = Math.floor(p.n / 2) - 1;
+    if (mid >= 0 && mid + 1 < p.n) {
+      const a = p.centers[mid], b = p.centers[mid + 1], ov = xs.map(x => Math.min(Math.exp(-0.5 * ((x - a) / p.sigma) ** 2), Math.exp(-0.5 * ((x - b) / p.sigma) ** 2)));
+      S.band(fr, xs, xs.map(() => 0), ov, tk.series2, 0.35);
+      const ox = fr.x((a + b) / 2), oy = fr.y(Math.exp(-0.5 * ((b - a) / 2 / p.sigma) ** 2));
+      S.el("line", { x1: ox, x2: ox, y1: oy, y2: fr.y(1.06) + 4, stroke: tk.series2, "stroke-width": 1 }, fr.svg);
+      S.el("text", { x: ox, y: fr.y(1.06), "text-anchor": "middle", class: "lbl" }, fr.svg).textContent = `neighbour overlap ${(p.overlap * 100).toFixed(0)}%`;
+    }
+    p.centers.forEach((c, i) => S.line(fr, xs, xs.map(x => Math.exp(-0.5 * ((x - c) / p.sigma) ** 2)), { stroke: ramp(i / Math.max(1, p.n - 1)), "stroke-width": 1.8 }));
+    p.centers.forEach(c => S.el("line", { x1: fr.x(c), x2: fr.x(c), y1: fr.y(0), y2: fr.y(0) + 5, stroke: tk.ink2 }, fr.svg));
+    S.crosshair(fr, p.centers, i => `<b>window ${String(i).padStart(2, "0")}</b><br>centre ${p.centers[i].toFixed(4)} ${o.lu}<br>k ${Math.round(p.k)}`, () => 1);
+    A.chartTools(host, "windowwise_plan");
+  }
+  ["#p-xmin", "#p-xmax", "#p-lu", "#p-geom", "#p-T", "#p-unit", "#p-ov", "#p-slope", "#p-kmin", "#p-k", "#p-sp", "#p-ns", "#p-speed"].forEach(s => $(s).addEventListener("input", renderPlan));
+  $$('#p-mode input').forEach(i => i.addEventListener("change", renderPlan));
+  A.tabs($("#p-tabs"));
 
-  /* ---------------- tabs ---------------- */
-  $$('[role="tab"]').forEach(t => t.addEventListener("click", () => {
-    $$('[role="tab"]').forEach(o => o.setAttribute("aria-selected", o === t));
-    $$('[role="tabpanel"]').forEach(p => { p.hidden = p.id !== t.getAttribute("aria-controls"); });
-    if (t.id === "tab-plan") renderPlan(); else if (lastResult) renderResults(lastResult);
+  /* =================== ANALYZE: data =================== */
+  async function addFiles(list) {
+    const files = Array.from(list), texts = await Promise.all(files.map(x => x.text()));
+    files.forEach((fl, i) => { const m = W.parseMetadata(texts[i]); if (m) st.meta = m; else st.raw.push({ name: fl.name, text: texts[i] }); });
+    st.truth = null; rebuild();
+    A.toast(`${st.windows.length} windows loaded${st.meta ? " (centres and k from metadata)" : ""}`);
+  }
+  function rebuild() {
+    const col = Math.max(0, Math.round(num("#a-col") || 1)), k0 = num("#a-k") || 1000, prev = new Map(st.windows.map(w => [w.name, w]));
+    st.windows = st.raw.map(r => {
+      const data = W.parseSeries(r.text, col), m = st.meta && st.meta.find(x => x.file === r.name), p = prev.get(r.name);
+      let c = m ? m.center : p ? p.center : W.numberFromName(r.name);
+      const guessed = !Number.isFinite(c);
+      if (guessed) c = data.length ? +W.mean(data).toFixed(4) : 0;
+      return { name: r.name, data, center: c, k: m ? m.k : p ? p.k : k0, guessed };
+    }).filter(w => w.data.length > 1).sort((a, b) => a.center - b.center);
+    renderFiles(); renderWinTable();
+  }
+  function renderFiles() {
+    const n = st.windows.length;
+    $("#a-files").innerHTML = n ? `<div class="slot ok"><b>${n} windows</b><small>${st.windows[0].center} … ${st.windows[n - 1].center} · ${st.windows.reduce((a, w) => a + w.data.length, 0).toLocaleString()} frames${st.meta ? " · metadata ✓" : ""}${st.windows.some(w => w.guessed) ? " · some centres guessed" : ""}</small><label>Clear<input type="button" hidden></label></div>` : "";
+    const clr = $("#a-files label"); if (clr) clr.addEventListener("click", e => { e.preventDefault(); st.raw = []; st.windows = []; st.meta = null; st.res = null; renderFiles(); $("#a-res").hidden = true; $("#a-empty").hidden = false; setMode("analyze"); });
+    $("#a-nwin").textContent = n || "";
+  }
+  A.bindDrop($("#a-drop"), addFiles);
+  $("#a-names").addEventListener("click", () => { let c = 0; st.windows.forEach(w => { const v = W.numberFromName(w.name); if (Number.isFinite(v)) { w.center = v; w.guessed = false; c++; } }); st.windows.sort((a, b) => a.center - b.center); renderFiles(); renderWinTable(); A.toast(`Centres read from ${c} file names`); });
+  $("#a-kall").addEventListener("click", () => { const k = num("#a-k"); st.windows.forEach(w => { w.k = k; }); renderWinTable(); A.toast(`k = ${k} applied to all windows`); });
+  $("#a-col").addEventListener("change", rebuild);
+
+  /* =================== examples =================== */
+  const MORSE = x => 30 * ((1 - Math.exp(-3.5 * (x - 0.7))) ** 2 - 1);
+  $$("[data-sample]").forEach(b => b.addEventListener("click", () => {
+    const k = b.dataset.sample, cs = [];
+    const step = k === "clean" ? 0.04 : k === "sparse" ? 0.2 : 0.1, start = k === "clean" ? 0.6 : 0.5;
+    for (let c = start; c <= 2.5 + 1e-9; c += step) { const r = +c.toFixed(2); if (k === "broken" && (r === 1.4 || r === 1.5)) continue; cs.push(r); }
+    const kk = k === "broken" ? 1000 : k === "clean" ? 8000 : 3000;
+    const ws = W.synthetic({ F: MORSE, centers: cs, k: kk, T: 300, unit: "kJ/mol", n: 3000, stride: 5, burn: 2000, seed: k === "clean" ? 3 : k === "sparse" ? 6 : 4 });
+    st.raw = ws.map(w => ({ name: `pullx_${w.center.toFixed(2)}.xvg`, text: "# example\n" + Array.from(w.data, (v, i) => `${(i * 0.1).toFixed(1)} ${v.toFixed(5)}`).join("\n") }));
+    st.meta = null; st.windows = [];
+    $("#a-T").value = 300; $("#a-unit").value = "kJ/mol"; $("#a-k").value = kk; $("#a-col").value = 1; $("#a-lu").value = "nm";
+    rebuild(); st.truth = MORSE; run();
   }));
 
-  /* ---------------- copy / download ---------------- */
-  root.addEventListener("click", async e => {
-    const c = e.target.closest("[data-copy-target]"), d = e.target.closest("[data-download]");
-    if (c) {
-      try { await navigator.clipboard.writeText(document.getElementById(c.dataset.copyTarget).textContent); c.textContent = "Copied ✓"; }
-      catch { c.textContent = "Select & copy"; }
-      setTimeout(() => (c.textContent = "Copy"), 1500);
-    }
-    if (d) download(d.dataset.filename, document.getElementById(d.dataset.download).textContent);
-  });
-  function download(name, text, type) {
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([text], { type: type || "text/plain" }));
-    a.download = name; document.body.appendChild(a); a.click();
-    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  /* =================== ANALYZE: run =================== */
+  function health(res) {
+    let s = 100;
+    res.flags.forEach(fl => { s -= fl.kind === "overlap" ? (fl.level === "critical" ? 30 : 12) : fl.kind === "drift" ? 8 : fl.kind === "samples" ? 5 : 30; });
+    return Math.max(0, s);
   }
-
-  /* ---------------- Analyse: data loading ---------------- */
-  const anForm = $("#an-form");
-  let windows = [], truth = null, lastResult = null, rawFiles = [];
-  const status = msg => { $("#an-status").textContent = msg; };
-  const anOpts = () => { const fd = new FormData(anForm), n = k => parseFloat(fd.get(k)); return { T: n("T"), unit: fd.get("unit"), col: Math.max(0, Math.round(n("col"))), nbins: Math.round(n("nbins")), nboot: Math.round(n("nboot")), omin: n("omin") / 100, k: n("k"), lunit: fd.get("lunit") || "nm" }; };
-
-  async function addFiles(fileList) {
-    const files = Array.from(fileList);
-    const texts = await Promise.all(files.map(f => f.text()));
-    let meta = null;
-    files.forEach((f, i) => {
-      const m = WW.parseMetadata(texts[i]);
-      if (m) meta = m; else rawFiles.push({ name: f.name, text: texts[i] });
-    });
-    truth = null;
-    rebuildWindows(meta);
-  }
-  function rebuildWindows(meta) {
-    const o = anOpts();
-    const prev = new Map(windows.map(w => [w.name, w]));
-    windows = rawFiles.map(f => {
-      const data = WW.parseSeries(f.text, o.col);
-      const m = meta && meta.find(r => r.file === f.name);
-      const p = prev.get(f.name);
-      let center = m ? m.center : p ? p.center : WW.numberFromName(f.name);
-      if (!Number.isFinite(center)) center = data.length ? +WW.mean(data).toFixed(4) : 0;
-      return { name: f.name, data, center, k: m ? m.k : p ? p.k : o.k, guessed: !m && !p && !Number.isFinite(WW.numberFromName(f.name)) };
-    }).filter(w => w.data.length > 1).sort((a, b) => a.center - b.center);
-    renderTable();
-    $("#analysis-setup").hidden = windows.length === 0;
-    status(windows.length ? (meta ? "Centres and k read from the metadata file." : "Check the centres and force constants, then run.") : "No numeric data found in those files.");
-  }
-  function renderTable() {
-    const tb = $("#win-table tbody");
-    tb.innerHTML = "";
-    windows.forEach((w, i) => {
-      const tr = document.createElement("tr");
-      const m = WW.mean(w.data), g = WW.inefficiency(w.data);
-      tr.innerHTML = `<td class="ww-fname" title="${w.name}">${w.name}${w.guessed ? ' <span class="ww-badge">guessed centre</span>' : ""}</td><td>${w.data.length.toLocaleString()}</td>
-        <td><input type="number" step="any" value="${w.center}" data-i="${i}" data-f="center" aria-label="Centre of ${w.name}"></td>
-        <td><input type="number" step="any" value="${w.k}" data-i="${i}" data-f="k" aria-label="Force constant of ${w.name}"></td>
-        <td>${m.toFixed(4)}</td><td>${Math.round(w.data.length / g).toLocaleString()}</td>
-        <td><button type="button" class="ww-x" data-del="${i}" aria-label="Remove ${w.name}">✕</button></td>`;
-      tb.appendChild(tr);
-    });
-    $("#win-count").textContent = `(${windows.length})`;
-  }
-  $("#win-table").addEventListener("change", e => {
-    const t = e.target; if (!t.dataset.f) return;
-    const w = windows[+t.dataset.i]; w[t.dataset.f] = parseFloat(t.value); w.guessed = false;
-  });
-  $("#win-table").addEventListener("click", e => {
-    const b = e.target.closest("[data-del]"); if (!b) return;
-    const w = windows[+b.dataset.del];
-    rawFiles = rawFiles.filter(f => f.name !== w.name); windows.splice(+b.dataset.del, 1); renderTable();
-  });
-  $("#clear-files").addEventListener("click", () => { rawFiles = []; windows = []; truth = null; renderTable(); $("#analysis-setup").hidden = true; $("#results").hidden = true; });
-  $("#centers-names").addEventListener("click", () => {
-    let n = 0; windows.forEach(w => { const v = WW.numberFromName(w.name); if (Number.isFinite(v)) { w.center = v; w.guessed = false; n++; } });
-    windows.sort((a, b) => a.center - b.center); renderTable(); status(`Read centres from ${n} of ${windows.length} file names.`);
-  });
-  $("#centers-even").addEventListener("click", () => {
-    const row = $("#even-row");
-    if (row.hidden) { row.hidden = false; status("Set the first centre and step, then press “Evenly spaced…” again. Files are taken in name order."); return; }
-    const s = parseFloat($("#even-start").value), d = parseFloat($("#even-step").value);
-    windows.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
-    windows.forEach((w, i) => { w.center = +(s + i * d).toFixed(6); w.guessed = false; });
-    renderTable(); status("Centres assigned in file-name order.");
-  });
-  $("#k-all").addEventListener("click", () => { const k = anOpts().k; windows.forEach(w => { w.k = k; }); renderTable(); status(`k = ${k} applied to all windows.`); });
-  anForm.addEventListener("change", e => { if (e.target.name === "col") rebuildWindows(null); });
-
-  const drop = $("#dropzone"), input = $("#file-input");
-  input.addEventListener("change", () => { if (input.files.length) addFiles(input.files); input.value = ""; });
-  ["dragenter", "dragover"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add("over"); }));
-  ["dragleave", "drop"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove("over"); }));
-  drop.addEventListener("drop", e => { if (e.dataTransfer.files.length) addFiles(e.dataTransfer.files); });
-
-  $("#load-demo").addEventListener("click", () => {
-    // Morse-type adsorption PMF; soft springs on the steep wall and two missing windows near 1.4–1.5 nm.
-    const D = 30, a = 3.5, x0 = 0.7, F = x => D * ((1 - Math.exp(-a * (x - x0))) ** 2 - 1);
-    const centers = []; for (let c = 0.5; c <= 2.5 + 1e-9; c += 0.1) { const r = +c.toFixed(2); if (r !== 1.4 && r !== 1.5) centers.push(r); }
-    const ws = WW.synthetic({ F, centers, k: 1000, T: 300, unit: "kJ/mol", n: 3000, stride: 5, burn: 2000, seed: 4 });
-    rawFiles = ws.map(w => ({ name: `pullx_${w.center.toFixed(2)}.xvg`, text: "# synthetic demo\n" + Array.from(w.data, (v, i) => `${(i * 0.1).toFixed(1)} ${v.toFixed(5)}`).join("\n") }));
-    anForm.T.value = 300; anForm.unit.value = "kJ/mol"; anForm.k.value = 1000; anForm.col.value = 1;
-    windows = []; rebuildWindows(null);
-    truth = F;
-    status("Demo: a 30 kJ/mol adsorption well, sampled with deliberate mistakes. Press Run.");
-  });
-
-  anForm.addEventListener("submit", e => {
-    e.preventDefault();
-    if (windows.length < 2) { status("Load at least two windows."); return; }
-    const o = anOpts();
-    status("Running WHAM and bootstrap…");
-    $(".ww-run").disabled = true;
+  function run() {
+    if (st.windows.length < 2) { A.toast("Load at least two windows"); return; }
+    const btn = $("#ww-go"); btn.innerHTML = '<span class="spin"></span> Analysing…'; btn.disabled = true;
     setTimeout(() => {
       try {
         const t0 = performance.now();
-        const res = WW.analyze({ windows, T: o.T, unit: o.unit, lunit: o.lunit, nbins: o.nbins, nboot: o.nboot, overlapMin: o.omin });
-        res.opts = o; res.truth = truth;
-        try { res.gp = WW.gpPmf(res.windows); res.gpPicks = res.gp ? WW.suggestWindowsGP(res.windows, res.gp, 3) : []; } catch (err) { res.gp = null; res.gpPicks = []; }
-        res.ms = performance.now() - t0;
-        lastResult = res; renderResults(res);
-        status(`Done in ${(res.ms / 1000).toFixed(1)} s · WHAM ${res.converged ? "converged" : "did not converge"} in ${res.iter.toLocaleString()} iterations.`);
-      } catch (err) { status("Error: " + err.message); }
-      $(".ww-run").disabled = false;
+        const res = W.analyze({ windows: st.windows, T: num("#a-T"), unit: $("#a-unit").value, lunit: $("#a-lu").value || "nm", nbins: num("#a-bins") || 120, nboot: num("#a-boot") ?? 20, overlapMin: (num("#a-omin") || 10) / 100 });
+        res.gp = null; res.picks = [];
+        if ($("#a-gp").checked) { try { res.gp = W.gpPmf(res.windows); res.picks = res.gp ? W.suggestWindowsGP(res.windows, res.gp, 3) : []; } catch (e) { res.gp = null; } }
+        res.ms = performance.now() - t0; res.truth = st.truth;
+        res.E = $("#a-unit").value; res.L = $("#a-lu").value || "nm"; res.omin = (num("#a-omin") || 10) / 100;
+        st.res = res;
+        $("#a-empty").hidden = true; $("#a-res").hidden = false;
+        setMode("analyze");
+        A.toast(`Analysed ${res.windows.length} windows in ${(res.ms / 1000).toFixed(1)} s`);
+      } catch (e) { A.toast("Analysis failed: " + e.message); }
+      btn.textContent = "Run analysis"; btn.disabled = false;
     }, 30);
-  });
+  }
 
-  /* ---------------- Analyse: results ---------------- */
-  function renderResults(res) {
-    $("#results").hidden = false;
-    const o = res.opts, L = o.lunit, E = o.unit, xs = res.bins.centers;
-    const crit = res.flags.filter(f => f.level === "critical").length, warn = res.flags.filter(f => f.level === "warning").length;
-    $("#verdict").innerHTML = res.flags.length === 0
-      ? `<span class="ww-st good">✓</span><div><b>No issues found.</b> All neighbouring windows overlap by at least ${(o.omin * 100).toFixed(0)}% and no window drifts from its centre.</div>`
-      : `<span class="ww-st ${crit ? "critical" : "warning"}">${crit ? "✕" : "!"}</span><div><b>${crit ? crit + " critical" : ""}${crit && warn ? " and " : ""}${warn ? warn + " warning" + (warn > 1 ? "s" : "") : ""}.</b> ${res.suggestions.length ? `WindowWise suggests ${res.suggestions.length} window${res.suggestions.length > 1 ? "s" : ""} to add or stiffen (below).` : ""}</div>`;
-
-    // PMF
-    const finite = Array.from(res.F).filter(Number.isFinite);
-    let ymax = Math.max(...finite);
-    let tShift = null;
-    if (res.truth) {
-      const pr = []; xs.forEach((x, b) => { if (Number.isFinite(res.F[b])) pr.push(res.F[b] - res.truth(x)); });
-      tShift = pr.reduce((s, v) => s + v, 0) / pr.length;
-    }
-    const f = frame($("#pmf-chart"), { x0: res.bins.lo, x1: res.bins.hi, y0: Math.min(0, ...finite) - 1, y1: ymax * 1.08 + 1, xLabel: `ξ (${L})`, yLabel: `F (${E})`, yd: 0, label: "Potential of mean force" });
-    flagMarks(f, res);
-    if (res.err) {
-      let d = "", started = false; const up = [], dn = [];
-      xs.forEach((x, b) => { if (Number.isFinite(res.F[b]) && Number.isFinite(res.err[b])) { up.push([x, res.F[b] + res.err[b]]); dn.push([x, res.F[b] - res.err[b]]); } });
-      up.forEach(([x, y]) => { d += (started ? "L" : "M") + f.x(x).toFixed(1) + " " + f.y(y).toFixed(1); started = true; });
-      dn.reverse().forEach(([x, y]) => { d += "L" + f.x(x).toFixed(1) + " " + f.y(y).toFixed(1); });
-      if (d) el("path", { d: d + "Z", fill: f.tk.series, "fill-opacity": 0.18, stroke: "none" }, f.svg);
-    }
-    const gpCol = f.tk.dark ? "#d95926" : "#eb6834";
-    let gpOff = 0;
-    if (res.gp && $("#gp-toggle").checked) {
-      // align the GP curve to the WHAM profile (both are defined up to a constant)
-      const pr = []; res.gp.x.forEach((x, i) => { const b = Math.floor((x - res.bins.lo) / res.bins.width); if (b >= 0 && b < xs.length && Number.isFinite(res.F[b])) pr.push(res.F[b] - res.gp.A[i]); });
-      gpOff = pr.length ? pr.reduce((a, b) => a + b, 0) / pr.length : 0;
-      let d = "";
-      res.gp.x.forEach((x, i) => { d += (i ? "L" : "M") + f.x(x).toFixed(1) + " " + f.y(res.gp.A[i] + gpOff + 1.96 * res.gp.Asd[i]).toFixed(1); });
-      for (let i = res.gp.x.length - 1; i >= 0; i--) d += "L" + f.x(res.gp.x[i]).toFixed(1) + " " + f.y(res.gp.A[i] + gpOff - 1.96 * res.gp.Asd[i]).toFixed(1);
-      el("path", { d: d + "Z", fill: gpCol, "fill-opacity": 0.14, stroke: "none" }, f.svg);
-      el("path", { d: pathFrom(res.gp.x, Array.from(res.gp.A, v => v + gpOff), f), fill: "none", stroke: gpCol, "stroke-width": 2, "stroke-dasharray": "7 3" }, f.svg);
-      (res.gpPicks || []).forEach(p => {
-        el("line", { x1: f.x(p.target), x2: f.x(p.target), y1: f.m.t, y2: f.H - f.m.b, stroke: gpCol, "stroke-width": 1, opacity: 0.7 }, f.svg);
-        el("text", { x: f.x(p.target), y: f.m.t + 10, "text-anchor": "middle", class: "ww-flagtxt" }, f.svg).textContent = "★";
-      });
-    }
-    if (res.truth) el("path", { d: pathFrom(xs, xs.map(x => res.truth(x) + tShift), f), fill: "none", stroke: f.tk.ink2, "stroke-width": 1.5, "stroke-dasharray": "5 4" }, f.svg);
-    el("path", { d: pathFrom(xs, Array.from(res.F), f), fill: "none", stroke: f.tk.series, "stroke-width": 2, "stroke-linejoin": "round" }, f.svg);
-    {
-      const lg = document.createElement("div"); lg.className = "ww-hlegend";
-      lg.innerHTML = `<span><i style="background:${f.tk.series}"></i>WHAM ± bootstrap</span>` +
-        (res.gp && $("#gp-toggle").checked ? `<span><i class="dash" style="border-color:${gpCol}"></i>GP umbrella integration (95%)</span><span>★ active-learning picks</span>` : "") +
-        (res.truth ? `<span><i class="dash" style="border-color:${f.tk.ink2}"></i>exact PMF (demo)</span>` : "");
-      f.host.appendChild(lg);
-    }
-    crosshair(f, xs, b => Number.isFinite(res.F[b]) ? `<b>ξ = ${xs[b].toFixed(4)} ${L}</b><br>F = ${res.F[b].toFixed(2)}${res.err && Number.isFinite(res.err[b]) ? " ± " + res.err[b].toFixed(2) : ""} ${E}${res.truth ? `<br>exact ${(res.truth(xs[b]) + tShift).toFixed(2)}` : ""}` : `<b>ξ = ${xs[b].toFixed(4)}</b><br>not sampled`, b => res.F[b]);
-    const depth = Math.max(...finite) - Math.min(...finite);
-    $("#pmf-caption").textContent = `Zero at the global minimum. Range ${depth.toFixed(1)} ${E}${res.err ? `; shaded band = ±1σ from ${o.nboot} block-bootstrap resamples` : ""}.`;
-
-    // Histograms
-    const nh = res.hists.map((h, i) => { const n = res.windows[i].n; return Array.from(h, v => v / n / res.bins.width); });
-    const hmax = Math.max(...nh.map(h => Math.max(...h)));
-    const fh = frame($("#hist-chart"), { x0: res.bins.lo, x1: res.bins.hi, y0: 0, y1: hmax * 1.08, xLabel: `ξ (${L})`, yLabel: "Probability density", yd: 0, label: "Window histograms" });
-    flagMarks(fh, res);
-    const order = res.windows.map((_, i) => i).sort((a, b) => res.windows[a].center - res.windows[b].center);
-    const paths = [];
-    order.forEach((i, r) => { paths[i] = el("path", { d: pathFrom(xs, nh[i], fh), fill: "none", stroke: rampAt(fh.tk.ramp, r / Math.max(1, order.length - 1)), "stroke-width": 1.6, "stroke-linejoin": "round" }, fh.svg); });
-    const hov = el("rect", { x: fh.m.l, y: fh.m.t, width: fh.W - fh.m.l - fh.m.r, height: fh.H - fh.m.t - fh.m.b, fill: "transparent" }, fh.svg);
-    hov.addEventListener("pointermove", e => {
-      const pt = svgPoint(fh, e), b = Math.max(0, Math.min(xs.length - 1, Math.round((pt.x - fh.m.l) / (fh.W - fh.m.l - fh.m.r) * xs.length - 0.5)));
-      let best = 0; nh.forEach((h, i) => { if (h[b] > nh[best][b]) best = i; });
-      paths.forEach((p, i) => p.setAttribute("stroke-width", i === best ? 3 : 1.2));
-      const w = res.windows[best];
-      showTip(fh, `<b>${w.name}</b><br>centre ${w.center} · k ${Math.round(w.k)}<br>⟨ξ⟩ ${w.mean.toFixed(4)} · ${Math.round(w.neff)} indep. samples`, pt.x, pt.y);
-    });
-    hov.addEventListener("pointerleave", () => { fh.tip.hidden = true; paths.forEach(p => p.setAttribute("stroke-width", 1.6)); });
-
-    // Overlap bars
-    const P = res.pairs, n = P.length;
-    const fo = frame($("#ovl-chart"), { x0: 0, x1: n, y0: 0, y1: Math.max(0.5, ...P.map(p => p.overlap)) * 1.1, xLabel: "Adjacent window pair (ordered by centre)", yLabel: "Overlap", yd: 1, label: "Neighbour overlap", height: 230 });
-    fo.svg.querySelectorAll("text.ww-tick").forEach(t => { if (+t.getAttribute("y") > fo.H - fo.m.b) t.remove(); });
-    const bw = (fo.W - fo.m.l - fo.m.r) / n, gap = Math.min(2, bw * 0.2);
-    P.forEach((p, j) => {
-      const low = p.overlap < o.omin, col = !low ? fo.tk.neutral : p.overlap < o.omin / 3 ? STATUS.critical : STATUS.warning;
-      const x = fo.x(j) + gap / 2, w = Math.max(1, bw - gap), y0 = fo.y(0), y1 = fo.y(p.overlap), h = Math.max(1, y0 - y1);
-      const r = Math.min(4, w / 2, h);
-      el("path", { d: `M${x} ${y0}V${y1 + r}Q${x} ${y1} ${x + r} ${y1}H${x + w - r}Q${x + w} ${y1} ${x + w} ${y1 + r}V${y0}Z`, fill: col }, fo.svg);
-      if (low) { const t = el("text", { x: x + w / 2, y: y1 - 6, "text-anchor": "middle", class: "ww-flagtxt" }, fo.svg); t.textContent = p.overlap < o.omin / 3 ? "✕" : "!"; }
-    });
-    el("line", { x1: fo.m.l, x2: fo.W - fo.m.r, y1: fo.y(o.omin), y2: fo.y(o.omin), stroke: fo.tk.ink2, "stroke-dasharray": "4 4" }, fo.svg);
-    const ho = el("rect", { x: fo.m.l, y: fo.m.t, width: fo.W - fo.m.l - fo.m.r, height: fo.H - fo.m.t - fo.m.b, fill: "transparent" }, fo.svg);
-    ho.addEventListener("pointermove", e => {
-      const pt = svgPoint(fo, e), j = Math.max(0, Math.min(n - 1, Math.floor((pt.x - fo.m.l) / bw))), p = P[j];
-      showTip(fo, `<b>${res.windows[p.i].center} ↔ ${res.windows[p.j].center} ${L}</b><br>overlap ${(p.overlap * 100).toFixed(1)}%${p.overlap < o.omin ? " · below threshold" : ""}`, pt.x, pt.y);
-    });
-    ho.addEventListener("pointerleave", () => { fo.tip.hidden = true; });
-
-    // Flags list
-    $("#flags").innerHTML = res.flags.length ? res.flags.map(fl => `<li class="${fl.level}"><span class="ww-st ${fl.level}">${fl.level === "critical" ? "✕" : "!"}</span><div><b>${fl.level === "critical" ? "Critical" : "Warning"} · ${({ overlap: "gap", drift: "drift", samples: "sampling", wham: "convergence" })[fl.kind]}</b><br>${fl.text}</div></li>`).join("")
-      : `<li class="good"><span class="ww-st good">✓</span><div><b>All clear</b><br>No gaps, drifting windows or under-sampled windows.</div></li>`;
-
-    // GP active learning
-    const gpc = $("#gp-card");
-    gpc.hidden = !res.gp;
+  /* =================== ANALYZE: render =================== */
+  function gpAligned(res) {
+    if (!res.gp) return null;
+    const pr = []; res.gp.x.forEach((x, i) => { const b = Math.floor((x - res.bins.lo) / res.bins.width); if (b >= 0 && b < res.bins.nbins && Number.isFinite(res.F[b])) pr.push(res.F[b] - res.gp.A[i]); });
+    const off = pr.length ? pr.reduce((a, v) => a + v, 0) / pr.length : 0;
+    const rms = pr.length ? Math.sqrt(pr.reduce((a, v) => a + (v - off) ** 2, 0) / pr.length) : NaN;
+    return { off, rms };
+  }
+  function renderResults() {
+    const res = st.res, E = res.E, L = res.L, sc = health(res), lv = A.gauge($("#a-gauge"), sc, "sampling health");
+    $("#a-insight").className = "panel2 insight " + lv;
+    const fin = Array.from(res.F).filter(Number.isFinite), range = Math.max(...fin) - Math.min(...fin);
+    const errs = res.err ? Array.from(res.err).filter(Number.isFinite).sort((a, b) => a - b) : [], medErr = errs.length ? errs[errs.length >> 1] : NaN;
+    const gaps = res.flags.filter(x => x.kind === "overlap").length, drifts = res.flags.filter(x => x.kind === "drift").length, samp = res.flags.filter(x => x.kind === "samples").length;
+    const minOv = Math.min(...res.pairs.map(p => p.overlap)), ga = gpAligned(res);
+    let head = res.flags.length === 0 ? "Healthy sampling: no gaps, no drifting windows" :
+      [gaps ? `${gaps} gap${gaps > 1 ? "s" : ""}` : "", drifts ? `${drifts} soft spring${drifts > 1 ? "s" : ""}` : "", samp ? `${samp} under-sampled window${samp > 1 ? "s" : ""}` : ""].filter(Boolean).join(", ") + ` found`;
+    if (res.suggestions.length) head += ` · ${res.suggestions.length} repair window${res.suggestions.length > 1 ? "s" : ""} proposed`;
+    $("#a-headline").textContent = head;
+    let story = `WHAM ${res.converged ? "converged" : "<b>did not converge</b>"} over ${res.windows.length} windows. The profile spans <b>${f(range, 1)} ${E}</b> with a median bootstrap error of <b>±${f(medErr, 2)} ${E}</b>. `;
+    story += gaps ? `Somewhere the neighbouring windows barely overlap (minimum ${(minOv * 100).toFixed(1)}%), so the profile there is a guess. ` : `Every pair of neighbours overlaps by at least ${(minOv * 100).toFixed(0)}%. `;
+    if (drifts) story += `${drifts} window${drifts > 1 ? "s" : ""} slid off ${drifts > 1 ? "their" : "its"} centre because the spring is too soft for the local slope. `;
+    if (res.gp && gaps >= 2) story += `WHAM cannot bridge gaps between non-overlapping windows, but <b>GP umbrella integration needs only each window's mean force</b>, so it still gives a continuous profile with an honest uncertainty band (orange). `;
+    if (ga && Number.isFinite(ga.rms)) story += `The Gaussian process, built only from window mean forces, reproduces the WHAM profile to <b>${f(ga.rms, 2)} ${E}</b> RMS${res.picks.length ? `, and active learning points to <b>ξ ≈ ${res.picks.map(p => p.target.toFixed(2)).join(", ")}</b> as the most informative next windows` : ""}. `;
+    if (res.truth) { const pr = []; res.bins.centers.forEach((x, b) => { if (Number.isFinite(res.F[b])) pr.push(res.F[b] - res.truth(x)); }); const o = pr.reduce((a, v) => a + v, 0) / pr.length; story += `Against the exact profile of this example, WHAM's RMSE is <b>${f(Math.sqrt(pr.reduce((a, v) => a + (v - o) ** 2, 0) / pr.length), 2)} ${E}</b>.`; }
+    $("#a-story").innerHTML = story;
+    const neffs = res.windows.map(w => w.neff).sort((a, b) => a - b);
+    $("#a-kpis").innerHTML = [["Windows", res.windows.length], ["ΔF range", `${f(range, 1)} ${E}`], ["Median error", `±${f(medErr, 2)}`], ["Min. overlap", `${(minOv * 100).toFixed(1)}%`], ["Median indep. samples", Math.round(neffs[neffs.length >> 1]).toLocaleString()], ["GP length scale", res.gp ? `${f(res.gp.ell, 3)} ${L}` : "off"]]
+      .map(([a, b]) => `<div class="kpi"><small>${a}</small><b>${b}</b></div>`).join("");
+    $("#a-nissues").textContent = res.flags.length || "✓"; $("#a-nissues").className = "cnt" + (res.flags.some(x => x.level === "critical") ? " critical" : res.flags.length ? " warning" : "");
+    $("#a-nfix").textContent = res.suggestions.length + res.picks.length || "";
+    A.steps($("#ww-steps"), 2);
+    drawPmf(res); drawHist(res); drawOverlap(res); renderIssues(res); renderFix(res); renderWinTable();
+  }
+  function flagLines(fr, res) {
+    res.flags.forEach(fl => { if (!Number.isFinite(fl.x) || fl.x < fr.o.x0 || fl.x > fr.o.x1) return; S.el("line", { x1: fr.x(fl.x), x2: fr.x(fl.x), y1: fr.m.t, y2: fr.H - fr.m.b, stroke: ST[fl.level], "stroke-dasharray": "2 3", opacity: .8 }, fr.svg); S.el("text", { x: fr.x(fl.x), y: fr.H - fr.m.b - 6, "text-anchor": "middle", class: "ww-flagtxt" }, fr.svg).textContent = fl.level === "critical" ? "✕" : "!"; });
+  }
+  function drawPmf(res) {
+    const host = $("#ac-pmf"), tk = S.tokens(), xs = res.bins.centers, F = Array.from(res.F), ga = gpAligned(res);
+    const vals = F.filter(Number.isFinite); let lo = Math.min(...vals), hi = Math.max(...vals);
+    if (res.gp) res.gp.A.forEach((a, i) => { lo = Math.min(lo, a + ga.off - 2 * res.gp.Asd[i]); hi = Math.max(hi, a + ga.off + 2 * res.gp.Asd[i]); });
+    const pad = (hi - lo) * 0.06 || 1;
+    const fr = S.frame(host, { x0: res.bins.lo, x1: res.bins.hi, y0: lo - pad, y1: hi + pad, xLabel: `ξ (${res.L})`, yLabel: `free energy (${res.E})`, yd: 0, label: "Potential of mean force", height: 320 });
+    flagLines(fr, res);
     if (res.gp) {
-      $("#gp-summary").innerHTML = `<div><dt>Length scale</dt><dd>${res.gp.ell.toFixed(3)} ${L}</dd></div><div><dt>Windows used</dt><dd>${res.gp.obs.length}</dd></div><div><dt>Log marginal likelihood</dt><dd>${res.gp.lml.toFixed(1)}</dd></div>`;
-      const lines = ["; WindowWise GP active learning: most informative next windows", `; (max posterior uncertainty of the mean force; centres offset by A'/k), k in ${E}/${L}^2`, ""];
-      (res.gpPicks || []).forEach((p, i) => lines.push(`; next ${i + 1} (targets ξ ≈ ${p.target.toFixed(3)}, mean-force sd ${p.sd.toFixed(1)}):  pull-coord1-init = ${p.center.toFixed(4)}   pull-coord1-k = ${Math.round(p.k)}`));
-      $("#gp-mdp").textContent = lines.join("\n");
+      S.band(fr, res.gp.x, res.gp.A.map((a, i) => a + ga.off - 1.96 * res.gp.Asd[i]), res.gp.A.map((a, i) => a + ga.off + 1.96 * res.gp.Asd[i]), tk.series2, 0.14);
+      S.line(fr, res.gp.x, Array.from(res.gp.A, a => a + ga.off), { stroke: tk.series2, "stroke-dasharray": "7 4", "stroke-width": 2 });
     }
-
-    // Suggestions
-    const S = res.suggestions;
-    $("#suggest-card").hidden = !S.length;
-    if (S.length) {
-      const lines = ["; WindowWise repair windows (add these to your existing set)", `; geometry and groups as in your original .mdp; bias U = 0.5 k (x - x0)^2, k in ${E}/${L}^2`, ""];
-      S.forEach((s, i) => lines.push(`; repair ${String(i).padStart(2, "0")} (${s.reason === "stiffen" ? "re-run with stiffer spring" : "fill gap"}, targets ξ ≈ ${s.target.toFixed(3)}):  pull-coord1-init = ${s.center.toFixed(4)}   pull-coord1-k = ${Math.round(s.k)}`));
-      $("#fix-mdp").textContent = lines.join("\n");
-    }
+    if (res.err) { const ix = [], l = [], h = []; xs.forEach((x, b) => { if (Number.isFinite(F[b]) && Number.isFinite(res.err[b])) { ix.push(x); l.push(F[b] - res.err[b]); h.push(F[b] + res.err[b]); } }); if (ix.length) S.band(fr, ix, l, h, tk.series, 0.2); }
+    if (res.truth) { const pr = []; xs.forEach((x, b) => { if (Number.isFinite(F[b])) pr.push(F[b] - res.truth(x)); }); const o = pr.reduce((a, v) => a + v, 0) / pr.length; S.line(fr, xs, xs.map(x => res.truth(x) + o), { stroke: tk.ink, "stroke-width": 1.2, "stroke-dasharray": "1.5 3" }); }
+    S.line(fr, xs, F, { stroke: tk.series, "stroke-width": 2.4 });
+    res.picks.forEach(p => { S.el("text", { x: fr.x(p.target), y: fr.m.t + 14, "text-anchor": "middle", style: `font:700 14px sans-serif;fill:${ST.gp}` }, fr.svg).textContent = "★"; S.el("line", { x1: fr.x(p.target), x2: fr.x(p.target), y1: fr.m.t + 18, y2: fr.H - fr.m.b, stroke: ST.gp, "stroke-width": 1, opacity: .5 }, fr.svg); });
+    S.crosshair(fr, xs, b => Number.isFinite(F[b]) ? `<b>ξ = ${f(xs[b], 3)} ${res.L}</b><br>WHAM ${f(F[b], 2)}${res.err && Number.isFinite(res.err[b]) ? ` ± ${f(res.err[b], 2)}` : ""} ${res.E}` : `<b>ξ = ${f(xs[b], 3)}</b><br>not sampled`, b => F[b]);
+    const items = [{ label: "WHAM ± bootstrap", color: tk.series }];
+    if (res.gp) items.push({ label: "GP umbrella integration (95%)", color: tk.series2, dash: true });
+    if (res.truth) items.push({ label: "exact (example)", color: tk.ink, dash: true });
+    if (res.picks.length) items.push({ label: "★ active-learning picks", color: ST.gp });
+    S.legend(fr, items); A.chartTools(host, "windowwise_pmf");
   }
-  function flagMarks(f, res) {
-    res.flags.forEach(fl => {
-      if (!Number.isFinite(fl.x) || fl.x < res.bins.lo || fl.x > res.bins.hi) return;
-      const col = STATUS[fl.level];
-      el("line", { x1: f.x(fl.x), x2: f.x(fl.x), y1: f.m.t, y2: f.H - f.m.b, stroke: col, "stroke-width": 1, "stroke-dasharray": "2 3", opacity: 0.8 }, f.svg);
-      const t = el("text", { x: f.x(fl.x), y: f.H - f.m.b - 6, "text-anchor": "middle", class: "ww-flagtxt" }, f.svg); t.textContent = fl.level === "critical" ? "✕" : "!";
+  function drawHist(res) {
+    const host = $("#ac-hist"), tk = S.tokens(), xs = res.bins.centers;
+    const nh = res.hists.map((h, i) => Array.from(h, v => v / res.windows[i].n / res.bins.width)), mx = Math.max(...nh.map(h => Math.max(...h)));
+    const fr = S.frame(host, { x0: res.bins.lo, x1: res.bins.hi, y0: -mx * 0.06, y1: mx * 1.08, xLabel: `ξ (${res.L})`, yLabel: "probability density", yd: 0, label: "Window histograms", height: 300 });
+    res.pairs.filter(p => p.overlap < res.omin).forEach(p => { const a = res.windows[p.i].mean, b = res.windows[p.j].mean; S.el("rect", { x: fr.x(Math.min(a, b)), y: fr.m.t, width: Math.abs(fr.x(b) - fr.x(a)), height: fr.H - fr.m.t - fr.m.b, fill: p.overlap < res.omin / 3 ? ST.critical : ST.warning, "fill-opacity": .1 }, fr.svg); });
+    const order = res.windows.map((_, i) => i).sort((a, b) => res.windows[a].center - res.windows[b].center), paths = [];
+    order.forEach((i, r) => { paths[i] = S.line(fr, xs, nh[i], { stroke: ramp(r / Math.max(1, order.length - 1)), "stroke-width": 1.6 }); });
+    res.windows.forEach(w => { if (w.center >= fr.o.x0 && w.center <= fr.o.x1) S.el("circle", { cx: fr.x(w.center), cy: fr.y(-mx * 0.03), r: 2.6, fill: Math.abs(w.mean - w.center) > 0.5 * res.medSpacing ? ST.warning : tk.ink3 }, fr.svg); });
+    const hit = S.el("rect", { x: fr.m.l, y: fr.m.t, width: fr.W - fr.m.l - fr.m.r, height: fr.H - fr.m.t - fr.m.b, fill: "transparent" }, fr.svg);
+    hit.addEventListener("pointermove", e => {
+      const p = S.svgPoint(fr, e), b = Math.max(0, Math.min(xs.length - 1, Math.round((p.x - fr.m.l) / (fr.W - fr.m.l - fr.m.r) * xs.length - 0.5)));
+      let best = 0; nh.forEach((h, i) => { if (h[b] > nh[best][b]) best = i; });
+      paths.forEach((pp, i) => pp.setAttribute("stroke-width", i === best ? 3.2 : 1.2));
+      const w = res.windows[best];
+      S.showTip(fr, `<b>${A.esc(w.name)}</b><br>centre ${w.center} · k ${Math.round(w.k)}<br>⟨ξ⟩ ${f(w.mean, 4)} · ${Math.round(w.neff)} indep. samples`, p.x, p.y);
     });
+    hit.addEventListener("pointerleave", () => { fr.tip.hidden = true; paths.forEach(pp => pp.setAttribute("stroke-width", 1.6)); });
+    A.chartTools(host, "windowwise_histograms");
   }
-  function crosshair(f, xs, html, yAt) {
-    const line = el("line", { y1: f.m.t, y2: f.H - f.m.b, stroke: f.tk.ink3, "stroke-width": 1, visibility: "hidden" }, f.svg);
-    const dot = el("circle", { r: 4.5, fill: f.tk.series, stroke: f.tk.surface, "stroke-width": 2, visibility: "hidden" }, f.svg);
-    const hov = el("rect", { x: f.m.l, y: f.m.t, width: f.W - f.m.l - f.m.r, height: f.H - f.m.t - f.m.b, fill: "transparent" }, f.svg);
-    hov.addEventListener("pointermove", e => {
-      const pt = svgPoint(f, e), b = Math.max(0, Math.min(xs.length - 1, Math.round((pt.x - f.m.l) / (f.W - f.m.l - f.m.r) * xs.length - 0.5)));
-      const X = f.x(xs[b]); line.setAttribute("x1", X); line.setAttribute("x2", X); line.setAttribute("visibility", "visible");
-      const yv = yAt(b);
-      if (Number.isFinite(yv)) { dot.setAttribute("cx", X); dot.setAttribute("cy", f.y(yv)); dot.setAttribute("visibility", "visible"); } else dot.setAttribute("visibility", "hidden");
-      showTip(f, html(b), X, pt.y);
+  function drawOverlap(res) {
+    const host = $("#ac-ovl"), tk = S.tokens(), P = res.pairs, n = P.length;
+    const fr = S.frame(host, { x0: 0, x1: n, y0: 0, y1: Math.max(0.5, ...P.map(p => p.overlap)) * 1.12, xLabel: `neighbouring window pairs, ordered along ξ`, yLabel: "overlap", yd: 1, label: "Neighbour overlap", height: 260, xTicks: [], yFmt: v => `${Math.round(v * 100)}%` });
+    const bw = (fr.W - fr.m.l - fr.m.r) / n, gap = Math.min(2, bw * 0.2);
+    P.forEach((p, j) => {
+      const low = p.overlap < res.omin, col = !low ? tk.neutral : p.overlap < res.omin / 3 ? ST.critical : ST.warning;
+      const x = fr.x(j) + gap / 2, w = Math.max(1, bw - gap), y0 = fr.y(0), y1 = fr.y(p.overlap), r = Math.min(4, w / 2, Math.max(0, y0 - y1));
+      S.el("path", { d: `M${x} ${y0}V${y1 + r}Q${x} ${y1} ${x + r} ${y1}H${x + w - r}Q${x + w} ${y1} ${x + w} ${y1 + r}V${y0}Z`, fill: col }, fr.svg);
+      if (low) S.el("text", { x: x + w / 2, y: y1 - 6, "text-anchor": "middle", class: "ww-flagtxt" }, fr.svg).textContent = p.overlap < res.omin / 3 ? "✕" : "!";
     });
-    hov.addEventListener("pointerleave", () => { f.tip.hidden = true; line.setAttribute("visibility", "hidden"); dot.setAttribute("visibility", "hidden"); });
+    S.hline(fr, res.omin, { stroke: tk.ink2, "stroke-dasharray": "4 4", "stroke-width": 1.2 });
+    const hit = S.el("rect", { x: fr.m.l, y: fr.m.t, width: fr.W - fr.m.l - fr.m.r, height: fr.H - fr.m.t - fr.m.b, fill: "transparent" }, fr.svg);
+    hit.addEventListener("pointermove", e => { const pt = S.svgPoint(fr, e), j = Math.max(0, Math.min(n - 1, Math.floor((pt.x - fr.m.l) / bw))), p = P[j]; S.showTip(fr, `<b>${res.windows[p.i].center} ↔ ${res.windows[p.j].center} ${res.L}</b><br>overlap ${(p.overlap * 100).toFixed(1)}%${p.overlap < res.omin ? " · below threshold" : ""}`, pt.x, pt.y); });
+    hit.addEventListener("pointerleave", () => { fr.tip.hidden = true; });
+    A.chartTools(host, "windowwise_overlap");
   }
+  function renderIssues(res) {
+    const L = res.L, E = res.E, items = res.flags.map(fl => {
+      let title, cause, fix;
+      if (fl.kind === "overlap") {
+        const sug = res.suggestions.filter(s => s.reason === "fill gap" && Math.abs(s.target - fl.x) < res.medSpacing * 3);
+        title = fl.level === "critical" ? "Gap in sampling" : "Thin overlap"; cause = `${fl.text} WHAM has to bridge this stretch with almost no data, so the profile there is unreliable however small the error bars look.`;
+        fix = sug.length ? `<b>Fix:</b> add ${sug.length} window${sug.length > 1 ? "s" : ""} at pull-coord1-init = ${sug.map(s => s.center.toFixed(3)).join(", ")} ${L} (k = ${Math.round(sug[0].k)}).` : "<b>Fix:</b> add a window between these two.";
+      } else if (fl.kind === "drift") {
+        const sug = res.suggestions.find(s => s.reason === "stiffen" && Math.abs(s.target - (fl.x ?? s.target)) < 1);
+        title = "Spring too soft"; cause = `${fl.text} The window samples the wrong region, leaving its intended stretch thin.`;
+        fix = `<b>Fix:</b> re-run this window with a stiffer spring${sug ? ` (k ≥ ${Math.round(sug.k)} ${E}/${L}²)` : ""}.`;
+      } else if (fl.kind === "samples") { title = "Too few independent samples"; cause = fl.text; fix = "<b>Fix:</b> extend this window; aim for at least 50–100 independent samples."; }
+      else { title = "WHAM did not converge"; cause = fl.text; fix = "<b>Fix:</b> check the centres and force constants in the Windows tab."; }
+      return `<li class="issue"><span class="badge-st ${fl.level}">${fl.level === "critical" ? "✕" : "!"}</span><div><h4>${title}</h4><p>${cause}</p><div class="fix">${fix}</div></div></li>`;
+    });
+    $("#a-issues").innerHTML = items.length ? items.join("") : `<li class="issue"><span class="badge-st good">✓</span><div><h4>No issues found</h4><p>Every pair of neighbours overlaps above the threshold, no window drifts from its centre, and every window has enough independent samples.</p></div></li>`;
+  }
+  function renderFix(res) {
+    const host = $("#ac-fix"), tk = S.tokens(), xs = res.bins.centers, F = Array.from(res.F);
+    const vals = F.filter(Number.isFinite), lo = Math.min(...vals), hi = Math.max(...vals), pad = (hi - lo) * 0.1 || 1;
+    const fr = S.frame(host, { x0: res.bins.lo, x1: res.bins.hi, y0: lo - pad * 2.2, y1: hi + pad, xLabel: `ξ (${res.L})`, yLabel: `free energy (${res.E})`, yd: 0, label: "Repair plan", height: 280 });
+    S.line(fr, xs, F, { stroke: tk.series, "stroke-width": 2, "stroke-opacity": .55 });
+    const base = fr.y(lo - pad * 1.4);
+    res.windows.forEach(w => S.el("line", { x1: fr.x(w.center), x2: fr.x(w.center), y1: base - 6, y2: base + 6, stroke: tk.ink3, "stroke-width": 1.5 }, fr.svg));
+    S.el("text", { x: fr.W - fr.m.r - 2, y: base - 10, "text-anchor": "end", class: "lbl" }, fr.svg).textContent = "existing windows (ticks)";
+    res.suggestions.forEach(s => { const X = fr.x(s.target); S.el("path", { d: `M${X} ${base - 16}l7 12h-14z`, fill: s.reason === "stiffen" ? tk.series2 : ST.warning, stroke: tk.surface, "stroke-width": 1 }, fr.svg); });
+    res.picks.forEach(p => S.el("text", { x: fr.x(p.target), y: base + 22, "text-anchor": "middle", style: `font:700 14px sans-serif;fill:${ST.gp}` }, fr.svg).textContent = "★");
+    S.legend(fr, [{ label: "existing", color: tk.ink3 }, { label: "▲ fill gap", color: ST.warning }, { label: "▲ stiffen spring", color: tk.series2 }, { label: "★ GP active learning", color: ST.gp }]);
+    A.chartTools(host, "windowwise_repair_plan");
+    const rows = res.suggestions.map(s => ({ type: s.reason === "stiffen" ? "Stiffen spring" : "Fill gap", target: s.target, c: s.center, k: s.k, why: s.reason === "stiffen" ? "window drifted off its centre" : "neighbours barely overlap" }))
+      .concat(res.picks.map(p => ({ type: "GP active learning", target: p.target, c: p.center, k: p.k, why: `largest mean-force uncertainty (±${f(p.sd, 1)})` })));
+    $("#a-fixtable").innerHTML = rows.length ? `<thead><tr><th>Type</th><th>Target ξ</th><th>pull-coord1-init</th><th>pull-coord1-k</th><th>Why</th></tr></thead><tbody>${rows.map(r => `<tr><td><b>${r.type}</b></td><td>${r.target.toFixed(3)}</td><td>${r.c.toFixed(4)}</td><td>${Math.round(r.k)}</td><td>${r.why}</td></tr>`).join("")}</tbody>` : `<tbody><tr><td>No repair windows needed.</td></tr></tbody>`;
+    const lines = [`; WindowWise repair plan (U = 0.5 k (x - x0)^2, k in ${res.E}/${res.L}^2)`, "; keep geometry and groups from your original .mdp", ""];
+    rows.forEach((r, i) => lines.push(`; ${String(i).padStart(2, "0")} ${r.type.padEnd(19)} targets ξ ≈ ${r.target.toFixed(3)}:  pull-coord1-init = ${r.c.toFixed(4)}   pull-coord1-k = ${Math.round(r.k)}`));
+    $("#a-fixmdp").textContent = lines.join("\n");
+  }
+  function renderWinTable() {
+    const t = $("#a-wintable"); if (!t) return;
+    const resW = st.res ? new Map(st.res.windows.map(w => [w.name, w])) : new Map();
+    t.innerHTML = `<thead><tr><th>File</th><th>Frames</th><th>Centre</th><th>k</th><th>⟨ξ⟩</th><th>Drift</th><th>Indep.</th><th></th></tr></thead><tbody>${st.windows.map((w, i) => {
+      const r = resW.get(w.name), m = r ? r.mean : W.mean(w.data), drift = Math.abs(m - w.center);
+      return `<tr><td title="${A.esc(w.name)}">${A.esc(w.name)}${w.guessed ? ' <span class="cnt warning">guessed</span>' : ""}</td><td>${w.data.length.toLocaleString()}</td><td><input type="number" step="any" value="${w.center}" data-i="${i}" data-f="center"></td><td><input type="number" step="any" value="${w.k}" data-i="${i}" data-f="k"></td><td>${m.toFixed(4)}</td><td>${drift.toFixed(4)}</td><td>${r ? Math.round(r.neff).toLocaleString() : "–"}</td><td><button type="button" class="btn-sm" data-del="${i}" aria-label="Remove">✕</button></td></tr>`;
+    }).join("")}</tbody>`;
+  }
+  $("#a-wintable").addEventListener("change", e => { const el = e.target; if (!el.dataset.f) return; const w = st.windows[+el.dataset.i]; w[el.dataset.f] = parseFloat(el.value); w.guessed = false; A.toast("Edited. Press Run analysis to update"); });
+  $("#a-wintable").addEventListener("click", e => { const b = e.target.closest("[data-del]"); if (!b) return; const w = st.windows[+b.dataset.del]; st.raw = st.raw.filter(r => r.name !== w.name); st.windows.splice(+b.dataset.del, 1); renderWinTable(); renderFiles(); });
+  A.tabs($("#a-tabs"));
 
-  $("#gp-toggle").addEventListener("change", () => { if (lastResult) renderResults(lastResult); });
-  $("#pmf-csv").addEventListener("click", () => {
-    const r = lastResult; if (!r) return;
-    const rows = [`# WindowWise PMF, T=${r.opts.T} K, energy ${r.opts.unit}, zero at minimum`, `xi_${r.opts.lunit},F,${r.err ? "F_err" : ""}`];
-    r.bins.centers.forEach((x, b) => rows.push(`${x.toFixed(6)},${Number.isFinite(r.F[b]) ? r.F[b].toFixed(5) : ""},${r.err && Number.isFinite(r.err[b]) ? r.err[b].toFixed(5) : ""}`));
-    download("pmf_windowwise.csv", rows.join("\n"), "text/csv");
+  /* =================== export =================== */
+  root.addEventListener("click", e => {
+    const c = e.target.closest("[data-copy]"), d = e.target.closest("[data-dl]");
+    if (c) A.copy(document.getElementById(c.dataset.copy).textContent);
+    if (d) A.download(d.dataset.name, document.getElementById(d.dataset.dl).textContent);
   });
-
-  // Re-render charts when the colour theme changes.
-  const rerender = () => { renderPlan(); if (lastResult && !$("#panel-analyze").hidden) renderResults(lastResult); };
-  new MutationObserver(rerender).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
-  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", rerender);
-  renderPlan();
+  $("#ww-copy").addEventListener("click", () => {
+    if (mode === "plan" && plan) return A.copy(`Umbrella windows planned with WindowWise: ${plan.p.n} windows from ${plan.o.xmin} to ${plan.o.xmax} ${plan.o.lu}, k = ${Math.round(plan.p.k)} ${plan.o.unit}/${plan.o.lu}^2, spacing ${f(plan.p.spacing, 4)} ${plan.o.lu} (neighbour overlap ${(plan.p.overlap * 100).toFixed(0)}%).`);
+    const r = st.res; if (!r) return;
+    A.copy(`Free-energy profile from ${r.windows.length} umbrella windows by WHAM (T = ${num("#a-T")} K) with block-bootstrap errors; sampling checked with WindowWise (https://siba-p.github.io/windowwise/): ${$("#a-headline").textContent}.`);
+  });
+  $("#ww-csv").addEventListener("click", () => {
+    if (mode === "plan" && plan) return A.download("windows.csv", "window,center,k\n" + plan.p.centers.map((c, i) => `${i},${c.toFixed(5)},${Math.round(plan.p.k)}`).join("\n"), "text/csv");
+    const r = st.res; if (!r) return;
+    A.download("pmf_windowwise.csv", [`# WindowWise PMF, T=${num("#a-T")} K, ${r.E}, zero at minimum`, `xi_${r.L},F,F_err`].concat(r.bins.centers.map((x, b) => `${x.toFixed(6)},${Number.isFinite(r.F[b]) ? r.F[b].toFixed(5) : ""},${r.err && Number.isFinite(r.err[b]) ? r.err[b].toFixed(5) : ""}`)).join("\n"), "text/csv");
+  });
+  $("#ww-report").addEventListener("click", () => {
+    if (mode === "plan" && plan) {
+      A.report({ title: "Umbrella-sampling plan", subtitle: `${plan.p.n} windows`, tool: "WindowWise", filename: "windowwise_plan.html", sections: [{ title: "Design", html: `<p><b>${$("#p-headline").textContent}</b></p><p>${$("#p-story").innerHTML}</p>` }, { title: "Window layout", svgs: [$("#pc-layout svg")] }, { title: "Windows", html: $("#p-table").outerHTML }, { title: "GROMACS", html: `<pre>${A.esc($("#p-mdp").textContent)}</pre><pre>${A.esc($("#p-sh").textContent)}</pre>` }] });
+      return A.toast("Report downloaded");
+    }
+    if (!st.res) return;
+    A.report({ title: "Umbrella-sampling diagnostics", subtitle: `${st.res.windows.length} windows`, tool: "WindowWise", filename: "windowwise_report.html",
+      sections: [{ title: "Summary", html: `<p><b>${A.esc($("#a-headline").textContent)}</b></p><p>${$("#a-story").innerHTML}</p>` },
+        { title: "Free energy", svgs: [$("#ac-pmf svg")] }, { title: "Sampling and overlap", svgs: [$("#ac-hist svg"), $("#ac-ovl svg")] },
+        { title: "Issues", html: $("#a-issues").outerHTML }, { title: "Repair plan", html: $("#a-fixtable").outerHTML + `<pre>${A.esc($("#a-fixmdp").textContent)}</pre>`, svgs: [$("#ac-fix svg")] },
+        { title: "Methods", html: "<p>1D WHAM (Kumar et al. 1992) with block-bootstrap errors; overlap, drift and sampling diagnostics; Gaussian-process umbrella integration from window mean forces (cf. Stecher, Bernstein & Csányi 2014) with active learning by maximum posterior mean-force uncertainty.</p>" }] });
+    A.steps($("#ww-steps"), 3); A.toast("Report downloaded");
+  });
+  S.onTheme(() => { if (mode === "plan") renderPlan(); else if (st.res) renderResults(); });
+  setMode("plan");
 })();

@@ -79,10 +79,13 @@
     nskip = nskip || Math.max(1, Math.floor(n / 200));
     const g0 = statIneff(x);
     let best = [0, g0, n / g0];
+    const curve = { t0: [], neff: [] };
     for (let t0 = 0; t0 < Math.floor(n / 2); t0 += nskip) {
       const g = statIneff(x.subarray ? x.subarray(t0) : x.slice(t0)), neff = (n - t0) / g;
+      curve.t0.push(t0); curve.neff.push(neff);
       if (neff > best[2]) best = [t0, g, neff];
     }
+    best.curve = curve;
     return best;
   }
   function mser(x, batch) {
@@ -98,11 +101,19 @@
     }
     return bestD * batch;
   }
-  function analyze(x0, name, dt) {
+  // opts: { method: "chodera" | "mser" | "manual", t0: index for manual, curve: cached detection }
+  function analyze(x0, name, dt, opts) {
+    opts = opts || {};
     const x = Float64Array.from(x0).filter(Number.isFinite);
     if (x.length < 50) throw new Error("need at least 50 samples");
     dt = dt || 1;
-    const [t0, g, neff] = detectEquilibration(x);
+    const det = opts.det || detectEquilibration(x);
+    const t0Mser = opts.t0Mser != null ? opts.t0Mser : mser(x);
+    let t0 = det[0], g = det[1], neff = det[2];
+    if (opts.method === "mser" || (opts.method === "manual" && opts.t0 != null)) {
+      t0 = Math.max(0, Math.min(x.length - 50, opts.method === "mser" ? t0Mser : Math.round(opts.t0)));
+      g = statIneff(x.subarray(t0)); neff = (x.length - t0) / g;
+    }
     const prod = x.subarray(t0);
     const tau = tauInt(prod)[0];
     const m = mean(prod), sd = Math.sqrt(variance(prod, 1));
@@ -125,7 +136,7 @@
     if (t0 > 0.4 * x.length) flags.push({ level: "warning", text: "Equilibration took a large part of the run; consider a longer simulation." });
     const verdict = flags.some(f => f.level === "critical") ? "not converged" : flags.length ? "use with care" : "converged";
     const semBest = Math.max(sem, blk.semPlateau);
-    return { name: name || "x", n: x.length, dt, t0, t0Mser: mser(x), mean: m, sem, semBlocking: blk.semPlateau, semBest, g, tau: tau * dt, neff,
+    return { det, name: name || "x", n: x.length, dt, t0, t0Mser, t0Auto: det[0], curve: det.curve, method: opts.method || "chodera", mean: m, sem, semBlocking: blk.semPlateau, semBest, g, tau: tau * dt, neff,
       driftZ, trendZ, blocking: blk, flags, verdict, acf: autocorrelation(prod),
       lengthFor: target => (x.length - t0) * dt * (semBest / target) ** 2 };
   }

@@ -1,74 +1,159 @@
 {{ define "main" }}
-{{ partial "page-head.html" . }}
-<div class="wrap ww" id="cv" data-demo="{{ "data/converge-energy.xvg" | relURL }}">
-  <div class="ww-tabs">
-    <span class="ww-private">Runs entirely in your browser. Files never leave your computer.</span>
-  </div>
-  <div class="ww-card ww-drop" id="cv-drop" tabindex="0">
-    <div>
-      <h3>Drop a time series here</h3>
-      <p><code>gmx energy</code> output (all columns and legends are read), any <code>.xvg</code>, or a text file whose first column is time. Typical inputs are potential energy, density, pressure, box volume, RMSD, distances and order parameters.</p>
-      <div class="ww-actions">
-        <label class="ww-file">Choose file<input type="file" id="cv-file" accept=".xvg,.dat,.txt,.csv"></label>
-        <button type="button" id="cv-demo">Load example (density + pressure)</button>
+<div class="app" id="cv" data-demo="{{ "data/converge-energy.xvg" | relURL }}">
+  <header class="app-bar">
+    <div class="wrap">
+      <div class="app-id">
+        <span class="app-logo">{{ partial "toolkit-icon.html" "convergence" }}</span>
+        <div>
+          <h1>Converge</h1>
+          <p>Is your simulation converged, and are your error bars honest? Find where equilibration ends, measure correlation, and get error bars that hold up.</p>
+        </div>
       </div>
+      <div class="app-badges">
+        <span><i style="background:#34c6b6"></i>Validated: 95% intervals cover the truth 94.8% of the time</span>
+        <span><i style="background:#8ea0ff"></i>Runs locally · nothing is uploaded</span>
+        <a href="https://github.com/siba-p/converge">Python package & CLI ↗</a>
+        <a href="#method">Method</a>
+      </div>
+      <ol class="app-steps" id="cv-steps"><li class="on"><b>1</b>Load a time series</li><li><b>2</b>Pick a quantity</li><li><b>3</b>Read the verdict</li><li><b>4</b>Export</li></ol>
     </div>
-  </div>
+  </header>
 
-  <div id="cv-results" hidden>
-    <div class="ww-card" style="margin-top:18px">
-      <div class="ww-cardhead"><h3>All quantities <span class="muted" id="cv-file-name"></span></h3>
-        <label class="cv-target">Target SEM <input type="number" step="any" id="cv-target" placeholder="optional"></label></div>
-      <div class="ww-scroll"><table class="ww-table" id="cv-summary">
-        <thead><tr><th>Quantity</th><th>Mean ± SEM</th><th>Equilibrated after</th><th>τ<sub>int</sub></th><th>Independent samples</th><th>Verdict</th><th id="cv-need-h" hidden>Length for target</th></tr></thead>
-        <tbody></tbody>
-      </table></div>
-      <p class="ww-caption">Click a row to inspect it. SEM is the more conservative of the autocorrelation and block-averaging estimates, computed on the equilibrated part of the run.</p>
-    </div>
-    <div class="ww-card ww-verdict" id="cv-verdict"></div>
-    <div class="ww-grid-even">
-      <div class="ww-card" style="grid-column:1 / -1">
-        <div class="ww-cardhead"><h3 id="cv-series-title">Time series</h3></div>
-        <div class="ww-chart" id="cv-series"></div>
-        <p class="ww-caption">The shaded region is discarded as equilibration (Chodera's method). The band is the mean ± 2 SEM.</p>
-      </div>
-      <div class="ww-card">
-        <div class="ww-cardhead"><h3>Block averaging</h3></div>
-        <div class="ww-chart" id="cv-blocking"></div>
-        <p class="ww-caption">Flyvbjerg–Petersen standard error versus block size. When the curve reaches a plateau, the blocks are independent; a curve that keeps rising means slow modes are still being sampled.</p>
-      </div>
-      <div class="ww-card">
-        <div class="ww-cardhead"><h3>Autocorrelation</h3></div>
-        <div class="ww-chart" id="cv-acf"></div>
-        <p class="ww-caption">Normalised autocorrelation of the production data. The dashed line marks Sokal's integration window.</p>
-      </div>
-      <div class="ww-card" style="grid-column:1 / -1">
-        <div class="ww-cardhead"><h3>Details</h3></div>
-        <dl class="ww-summary" id="cv-details"></dl>
-        <ul class="ww-flags" id="cv-flags"></ul>
-      </div>
-    </div>
-  </div>
+  <div class="wrap">
+    <div class="app-body">
+      <aside class="app-side" aria-label="Inputs">
+        <details class="sec" open>
+          <summary><span><span class="n">1</span>Data</span></summary>
+          <div class="sec-in">
+            <label class="drop" id="cv-drop" tabindex="0">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+              <b>Drop an .xvg file or click to browse</b>
+              <span><code>gmx energy</code> output (all columns), or any file whose first column is time</span>
+              <input type="file" accept=".xvg,.dat,.txt,.csv">
+            </label>
+            <div id="cv-file" hidden></div>
+          </div>
+        </details>
+        <details class="sec" open>
+          <summary><span><span class="n">2</span>Quantity</span></summary>
+          <div class="sec-in"><div id="cv-qlist"><p class="hint">Load data to see each quantity with a quick convergence check.</p></div></div>
+        </details>
+        <details class="sec" open>
+          <summary><span><span class="n">3</span>Options</span></summary>
+          <div class="sec-in">
+            <div class="fld"><span class="fld-l">Equilibration cut <i class="tip" tabindex="0" data-tip="Automatic uses Chodera's method: discard the start that maximises the number of independent samples. MSER-5 is an alternative rule. Manual lets you drag the cut on the time-series chart.">?</i></span>
+              <div class="choice" id="cv-method">
+                <label><input type="radio" name="m" value="chodera" checked> Automatic (Chodera) <small>maximises independent samples</small></label>
+                <label><input type="radio" name="m" value="mser"> MSER-5 <small>minimises the marginal standard error</small></label>
+                <label><input type="radio" name="m" value="manual"> Manual <small>drag the dashed line on the chart</small></label>
+              </div></div>
+            <label class="fld"><span class="fld-l">Confidence level <i class="tip" tabindex="0" data-tip="Width of the reported interval: 68% = ±1 SEM, 95% = ±1.96 SEM, 99% = ±2.58 SEM.">?</i></span>
+              <span class="fld-in"><select id="cv-ci"><option value="1">68% (± 1 SEM)</option><option value="1.96" selected>95% (± 1.96 SEM)</option><option value="2.576">99% (± 2.58 SEM)</option></select></span></label>
+            <label class="fld"><span class="fld-l">Target error (SEM) <i class="tip" tabindex="0" data-tip="Optional. Converge estimates how long the production run must be to reach this standard error, using SEM ∝ 1/√T.">?</i></span>
+              <span class="fld-in"><input type="number" step="any" min="0" id="cv-target" placeholder="optional"><em id="cv-target-u">units</em></span></label>
+            <label class="fld"><span class="fld-l">Time unit</span><span class="fld-in"><input type="text" id="cv-tu" value="ps"></span></label>
+          </div>
+        </details>
+        <div class="side-foot">
+          <button type="button" class="btn btn-primary" id="cv-report" disabled>Download report</button>
+          <button type="button" class="btn btn-ghost" id="cv-copy" disabled>Copy summary for my notes</button>
+        </div>
+      </aside>
 
-  <section class="ww-about">
-    <div class="grid-2">
-      <div class="prose">
-        <h2>Why Converge?</h2>
-        <p>Consecutive simulation frames are correlated, the start of a run is rarely equilibrated, and slow drifts hide in noisy data. The naive standard error ignores all three. In our tests on correlated data it covered the true mean only 38% of the time, against the 95% it claims.</p>
-        <p>Converge chooses the equilibration point, measures how correlated the data are, and reports an error bar that holds up. With the same data its 95% intervals covered the true mean 94.8% of the time.</p>
-      </div>
-      <div class="prose">
-        <h2>Method</h2>
-        <ul>
-          <li><b>Equilibration:</b> t₀ that maximises the number of uncorrelated samples (Chodera, <i>JCTC</i> 2016), cross-checked with MSER-5.</li>
-          <li><b>Autocorrelation:</b> FFT autocorrelation with Sokal's automatic window; g = 2τ<sub>int</sub>.</li>
-          <li><b>Block averaging:</b> Flyvbjerg–Petersen with automatic plateau detection.</li>
-          <li><b>Stationarity:</b> first-half versus second-half z-test and a linear-trend test.</li>
-          <li><b>Planning:</b> SEM ∝ 1/√T gives the run length needed for a target error.</li>
-        </ul>
-        <p class="muted">The same algorithms are available as a Python package: <a href="https://github.com/siba-p/converge">github.com/siba-p/converge</a>. The web app and the package give identical numbers.</p>
+      <div class="app-main">
+        <section class="panel2 empty" id="cv-empty">
+          <svg class="art" viewBox="0 0 120 120" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <rect x="8" y="14" width="104" height="80" rx="12" opacity=".25"/>
+            <path d="M18 70c6-30 10-36 14-14s6 10 10 2 6-12 10-4 6 6 10 0 6-6 10 0 6 4 10 0 6-2 10 0" />
+            <path d="M18 50h86" stroke-dasharray="3 5" opacity=".6"/><path d="M30 20v70" opacity=".35" stroke-dasharray="2 4"/>
+            <circle cx="96" cy="94" r="14" fill="var(--card)"/><path d="M90 94l4 4 8-9"/>
+          </svg>
+          <h2>Check a simulation in seconds</h2>
+          <p>Drop in a <code>gmx energy</code> file or any time series. Converge works out how much of the run to discard, how many truly independent samples you have, and whether the average is still drifting. Or start with an example:</p>
+          <div class="samples">
+            <button class="sample" type="button" data-sample="npt"><span class="tag good">Converged</span><b>NPT production run</b><span>Density and pressure from a well-behaved run with a short equilibration.</span><i>Load example →</i></button>
+            <button class="sample" type="button" data-sample="drift"><span class="tag bad">Not converged</span><b>Still drifting</b><span>Potential energy that keeps creeping down: the average depends on when you stop.</span><i>Load example →</i></button>
+            <button class="sample" type="button" data-sample="slow"><span class="tag warn">Too short</span><b>Slow relaxation</b><span>An order parameter with long memory: thousands of frames, few independent samples.</span><i>Load example →</i></button>
+          </div>
+        </section>
+
+        <div id="cv-res" hidden>
+          <section class="panel2 insight" id="cv-insight">
+            <div id="cv-gauge"></div>
+            <div>
+              <h2 id="cv-headline"></h2>
+              <p class="story" id="cv-story"></p>
+              <div class="kpis" id="cv-kpis"></div>
+            </div>
+          </section>
+
+          <section class="panel2" style="margin-top:18px">
+            <nav class="rtabs" role="tablist" id="cv-tabs">
+              <button role="tab" data-view="v-series" aria-selected="true">Time series</button>
+              <button role="tab" data-view="v-equil" aria-selected="false">Equilibration</button>
+              <button role="tab" data-view="v-err" aria-selected="false">Error bars</button>
+              <button role="tab" data-view="v-acf" aria-selected="false">Correlation</button>
+              <button role="tab" data-view="v-all" aria-selected="false">All quantities <span class="cnt" id="cv-nq"></span></button>
+            </nav>
+            <div class="rview" id="v-series">
+              <div class="chart-host" id="c-series"></div>
+              <details class="explain" open><summary>What am I looking at?</summary><div class="x-in">
+                <p>The <b>grey region</b> at the start is discarded as equilibration. Its end (dashed line) can be dragged to set the cut by hand. The <b>orange line and band</b> show the production average and its confidence interval. The <b>dark line</b> is the running average: if it is still trending when the run ends, the average has not converged.</p></div></details>
+              <div class="split" style="margin-top:18px;align-items:center">
+                <div class="chart-host" id="c-hist"></div>
+                <div class="x-side"><h3>Distribution of production values</h3><p>A single smooth peak is reassuring. Two peaks, or a long tail, usually mean the system is switching between states that are not yet sampled in the right proportions. In that case a longer run, or enhanced sampling, is needed before the average means much.</p></div>
+              </div>
+            </div>
+            <div class="rview" id="v-equil" hidden>
+              <div class="chart-host" id="c-equil"></div>
+              <details class="explain" open><summary>How is the equilibration point chosen?</summary><div class="x-in">
+                <p>Discarding more of the start removes bias but also throws away data. Chodera's method plots the <b>number of independent samples left after discarding the first t₀</b> (curve) and picks the maximum, which balances the two automatically. MSER-5 (dotted marker) is an independent rule; when the two agree, the choice is robust.</p></div></details>
+            </div>
+            <div class="rview" id="v-err" hidden>
+              <div class="two"><div class="chart-host" id="c-block"></div><div class="chart-host" id="c-proj"></div></div>
+              <details class="explain" open><summary>Why two error estimates, and how long should I run?</summary><div class="x-in">
+                <p><b>Block averaging</b> (left) averages the data in blocks of growing size. Once the blocks are longer than the correlation time, the error stops growing and reaches a <b>plateau</b>, which is the honest error bar. If the curve never flattens, slow motions are still being sampled.</p>
+                <p><b>Projection</b> (right) uses SEM ∝ 1/√T to show how the error bar shrinks as the production run gets longer, and where it reaches your target error.</p></div></details>
+            </div>
+            <div class="rview" id="v-acf" hidden>
+              <div class="chart-host" id="c-acf"></div>
+              <details class="explain" open><summary>What is the autocorrelation telling me?</summary><div class="x-in">
+                <p>The autocorrelation ρ(lag) measures how similar the data are to themselves a given time later. Its integral is the <b>autocorrelation time τ<sub>int</sub></b>. Frames closer together than about 2τ<sub>int</sub> are not independent, so the number of independent samples is N / (2τ<sub>int</sub>/Δt). The dashed line marks Sokal's integration window.</p></div></details>
+            </div>
+            <div class="rview" id="v-all" hidden>
+              <div class="tscroll"><table class="dtable" id="cv-table"><thead><tr><th>Quantity</th><th>Mean</th><th>± CI</th><th>Discarded</th><th>τ<sub>int</sub></th><th>Indep. samples</th><th>Score</th><th>Verdict</th><th id="cv-need-h">Run length for target</th></tr></thead><tbody></tbody></table></div>
+              <p class="hint" style="margin-top:.6rem">Click a row to inspect that quantity.</p>
+            </div>
+          </section>
+        </div>
       </div>
     </div>
-  </section>
+
+    <section class="app-method" id="method">
+      <div class="grid-2">
+        <div class="prose">
+          <h2>Why Converge?</h2>
+          <p>Consecutive simulation frames are correlated, the start of a run is rarely equilibrated, and slow drifts hide in noisy data. The naive standard error ignores all three. On correlated test data it covered the true mean only 38% of the time, although it claims 95%. Converge's intervals covered it 94.8% of the time.</p>
+          <p>The same algorithms are in the Python package (<code>pip install git+https://github.com/siba-p/converge</code>), and the web app and the package give identical numbers.</p>
+        </div>
+        <div class="prose">
+          <h2>Method</h2>
+          <ul>
+            <li><b>Equilibration:</b> the t₀ that maximises the number of independent samples, cross-checked with MSER-5.</li>
+            <li><b>Autocorrelation:</b> FFT autocorrelation with Sokal's automatic window; g = 2τ<sub>int</sub>.</li>
+            <li><b>Block averaging:</b> Flyvbjerg–Petersen, with automatic plateau detection.</li>
+            <li><b>Stationarity:</b> a first-half versus second-half z-test and a linear-trend test.</li>
+            <li><b>Score:</b> starts at 100 and loses points for drift, few independent samples, disagreement between the two error estimates, and a long equilibration.</li>
+          </ul>
+          <ol class="refs">
+            <li>J. D. Chodera, <i>J. Chem. Theory Comput.</i> 12, 1799 (2016).</li>
+            <li>H. Flyvbjerg &amp; H. G. Petersen, <i>J. Chem. Phys.</i> 91, 461 (1989).</li>
+            <li>A. D. Sokal, <i>Monte Carlo Methods in Statistical Mechanics</i> (1997).</li>
+            <li>K. P. White Jr., <i>Simulation</i> 69, 323 (1997) (MSER).</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+  </div>
 </div>
 {{ end }}

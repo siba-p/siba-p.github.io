@@ -27,9 +27,11 @@
     return out;
   }
   const fmt = (v, d) => {
+    if (!Number.isFinite(v)) return "–";
     const a = Math.abs(v);
-    if (a !== 0 && (a >= 1e5 || a < 1e-3)) return v.toExponential(1);
-    return a >= 1000 ? Math.round(v).toLocaleString() : (+v).toFixed(d == null ? 2 : d);
+    if (a !== 0 && a < 1e-3) return v.toExponential(2);
+    if (a >= 1e4) return v.toLocaleString(undefined, { maximumFractionDigits: a >= 1e5 ? 0 : 1 });
+    return a >= 1000 ? v.toLocaleString(undefined, { maximumFractionDigits: Math.min(2, d == null ? 2 : d) }) : (+v).toFixed(d == null ? 2 : d);
   };
   function frame(host, o) {
     host.innerHTML = "";
