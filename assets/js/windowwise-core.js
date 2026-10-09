@@ -324,6 +324,102 @@
     return { kT: kt, windows: ws, bins, hists, F: res.F, f: res.f, iter: res.iter, converged: res.converged, err, pairs, flags, suggestions, medSpacing };
   }
 
+
+  /* ---------- Gaussian-process umbrella integration + active learning ---------- */
+  // Mean-force observations: <A'>_i = k_i (c_i - <x>_i), sd = k_i * sqrt(var * g / N).
+  function meanForceObs(windows) {
+    return windows.map(w => {
+      const m = mean(w.data), sd = std(w.data), g = inefficiency(w.data);
+      return { x: m, y: w.k * (w.center - m), sd: w.k * sd * Math.sqrt(g / w.data.length) };
+    }).sort((a, b) => a.x - b.x);
+  }
+  function chol(A, n) {
+    const L = new Float64Array(n * n);
+    for (let i = 0; i < n; i++) for (let j = 0; j <= i; j++) {
+      let s = A[i * n + j];
+      for (let k = 0; k < j; k++) s -= L[i * n + k] * L[j * n + k];
+      if (i === j) { if (s <= 0) return null; L[i * n + i] = Math.sqrt(s); } else L[i * n + j] = s / L[j * n + j];
+    }
+    return L;
+  }
+  function fwd(L, b, n) { const y = new Float64Array(n); for (let i = 0; i < n; i++) { let s = b[i]; for (let k = 0; k < i; k++) s -= L[i * n + k] * y[k]; y[i] = s / L[i * n + i]; } return y; }
+  function bwd(L, y, n) { const x = new Float64Array(n); for (let i = n - 1; i >= 0; i--) { let s = y[i]; for (let k = i + 1; k < n; k++) s -= L[k * n + i] * x[k]; x[i] = s / L[i * n + i]; } return x; }
+  const kdd = (d, ell, s2) => s2 * Math.exp(-0.5 * d * d / (ell * ell)) * (1 / (ell * ell) - d * d / ell ** 4);
+  const kfd = (d, ell, s2) => s2 * Math.exp(-0.5 * d * d / (ell * ell)) * d / (ell * ell);
+  const kff = (d, ell, s2) => s2 * Math.exp(-0.5 * d * d / (ell * ell));
+  function gpFit(obs, ell, s2) {
+    const n = obs.length, K = new Float64Array(n * n);
+    for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) K[i * n + j] = kdd(obs[i].x - obs[j].x, ell, s2) + (i === j ? obs[i].sd ** 2 + 1e-10 * s2 / (ell * ell) : 0);
+    const L = chol(K, n); if (!L) return null;
+    const y = Float64Array.from(obs, o => o.y), z = fwd(L, y, n), alpha = bwd(L, z, n);
+    let ld = 0; for (let i = 0; i < n; i++) ld += Math.log(L[i * n + i]);
+    let q = 0; for (let i = 0; i < n; i++) q += y[i] * alpha[i];
+    return { L, alpha, lml: -0.5 * q - ld - 0.5 * n * Math.log(2 * Math.PI) };
+  }
+  function gpPmf(windows, npts) {
+    const obs = meanForceObs(windows), n = obs.length;
+    const xs = obs.map(o => o.x), span = xs[n - 1] - xs[0];
+    const diffs = xs.slice(1).map((v, i) => v - xs[i]).sort((a, b) => a - b), spacing = diffs[Math.floor(diffs.length / 2)] || span;
+    const ys = obs.map(o => o.y), ym = ys.reduce((a, b) => a + b, 0) / n;
+    const yscale = Math.max(Math.sqrt(ys.reduce((a, b) => a + (b - ym) ** 2, 0) / n), Math.max(...ys.map(Math.abs)) / 3, 1e-9);
+    let best = null;
+    const lo = Math.max(spacing, span / 200), hi = span / 1.5;
+    for (let a = 0; a < 28; a++) {
+      const ell = lo * Math.pow(hi / lo, a / 27);
+      for (let b = 0; b < 15; b++) {
+        const amp = yscale * ell * 0.1 * Math.pow(100, b / 14), f = gpFit(obs, ell, amp * amp);
+        if (f && (!best || f.lml > best.fit.lml)) best = { ell, s2: amp * amp, fit: f };
+      }
+    }
+    if (!best) return null;
+    const { ell, s2, fit } = best, m = npts || 240;
+    const grid = Array.from({ length: m }, (_, i) => xs[0] + span * i / (m - 1));
+    const A = new Float64Array(m), dA = new Float64Array(m), dAsd = new Float64Array(m);
+    const V = grid.map(g => fwd(fit.L, Float64Array.from(obs, o => kfd(g - o.x, ell, s2)), n));
+    grid.forEach((g, i) => {
+      let a = 0, d = 0; const kd = new Float64Array(n);
+      for (let j = 0; j < n; j++) { a += kfd(g - obs[j].x, ell, s2) * fit.alpha[j]; kd[j] = kdd(g - obs[j].x, ell, s2); d += kd[j] * fit.alpha[j]; }
+      A[i] = a; dA[i] = d;
+      const vd = fwd(fit.L, kd, n); let q = 0; for (let j = 0; j < n; j++) q += vd[j] * vd[j];
+      dAsd[i] = Math.sqrt(Math.max(0, s2 / (ell * ell) - q));
+    });
+    let imin = 0; for (let i = 1; i < m; i++) if (A[i] < A[imin]) imin = i;
+    const Asd = new Float64Array(m);
+    for (let i = 0; i < m; i++) {
+      let cii = kff(0, ell, s2), cmm = cii, cim = kff(grid[i] - grid[imin], ell, s2);
+      for (let j = 0; j < n; j++) { cii -= V[i][j] ** 2; cmm -= V[imin][j] ** 2; cim -= V[i][j] * V[imin][j]; }
+      Asd[i] = Math.sqrt(Math.max(0, cii + cmm - 2 * cim));
+    }
+    const Amin = A[imin]; for (let i = 0; i < m; i++) A[i] -= Amin;
+    return { x: grid, A, Asd, dA, dAsd, obs, ell, s2, lml: fit.lml };
+  }
+  // Kriging-believer active learning: place windows where the posterior mean-force sd is largest.
+  function suggestWindowsGP(windows, gp, nPick) {
+    const obs = gp.obs.map(o => Object.assign({}, o)), xs0 = obs.map(o => o.x);
+    const diffs = xs0.slice(1).map((v, i) => v - xs0[i]).sort((a, b) => a - b), sep = 0.5 * (diffs[Math.floor(diffs.length / 2)] || 0);
+    const ks = windows.map(w => w.k).sort((a, b) => a - b), kk = ks[Math.floor(ks.length / 2)];
+    const sds = obs.map(o => o.sd).sort((a, b) => a - b), typSd = sds[Math.floor(sds.length / 2)];
+    const grid = Array.from({ length: 300 }, (_, i) => gp.x[0] + (gp.x[gp.x.length - 1] - gp.x[0]) * i / 299);
+    const picks = [];
+    for (let p = 0; p < (nPick || 3); p++) {
+      const fit = gpFit(obs, gp.ell, gp.s2); if (!fit) break;
+      const n = obs.length;
+      let bestI = -1, bestS = -Infinity, bestF = 0;
+      grid.forEach((g, i) => {
+        if (Math.min(...obs.map(o => Math.abs(o.x - g))) < sep) return;
+        const kd = Float64Array.from(obs, o => kdd(g - o.x, gp.ell, gp.s2));
+        const v = fwd(fit.L, kd, n); let q = 0; for (let j = 0; j < n; j++) q += v[j] * v[j];
+        const sd = Math.sqrt(Math.max(0, gp.s2 / (gp.ell * gp.ell) - q));
+        if (sd > bestS) { bestS = sd; bestI = i; let f = 0; for (let j = 0; j < n; j++) f += kd[j] * fit.alpha[j]; bestF = f; }
+      });
+      if (bestI < 0) break;
+      const target = grid[bestI];
+      picks.push({ target, center: target + bestF / kk, k: kk, meanForce: bestF, sd: bestS });
+      obs.push({ x: target, y: bestF, sd: typSd }); obs.sort((a, b) => a.x - b.x);
+    }
+    return picks;
+  }
+
   /* ---------- synthetic data (for the demo and for tests) ---------- */
   function synthetic(o) {
     const rand = mulberry32(o.seed || 1);
@@ -365,5 +461,5 @@
     return lines.join("\n");
   }
 
-  return { KB, kT, invNorm, normCdf, gaussOverlap, parseSeries, parseMetadata, numberFromName, plan, mean, std, inefficiency, binning, histogram, wham, bootstrap, overlapPairs, analyze, synthetic, mdpSnippet };
+  return { gpPmf, suggestWindowsGP, meanForceObs, KB, kT, invNorm, normCdf, gaussOverlap, parseSeries, parseMetadata, numberFromName, plan, mean, std, inefficiency, binning, histogram, wham, bootstrap, overlapPairs, analyze, synthetic, mdpSnippet };
 });

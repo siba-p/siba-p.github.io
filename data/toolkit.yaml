@@ -1,0 +1,34 @@
+# Featured research toolkit: each tool is a pip-installable package (repo) and a web app on this site (url).
+- name: WindowWise
+  url: /windowwise/
+  repo: siba-p/windowwise
+  icon: umbrella
+  field: "Free-energy calculations"
+  tagline: "Plan, check and repair umbrella-sampling simulations."
+  what: "Designs window spacing and force constants before you simulate. Then runs WHAM with bootstrap errors on GROMACS pullx files, flags gaps and drifting windows, and writes the repair windows as .mdp settings."
+  ml: "Gaussian-process umbrella integration with active learning proposes the most informative next windows."
+  validation: "WHAM within 0.33 kJ/mol of an exact PMF; GP active learning places new windows inside sampling gaps."
+  install: "pip install git+https://github.com/siba-p/windowwise"
+  cli: "windowwise analyze -m metadata.dat -o run1"
+- name: KBkit
+  url: /kbkit/
+  repo: siba-p/kbkit
+  icon: solvation
+  field: "Solvation thermodynamics"
+  tagline: "Kirkwood–Buff integrals you can trust."
+  what: "Computes KB integrals from RDFs with Ganguly–van der Vegt and Krüger–Vlugt finite-size corrections. It derives preferential binding, activity derivatives, partial molar volumes and compressibility."
+  ml: ""
+  validation: "Reproduces the exact hard-sphere (Carnahan–Starling) result to within 1% and removes the spurious closed-box attraction of an ideal gas."
+  install: "pip install git+https://github.com/siba-p/kbkit"
+  cli: "kbkit binary --ww ww.xvg --cc cc.xvg --cw cw.xvg --nw 1800 --nc 200 --volume 65.4"
+- name: Converge
+  url: /converge/
+  repo: siba-p/converge
+  icon: convergence
+  field: "Simulation statistics"
+  tagline: "Is your simulation converged, and are your error bars honest?"
+  what: "Detects where equilibration ends, measures autocorrelation, runs block averaging, tests for drift, and tells you how much longer to run for a target error. Reads gmx energy output directly."
+  ml: ""
+  validation: "95% intervals cover the true mean 94.8% of the time on correlated data, against 38% for naive error bars."
+  install: "pip install git+https://github.com/siba-p/converge"
+  cli: "converge energy.xvg --all --target-sem 0.1"

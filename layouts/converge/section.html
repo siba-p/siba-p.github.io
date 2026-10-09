@@ -1,0 +1,74 @@
+{{ define "main" }}
+{{ partial "page-head.html" . }}
+<div class="wrap ww" id="cv" data-demo="{{ "data/converge-energy.xvg" | relURL }}">
+  <div class="ww-tabs">
+    <span class="ww-private">Runs entirely in your browser. Files never leave your computer.</span>
+  </div>
+  <div class="ww-card ww-drop" id="cv-drop" tabindex="0">
+    <div>
+      <h3>Drop a time series here</h3>
+      <p><code>gmx energy</code> output (all columns and legends are read), any <code>.xvg</code>, or a text file whose first column is time. Typical inputs are potential energy, density, pressure, box volume, RMSD, distances and order parameters.</p>
+      <div class="ww-actions">
+        <label class="ww-file">Choose file<input type="file" id="cv-file" accept=".xvg,.dat,.txt,.csv"></label>
+        <button type="button" id="cv-demo">Load example (density + pressure)</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="cv-results" hidden>
+    <div class="ww-card" style="margin-top:18px">
+      <div class="ww-cardhead"><h3>All quantities <span class="muted" id="cv-file-name"></span></h3>
+        <label class="cv-target">Target SEM <input type="number" step="any" id="cv-target" placeholder="optional"></label></div>
+      <div class="ww-scroll"><table class="ww-table" id="cv-summary">
+        <thead><tr><th>Quantity</th><th>Mean ± SEM</th><th>Equilibrated after</th><th>τ<sub>int</sub></th><th>Independent samples</th><th>Verdict</th><th id="cv-need-h" hidden>Length for target</th></tr></thead>
+        <tbody></tbody>
+      </table></div>
+      <p class="ww-caption">Click a row to inspect it. SEM is the more conservative of the autocorrelation and block-averaging estimates, computed on the equilibrated part of the run.</p>
+    </div>
+    <div class="ww-card ww-verdict" id="cv-verdict"></div>
+    <div class="ww-grid-even">
+      <div class="ww-card" style="grid-column:1 / -1">
+        <div class="ww-cardhead"><h3 id="cv-series-title">Time series</h3></div>
+        <div class="ww-chart" id="cv-series"></div>
+        <p class="ww-caption">The shaded region is discarded as equilibration (Chodera's method). The band is the mean ± 2 SEM.</p>
+      </div>
+      <div class="ww-card">
+        <div class="ww-cardhead"><h3>Block averaging</h3></div>
+        <div class="ww-chart" id="cv-blocking"></div>
+        <p class="ww-caption">Flyvbjerg–Petersen standard error versus block size. When the curve reaches a plateau, the blocks are independent; a curve that keeps rising means slow modes are still being sampled.</p>
+      </div>
+      <div class="ww-card">
+        <div class="ww-cardhead"><h3>Autocorrelation</h3></div>
+        <div class="ww-chart" id="cv-acf"></div>
+        <p class="ww-caption">Normalised autocorrelation of the production data. The dashed line marks Sokal's integration window.</p>
+      </div>
+      <div class="ww-card" style="grid-column:1 / -1">
+        <div class="ww-cardhead"><h3>Details</h3></div>
+        <dl class="ww-summary" id="cv-details"></dl>
+        <ul class="ww-flags" id="cv-flags"></ul>
+      </div>
+    </div>
+  </div>
+
+  <section class="ww-about">
+    <div class="grid-2">
+      <div class="prose">
+        <h2>Why Converge?</h2>
+        <p>Consecutive simulation frames are correlated, the start of a run is rarely equilibrated, and slow drifts hide in noisy data. The naive standard error ignores all three. In our tests on correlated data it covered the true mean only 38% of the time, against the 95% it claims.</p>
+        <p>Converge chooses the equilibration point, measures how correlated the data are, and reports an error bar that holds up. With the same data its 95% intervals covered the true mean 94.8% of the time.</p>
+      </div>
+      <div class="prose">
+        <h2>Method</h2>
+        <ul>
+          <li><b>Equilibration:</b> t₀ that maximises the number of uncorrelated samples (Chodera, <i>JCTC</i> 2016), cross-checked with MSER-5.</li>
+          <li><b>Autocorrelation:</b> FFT autocorrelation with Sokal's automatic window; g = 2τ<sub>int</sub>.</li>
+          <li><b>Block averaging:</b> Flyvbjerg–Petersen with automatic plateau detection.</li>
+          <li><b>Stationarity:</b> first-half versus second-half z-test and a linear-trend test.</li>
+          <li><b>Planning:</b> SEM ∝ 1/√T gives the run length needed for a target error.</li>
+        </ul>
+        <p class="muted">The same algorithms are available as a Python package: <a href="https://github.com/siba-p/converge">github.com/siba-p/converge</a>. The web app and the package give identical numbers.</p>
+      </div>
+    </div>
+  </section>
+</div>
+{{ end }}

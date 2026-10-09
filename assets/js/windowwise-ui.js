@@ -247,7 +247,9 @@
       try {
         const t0 = performance.now();
         const res = WW.analyze({ windows, T: o.T, unit: o.unit, lunit: o.lunit, nbins: o.nbins, nboot: o.nboot, overlapMin: o.omin });
-        res.opts = o; res.truth = truth; res.ms = performance.now() - t0;
+        res.opts = o; res.truth = truth;
+        try { res.gp = WW.gpPmf(res.windows); res.gpPicks = res.gp ? WW.suggestWindowsGP(res.windows, res.gp, 3) : []; } catch (err) { res.gp = null; res.gpPicks = []; }
+        res.ms = performance.now() - t0;
         lastResult = res; renderResults(res);
         status(`Done in ${(res.ms / 1000).toFixed(1)} s · WHAM ${res.converged ? "converged" : "did not converge"} in ${res.iter.toLocaleString()} iterations.`);
       } catch (err) { status("Error: " + err.message); }
@@ -281,11 +283,29 @@
       dn.reverse().forEach(([x, y]) => { d += "L" + f.x(x).toFixed(1) + " " + f.y(y).toFixed(1); });
       if (d) el("path", { d: d + "Z", fill: f.tk.series, "fill-opacity": 0.18, stroke: "none" }, f.svg);
     }
+    const gpCol = f.tk.dark ? "#d95926" : "#eb6834";
+    let gpOff = 0;
+    if (res.gp && $("#gp-toggle").checked) {
+      // align the GP curve to the WHAM profile (both are defined up to a constant)
+      const pr = []; res.gp.x.forEach((x, i) => { const b = Math.floor((x - res.bins.lo) / res.bins.width); if (b >= 0 && b < xs.length && Number.isFinite(res.F[b])) pr.push(res.F[b] - res.gp.A[i]); });
+      gpOff = pr.length ? pr.reduce((a, b) => a + b, 0) / pr.length : 0;
+      let d = "";
+      res.gp.x.forEach((x, i) => { d += (i ? "L" : "M") + f.x(x).toFixed(1) + " " + f.y(res.gp.A[i] + gpOff + 1.96 * res.gp.Asd[i]).toFixed(1); });
+      for (let i = res.gp.x.length - 1; i >= 0; i--) d += "L" + f.x(res.gp.x[i]).toFixed(1) + " " + f.y(res.gp.A[i] + gpOff - 1.96 * res.gp.Asd[i]).toFixed(1);
+      el("path", { d: d + "Z", fill: gpCol, "fill-opacity": 0.14, stroke: "none" }, f.svg);
+      el("path", { d: pathFrom(res.gp.x, Array.from(res.gp.A, v => v + gpOff), f), fill: "none", stroke: gpCol, "stroke-width": 2, "stroke-dasharray": "7 3" }, f.svg);
+      (res.gpPicks || []).forEach(p => {
+        el("line", { x1: f.x(p.target), x2: f.x(p.target), y1: f.m.t, y2: f.H - f.m.b, stroke: gpCol, "stroke-width": 1, opacity: 0.7 }, f.svg);
+        el("text", { x: f.x(p.target), y: f.m.t + 10, "text-anchor": "middle", class: "ww-flagtxt" }, f.svg).textContent = "★";
+      });
+    }
     if (res.truth) el("path", { d: pathFrom(xs, xs.map(x => res.truth(x) + tShift), f), fill: "none", stroke: f.tk.ink2, "stroke-width": 1.5, "stroke-dasharray": "5 4" }, f.svg);
     el("path", { d: pathFrom(xs, Array.from(res.F), f), fill: "none", stroke: f.tk.series, "stroke-width": 2, "stroke-linejoin": "round" }, f.svg);
-    if (res.truth) {
+    {
       const lg = document.createElement("div"); lg.className = "ww-hlegend";
-      lg.innerHTML = `<span><i style="background:${f.tk.series}"></i>WHAM ± bootstrap</span><span><i class="dash" style="border-color:${f.tk.ink2}"></i>exact PMF (demo)</span>`;
+      lg.innerHTML = `<span><i style="background:${f.tk.series}"></i>WHAM ± bootstrap</span>` +
+        (res.gp && $("#gp-toggle").checked ? `<span><i class="dash" style="border-color:${gpCol}"></i>GP umbrella integration (95%)</span><span>★ active-learning picks</span>` : "") +
+        (res.truth ? `<span><i class="dash" style="border-color:${f.tk.ink2}"></i>exact PMF (demo)</span>` : "");
       f.host.appendChild(lg);
     }
     crosshair(f, xs, b => Number.isFinite(res.F[b]) ? `<b>ξ = ${xs[b].toFixed(4)} ${L}</b><br>F = ${res.F[b].toFixed(2)}${res.err && Number.isFinite(res.err[b]) ? " ± " + res.err[b].toFixed(2) : ""} ${E}${res.truth ? `<br>exact ${(res.truth(xs[b]) + tShift).toFixed(2)}` : ""}` : `<b>ξ = ${xs[b].toFixed(4)}</b><br>not sampled`, b => res.F[b]);
@@ -334,6 +354,16 @@
     $("#flags").innerHTML = res.flags.length ? res.flags.map(fl => `<li class="${fl.level}"><span class="ww-st ${fl.level}">${fl.level === "critical" ? "✕" : "!"}</span><div><b>${fl.level === "critical" ? "Critical" : "Warning"} · ${({ overlap: "gap", drift: "drift", samples: "sampling", wham: "convergence" })[fl.kind]}</b><br>${fl.text}</div></li>`).join("")
       : `<li class="good"><span class="ww-st good">✓</span><div><b>All clear</b><br>No gaps, drifting windows or under-sampled windows.</div></li>`;
 
+    // GP active learning
+    const gpc = $("#gp-card");
+    gpc.hidden = !res.gp;
+    if (res.gp) {
+      $("#gp-summary").innerHTML = `<div><dt>Length scale</dt><dd>${res.gp.ell.toFixed(3)} ${L}</dd></div><div><dt>Windows used</dt><dd>${res.gp.obs.length}</dd></div><div><dt>Log marginal likelihood</dt><dd>${res.gp.lml.toFixed(1)}</dd></div>`;
+      const lines = ["; WindowWise GP active learning: most informative next windows", `; (max posterior uncertainty of the mean force; centres offset by A'/k), k in ${E}/${L}^2`, ""];
+      (res.gpPicks || []).forEach((p, i) => lines.push(`; next ${i + 1} (targets ξ ≈ ${p.target.toFixed(3)}, mean-force sd ${p.sd.toFixed(1)}):  pull-coord1-init = ${p.center.toFixed(4)}   pull-coord1-k = ${Math.round(p.k)}`));
+      $("#gp-mdp").textContent = lines.join("\n");
+    }
+
     // Suggestions
     const S = res.suggestions;
     $("#suggest-card").hidden = !S.length;
@@ -365,6 +395,7 @@
     hov.addEventListener("pointerleave", () => { f.tip.hidden = true; line.setAttribute("visibility", "hidden"); dot.setAttribute("visibility", "hidden"); });
   }
 
+  $("#gp-toggle").addEventListener("change", () => { if (lastResult) renderResults(lastResult); });
   $("#pmf-csv").addEventListener("click", () => {
     const r = lastResult; if (!r) return;
     const rows = [`# WindowWise PMF, T=${r.opts.T} K, energy ${r.opts.unit}, zero at minimum`, `xi_${r.opts.lunit},F,${r.err ? "F_err" : ""}`];

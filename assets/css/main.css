@@ -48,6 +48,7 @@
 }
 
 /* ================= Base ================= */
+[hidden] { display: none !important; }
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
@@ -585,3 +586,39 @@ dialog.viewer .close { position: absolute; right: 8px; top: 8px; z-index: 2; bac
 .reveal.in { opacity: 1; transform: none; }
 @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; transition: none; } }
 .no-js .reveal { opacity: 1; transform: none; }
+.cv-target { display: inline-flex; align-items: center; gap: .5rem; font-size: .82rem; color: var(--ink-2); }
+.cv-target input { width: 120px; }
+.cv-row { cursor: pointer; }
+.cv-row:hover td { background: var(--bg-2); }
+.cv-row.sel td { background: var(--accent-soft); }
+.ww-grid-even > .ww-card { min-width: 0; }
+.kb-slot { display: flex; justify-content: space-between; align-items: center; gap: .6rem; font-size: .84rem; color: var(--ink-2); padding: .4rem 0; border-bottom: 1px dashed var(--line); }
+.kb-slot .ww-file { max-width: 55%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ww-check { display: flex !important; flex-direction: row; align-items: center; gap: .5rem; align-self: end; padding-bottom: .5rem; }
+.ww-check input { accent-color: var(--accent); }
+.kb-two { display: grid; grid-template-columns: 1fr; gap: 18px; margin-bottom: 12px; }
+.kb-table tr.best td { background: var(--accent-soft); }
+#kb-out > button { justify-self: start; }
+@media (max-width: 760px) { .kb-two { grid-template-columns: 1fr; } }
+
+/* ================= Toolkit ================= */
+.toolkit { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.tk { display: flex; flex-direction: column; gap: .7rem; padding: 24px; }
+.tk header { display: flex; gap: 14px; align-items: center; }
+.tk h3 { margin: .1rem 0 0; font-size: 1.35rem; }
+.tk-badge { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 14px; background: var(--accent-soft); color: var(--accent); flex: none; }
+.tk-icon { width: 30px; height: 30px; }
+.tk-tag { font: 600 1.02rem/1.4 var(--f-display); color: var(--ink); margin: 0; letter-spacing: -.01em; }
+.tk p { margin: 0; font-size: .92rem; color: var(--ink-2); }
+.tk-ml, .tk-val { display: grid; grid-template-columns: auto 1fr; gap: .6rem; align-items: baseline; }
+.tk-ml span, .tk-val span { font: 600 .66rem var(--f-body); letter-spacing: .04em; text-transform: uppercase; padding: .3em .5em; border-radius: 5px; }
+.tk-ml span { background: color-mix(in oklab, #8b5cf6 16%, transparent); color: #7c4ddb; }
+.tk-val span { background: color-mix(in oklab, var(--teal) 14%, transparent); color: var(--teal); }
+.tk pre { margin: .2rem 0 0; font-size: .74rem; white-space: pre-wrap; word-break: break-all; }
+.tk footer { margin-top: auto; padding-top: .4rem; display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
+.tk footer .stars { margin-left: auto; }
+.tools-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.tool-mini { display: flex; gap: 14px; align-items: flex-start; }
+.tool-mini h3 { margin: 0 0 .25rem; font-size: 1.08rem; }
+.tool-mini p { margin: 0; font-size: .9rem; }
+@media (max-width: 1080px) { .toolkit, .tools-row { grid-template-columns: 1fr; } }

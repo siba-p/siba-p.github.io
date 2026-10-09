@@ -1,0 +1,53 @@
+{{ define "main" }}
+{{ partial "page-head.html" . }}
+<div class="wrap ww" id="kb" data-demo="{{ "data/kbkit-hard-spheres.xvg" | relURL }}">
+  <div class="ww-tabs" role="tablist" aria-label="KBkit modes">
+    <button role="tab" data-mode="single" aria-selected="true">Single RDF</button>
+    <button role="tab" data-mode="binary" aria-selected="false">Binary mixture</button>
+    <button role="tab" data-mode="pb" aria-selected="false">Preferential binding</button>
+    <span class="ww-private">Runs entirely in your browser. Files never leave your computer.</span>
+  </div>
+
+  <div class="ww-grid">
+    <form class="ww-card ww-form" id="kb-form" autocomplete="off">
+      <h3>System</h3>
+      <label><span>Box volume V <small>(r unit³, e.g. nm³)</small></span> <input name="V" type="number" step="any" required></label>
+      <div class="ww-2" data-show="single"><label><span>N<sub>j</sub> (particles of j)</span> <input name="nj" type="number" step="any"></label>
+        <label class="ww-check"><input type="checkbox" name="same"> i and j are the same species</label></div>
+      <div class="ww-2" data-show="binary pb"><label><span>N<sub>w</sub> (solvent)</span> <input name="nw" type="number" step="any"></label>
+        <label><span>N<sub>c</sub> (cosolvent)</span> <input name="nc" type="number" step="any"></label></div>
+      <div class="ww-2" data-show="binary"><label>Temperature (K) <input name="T" type="number" step="any" value="298.15"></label><span></span></div>
+      <h3>RDF files <small class="muted">(gmx rdf .xvg or two columns r, g)</small></h3>
+      <div id="kb-slots"></div>
+      <h3>Ranges <small class="muted">(blank = automatic)</small></h3>
+      <div class="ww-2"><label>Plateau from <input name="p1" type="number" step="any"></label><label>to <input name="p2" type="number" step="any"></label></div>
+      <div class="ww-2"><label>KV fit L from <input name="f1" type="number" step="any"></label><label>to <input name="f2" type="number" step="any"></label></div>
+      <button type="submit" class="btn btn-primary ww-run">Compute KB integrals</button>
+      <button type="button" id="kb-demo">Load demo: hard spheres (exact answer known)</button>
+      <p class="ww-hint" id="kb-status" aria-live="polite"></p>
+    </form>
+    <div class="ww-out" id="kb-out">
+      <div class="ww-card"><p class="ww-hint" style="font-size:.92rem">Load your RDFs, or try the demo: a hard-sphere fluid at packing fraction 0.30, whose Kirkwood–Buff integral is known exactly from the Carnahan–Starling equation of state. You will see how the closed-box bias in the raw integral is removed by the Ganguly–van der Vegt and Krüger–Vlugt corrections.</p></div>
+    </div>
+  </div>
+
+  <section class="ww-about">
+    <div class="grid-2">
+      <div class="prose">
+        <h2>Why KBkit?</h2>
+        <p>Kirkwood–Buff integrals connect RDFs to thermodynamics: preferential binding, activity derivatives, partial molar volumes and compressibility. The textbook running integral does not converge in a closed, finite simulation box, and even a pure ideal gas appears attractive. KBkit computes the raw integral alongside two standard corrections, so you can see at a glance whether your number can be trusted.</p>
+      </div>
+      <div class="prose">
+        <h2>Method</h2>
+        <ul>
+          <li><b>Raw:</b> G(R) = 4π∫₀ᴿ[g(r) − 1]r²dr.</li>
+          <li><b>GvdV:</b> g(r) corrected for the depletion of a finite box (Ganguly &amp; van der Vegt, <i>JCTC</i> 2013).</li>
+          <li><b>KV:</b> finite-volume integral with weight 1 − 3x/2 + x³/2, extrapolated as L·G<sub>V</sub>(L) = G<sub>∞</sub>L + F (Krüger, Vlugt <i>et al.</i>, <i>JPCL</i> 2013).</li>
+          <li><b>Thermodynamics:</b> standard KB relations for binary mixtures and preferential binding.</li>
+        </ul>
+        <p class="muted">Validated against hard spheres and the ideal gas (KV within 1% of the exact result). Python package and CLI: <a href="https://github.com/siba-p/kbkit">github.com/siba-p/kbkit</a>.</p>
+      </div>
+    </div>
+  </section>
+</div>
+{{ end }}

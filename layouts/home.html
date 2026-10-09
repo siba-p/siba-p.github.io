@@ -97,6 +97,27 @@
   <div class="wrap">
     <div class="section-head">
       <div>
+        <span class="label">Open research tools</span>
+        <h2>Free tools for the simulation community</h2>
+        <p>Validated statistical-mechanics tools that run in your browser or install with pip.</p>
+      </div>
+      <a class="more" href="{{ "software/" | relURL }}">All software</a>
+    </div>
+    <div class="tools-row">
+      {{ range site.Data.toolkit }}
+      <a class="card tool-mini reveal" href="{{ .url | relURL }}">
+        <span class="tk-badge">{{ partial "toolkit-icon.html" .icon }}</span>
+        <div><span class="eyebrow">{{ .field }}</span><h3>{{ .name }}</h3><p>{{ .tagline }}</p></div>
+      </a>
+      {{ end }}
+    </div>
+  </div>
+</section>
+
+<section class="section alt">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
         <span class="label">Publications</span>
         <h2>Selected publications</h2>
       </div>
@@ -108,7 +129,7 @@
   </div>
 </section>
 
-<section class="section alt">
+<section class="section">
   <div class="wrap grid-2" style="align-items:start">
     <div class="panel reveal">
       <div class="panel-head"><h3>News</h3></div>

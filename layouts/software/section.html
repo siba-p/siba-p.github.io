@@ -1,6 +1,44 @@
 {{ define "main" }}
 {{ partial "page-head.html" . }}
-<div class="wrap section" style="padding-top:40px">
+<div class="wrap section" style="padding-top:44px">
+  <div class="section-head">
+    <div>
+      <span class="label">Open research toolkit</span>
+      <h2>Statistical-mechanics tools for molecular simulation</h2>
+      <p>Each tool runs in the browser with nothing to install (files never leave your computer), and is also a pip-installable Python package with a command-line interface for scripts and HPC. Every one is validated against an exactly known answer.</p>
+    </div>
+  </div>
+  <div class="toolkit">
+    {{ range site.Data.toolkit }}
+    <article class="card tk reveal" id="{{ .name | urlize }}">
+      <header>
+        <span class="tk-badge">{{ partial "toolkit-icon.html" .icon }}</span>
+        <div>
+          <span class="eyebrow">{{ .field }}</span>
+          <h3>{{ .name }}</h3>
+        </div>
+      </header>
+      <p class="tk-tag">{{ .tagline }}</p>
+      <p>{{ .what }}</p>
+      {{ with .ml }}<p class="tk-ml"><span>AI/ML</span>{{ . }}</p>{{ end }}
+      <p class="tk-val"><span>Validated</span>{{ .validation }}</p>
+      <pre><code>{{ .install }}
+{{ .cli }}</code></pre>
+      <footer>
+        <a class="btn btn-primary" href="{{ .url | relURL }}">Open web app</a>
+        <a class="btn btn-ghost" href="https://github.com/{{ .repo }}">GitHub</a>
+        <span class="stars" data-repo="{{ .repo }}"></span>
+      </footer>
+    </article>
+    {{ end }}
+  </div>
+
+  <div class="section-head" style="margin-top:72px">
+    <div>
+      <span class="label">More software</span>
+      <h2>Builders and research code</h2>
+    </div>
+  </div>
   <div class="grid-2">
     {{ range site.Data.software }}
     <article class="card tool reveal" id="{{ .name | urlize }}">
@@ -9,14 +47,14 @@
           <span class="chip">{{ .kind }}</span>
           <h3>{{ .name }}</h3>
         </div>
-        {{ if .url }}<span class="status live-s">Runs in browser</span>{{ else if .public }}<span class="status live-s">Open source</span>{{ else }}<span class="status">Release in preparation</span>{{ end }}
+        {{ if .public }}<span class="status live-s">Open source</span>{{ else }}<span class="status">Release in preparation</span>{{ end }}
       </header>
       <p style="margin:0;color:var(--ink)">{{ .tagline }}</p>
       <ul>{{ range .features }}<li>{{ . }}</li>{{ end }}</ul>
       {{ with .install }}<pre><code>{{ . | strings.TrimSpace }}</code></pre>{{ end }}
       <footer>
         <div class="chips">{{ range .stack }}<span class="chip">{{ . }}</span>{{ end }}</div>
-        {{ with .url }}<a class="btn btn-primary" href="{{ . | relURL }}">Open the tool</a>{{ else }}{{ if .public }}<a class="more" href="https://github.com/{{ .repo }}">View on GitHub</a>{{ end }}{{ end }}
+        {{ if .public }}<a class="more" href="https://github.com/{{ .repo }}">View on GitHub</a>{{ end }}
       </footer>
       {{ if and .public .repo }}<span class="stars" data-repo="{{ .repo }}"></span>{{ end }}
     </article>

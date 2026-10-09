@@ -35,10 +35,10 @@
           <label><input type="radio" name="mode" value="spacing"> I choose the spacing</label>
         </div>
         <div class="ww-2" data-mode="auto">
-          <label>Steepest |dF/dξ| <small>energy / length</small> <input name="slope" type="number" step="any" value="60"></label>
+          <label><span>Steepest |dF/dξ| <small>energy / length</small></span> <input name="slope" type="number" step="any" value="60"></label>
           <label>Minimum k <input name="kMin" type="number" step="any" value="1000"></label>
         </div>
-        <div data-mode="k" hidden><label>Force constant k <small>energy / length²</small> <input name="k" type="number" step="any" value="1000"></label></div>
+        <div data-mode="k" hidden><label><span>Force constant k <small>energy / length²</small></span> <input name="k" type="number" step="any" value="1000"></label></div>
         <div data-mode="spacing" hidden><label>Window spacing <input name="spacing" type="number" step="any" value="0.1"></label></div>
         <p class="ww-hint">Tip: estimate the steepest slope from a short steered-MD pull (peak force) or from a related system. Overlap of 20–40% between neighbours is a common target.</p>
       </form>
@@ -78,7 +78,7 @@
           <label>Energy unit <select name="unit"><option>kJ/mol</option><option>kcal/mol</option></select></label>
         </div>
         <div class="ww-2">
-          <label>Data column <small>0 = time</small> <input name="col" type="number" min="1" step="1" value="1"></label>
+          <label><span>Data column <small>(0 = time)</small></span> <input name="col" type="number" min="1" step="1" value="1"></label>
           <label>Histogram bins <input name="nbins" type="number" min="20" max="600" step="1" value="120"></label>
         </div>
         <div class="ww-2">
@@ -115,7 +115,7 @@
       <div class="ww-card ww-verdict" id="verdict"></div>
       <div class="ww-grid ww-grid-even">
         <div class="ww-card">
-          <div class="ww-cardhead"><h3>Potential of mean force</h3><div class="ww-actions"><button type="button" id="pmf-csv">Download CSV</button></div></div>
+          <div class="ww-cardhead"><h3>Potential of mean force</h3><div class="ww-actions"><label class="ww-check" style="font-size:.8rem;padding:0"><input type="checkbox" id="gp-toggle" checked> GP overlay</label><button type="button" id="pmf-csv">Download CSV</button></div></div>
           <div class="ww-chart" id="pmf-chart"></div>
           <p class="ww-caption" id="pmf-caption"></p>
         </div>
@@ -133,6 +133,12 @@
           <div class="ww-cardhead"><h3>Issues</h3></div>
           <ul class="ww-flags" id="flags"></ul>
         </div>
+      </div>
+      <div class="ww-card" id="gp-card" style="margin-top:18px" hidden>
+        <div class="ww-cardhead"><h3>Active learning · Gaussian-process umbrella integration <span class="tk-ml" style="display:inline"><span>AI/ML</span></span></h3><div class="ww-actions"><button type="button" data-copy-target="gp-mdp">Copy</button><button type="button" data-download="gp-mdp" data-filename="next_windows_gp.mdp">Download</button></div></div>
+        <p class="ww-caption" style="margin-top:0">Each window's spring balance gives a noisy measurement of the mean force, k(c − ⟨ξ⟩). A Gaussian process turns these into a PMF with a Bayesian 95% band and finds where one more window would reduce the uncertainty most.</p>
+        <dl class="ww-summary" id="gp-summary"></dl>
+        <pre id="gp-mdp" class="ww-pre"></pre>
       </div>
       <div class="ww-card" id="suggest-card">
         <div class="ww-cardhead"><h3>Suggested repair windows</h3><div class="ww-actions"><button type="button" data-copy-target="fix-mdp">Copy</button><button type="button" data-download="fix-mdp" data-filename="repair_windows.mdp">Download</button></div></div>
@@ -156,8 +162,9 @@
           <li><b>WHAM.</b> Self-consistent 1D WHAM (Kumar et al., 1992) on a common histogram grid. Bias U = ½k(ξ − ξ₀)², as in the GROMACS pull code.</li>
           <li><b>Errors.</b> Block bootstrap of each time series, with block length set by the statistical inefficiency.</li>
           <li><b>Repair.</b> Gaps below the overlap threshold get new windows. Their spacing follows the target overlap, their k is raised where the local slope is steep, and their centres are offset by F′/k.</li>
+          <li><b>GP umbrella integration (ML).</b> Window mean forces k(c − ⟨ξ⟩), with errors from the statistical inefficiency, are derivative observations of a Gaussian-process prior on the PMF (cf. Stecher, Bernstein &amp; Csányi, <i>JCTC</i> 2014). Active learning picks new windows where the posterior mean-force uncertainty is largest.</li>
         </ul>
-        <p class="muted">Validated against an analytic Morse-type PMF: RMSE 0.19 kJ/mol over a 30 kJ/mol well. Please cite this page if WindowWise helps your work.</p>
+        <p class="muted">Validated against an analytic Morse-type PMF: WHAM RMSE 0.19 kJ/mol over a 30 kJ/mol well; GP RMSE 0.18–0.86 kJ/mol with 41 to 11 windows. Python package and CLI: <a href="https://github.com/siba-p/windowwise">github.com/siba-p/windowwise</a>.</p>
       </div>
     </div>
   </section>

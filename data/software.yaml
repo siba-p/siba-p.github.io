@@ -1,17 +1,5 @@
 # repo: GitHub "owner/name". Set public: false for repos that are not released yet (no link is shown).
 # url: set for tools that run on this website.
-- name: WindowWise
-  url: /windowwise/
-  public: true
-  kind: "Web tool · free energy"
-  tagline: "Plan, check and repair umbrella-sampling simulations in the browser."
-  features:
-    - "Designs window spacing and force constants for a target overlap and the steepest expected slope"
-    - "WHAM on GROMACS pullx files with block-bootstrap error bars"
-    - "Flags gaps, drifting windows and under-sampled windows"
-    - "Writes ready-to-paste .mdp settings for the repair windows"
-  stack: ["JavaScript", "WHAM", "GROMACS"]
-
 - name: Polygraft
   repo: siba-p/Polygraft
   public: true

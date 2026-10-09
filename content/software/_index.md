@@ -1,6 +1,6 @@
 ---
 title: "Software & tools"
 eyebrow: "<b>Software</b> · open source"
-lead: "The builders, models and small utilities behind my simulations. They take you from a nanoparticle or polymer you have in mind to a simulation-ready structure, and from a pile of free-energy profiles to a model that predicts the next one."
+lead: "Open, validated tools for molecular simulation: an umbrella-sampling planner with Gaussian-process active learning, finite-size-corrected Kirkwood–Buff integrals, and honest error bars for any time series. Use them in the browser or install them with pip."
 description: "Open-source research software by Sibasankar Panigrahy: Polygraft, ML_surfacepoly, nanobuilder and more."
 ---
