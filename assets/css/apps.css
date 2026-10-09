@@ -274,3 +274,6 @@
 .scale .mark { background: var(--accent); width: 4px; border-radius: 3px; }
 .eqs .katex-display { max-width: 100%; }
 .slot b .katex { font-size: 1.02em; }
+
+.app-method .grid-2 > * { min-width: 0; }
+.app-method p { overflow-wrap: anywhere; }
