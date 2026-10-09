@@ -1,4 +1,76 @@
 baseURL = "https://siba-p.github.io/"
-languageCode = 'en-us'
-title = 'My New Hugo Project'
-theme = 'blowfish'
+languageCode = "en-us"
+title = "Sibasankar Panigrahy"
+enableRobotsTXT = true
+enableGitInfo = false
+buildFuture = true
+summaryLength = 40
+
+[pagination]
+  pagerSize = 12
+
+[taxonomies]
+  tag = "tags"
+
+[outputs]
+  home = ["html", "rss"]
+  section = ["html", "rss"]
+
+[markup]
+  [markup.goldmark.renderer]
+    unsafe = true
+  [markup.goldmark.extensions.passthrough]
+    enable = true
+    [markup.goldmark.extensions.passthrough.delimiters]
+      block = [["\\[", "\\]"], ["$$", "$$"]]
+      inline = [["\\(", "\\)"], ["$", "$"]]
+  [markup.highlight]
+    noClasses = false
+    lineNos = false
+  [markup.tableOfContents]
+    startLevel = 2
+    endLevel = 3
+
+[params]
+  description = "Computational materials scientist working on nanoparticle self-assembly, molecular simulation and machine learning for materials design."
+  author = "Sibasankar Panigrahy"
+  role = "Computational Materials Scientist"
+  affiliation = "QpiAI"
+  phd = "PhD, Materials Science & Engineering, IIT Delhi"
+  github = "siba-p"
+  # Fill these in and they appear automatically in the header, footer and About page.
+  email = ""
+  scholar = ""      # e.g. "https://scholar.google.com/citations?user=XXXX"
+  linkedin = ""     # e.g. "https://www.linkedin.com/in/your-handle"
+  orcid = ""        # e.g. "0000-0000-0000-0000"
+  cv = ""           # e.g. "/files/Sibasankar_Panigrahy_CV.pdf" (put the PDF in static/files/)
+
+[menus]
+  [[menus.main]]
+    name = "Research"
+    pageRef = "/research"
+    weight = 10
+  [[menus.main]]
+    name = "Publications"
+    pageRef = "/publications"
+    weight = 20
+  [[menus.main]]
+    name = "Software"
+    pageRef = "/software"
+    weight = 30
+  [[menus.main]]
+    name = "Notebook"
+    pageRef = "/notebook"
+    weight = 40
+  [[menus.main]]
+    name = "Theatre"
+    pageRef = "/gallery"
+    weight = 50
+  [[menus.main]]
+    name = "Playground"
+    pageRef = "/playground"
+    weight = 60
+  [[menus.main]]
+    name = "About"
+    pageRef = "/about"
+    weight = 70

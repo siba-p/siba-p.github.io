@@ -1,0 +1,9 @@
+{{ define "main" }}
+<article>
+  <header class="wrap article-head">
+    <h1>{{ .Title }}</h1>
+    {{ with .Description }}<p class="lead">{{ . }}</p>{{ end }}
+  </header>
+  <div class="wrap"><div class="prose">{{ .Content }}</div></div>
+</article>
+{{ end }}

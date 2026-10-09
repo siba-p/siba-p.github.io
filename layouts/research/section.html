@@ -1,0 +1,46 @@
+{{ define "main" }}
+{{ partial "page-head.html" . }}
+<div class="wrap">
+  <nav class="chips" aria-label="Studies" style="padding-top:28px">
+    {{ range site.Data.studies }}<a class="chip" href="#{{ .id }}">{{ .number }} · {{ .title }}</a>{{ end }}
+  </nav>
+
+  {{ range site.Data.studies }}
+  <article class="study" id="{{ .id }}">
+    <div class="study-media">
+      {{ partial "media.html" (dict "m" .media "tag" .scale) }}
+      {{ with .image2 }}{{ partial "media.html" (dict "m" (merge . (dict "type" "image")) "cls" "cover") }}{{ end }}
+    </div>
+    <div>
+      <div class="num">{{ .number }}</div>
+      <h2>{{ .title }}</h2>
+      <p class="lead" style="font-size:1.08rem">{{ .short }}</p>
+      <dl class="qa">
+        <div><dt>Question</dt><dd>{{ .question }}</dd></div>
+        <div><dt>Approach</dt><dd>{{ .approach }}</dd></div>
+        <div class="finding"><dt>Finding</dt><dd>{{ .finding }}</dd></div>
+        <div><dt>Paper</dt><dd>
+          {{ with .paper }}{{ if .doi }}<a class="paper-link" href="https://doi.org/{{ .doi }}">{{ .label }} ↗</a>{{ else }}<span class="paper-link muted">{{ .label }}</span>{{ end }}{{ end }}
+        </dd></div>
+      </dl>
+    </div>
+  </article>
+  {{ end }}
+
+  <section class="section" style="border:0">
+    <div class="grid-2">
+      <div class="callout reveal">
+        <p class="eyebrow"><b>The thread</b></p>
+        <h3>Chemistry beats generic pictures</h3>
+        <p>At every level of complexity, chemically specific interactions decide the outcome: crowder identity, metal polarizability, and the pattern of a surface. A force field or model that blurs those details gives a qualitatively different answer, so validating it is part of the science.</p>
+      </div>
+      <div class="callout reveal">
+        <p class="eyebrow"><b>What's next</b></p>
+        <h3>Open directions</h3>
+        <p>Polarizable gold for DNA-capped particles in crowded media. Protein-sized crowders via coarse-graining. Divalent-ion effects on DNA–gold assembly. Moving the adhesion models from coarse-grained beads to all-atom DNA and realistic gold and SAM surfaces.</p>
+      </div>
+    </div>
+    {{ .Content }}
+  </section>
+</div>
+{{ end }}

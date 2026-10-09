@@ -1,0 +1,6 @@
+{{ define "main" }}
+<header class="page-head"><div class="wrap"><p class="eyebrow"><a href="{{ "tags/" | relURL }}">Tags</a></p><h1>#{{ .Title }}</h1></div></header>
+<div class="wrap narrow section" style="padding-top:36px">
+  {{ range .Pages }}{{ partial "entry.html" . }}{{ end }}
+</div>
+{{ end }}

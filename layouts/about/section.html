@@ -1,0 +1,37 @@
+{{ define "main" }}
+{{ partial "page-head.html" . }}
+{{ $cv := site.Data.cv }}
+<div class="wrap section" style="padding-top:48px">
+  <div class="about-grid">
+    <div>
+      <div class="portrait"><img src="{{ "img/portrait.jpg" | relURL }}" alt="Portrait of Sibasankar Panigrahy" width="600" height="662"></div>
+      <div class="links">{{ partial "social.html" (dict "cls" "chip") }}</div>
+    </div>
+    <div>
+      <div class="prose">{{ .Content }}</div>
+
+      <h2 style="margin-top:2.4rem">Path</h2>
+      <ol class="timeline">
+        {{ range $cv.positions }}
+        <li><time>{{ .when }}</time><div><h3>{{ .what }}</h3><p><b>{{ .where }}</b>{{ with .detail }}<br>{{ . }}{{ end }}</p></div></li>
+        {{ end }}
+      </ol>
+
+      <h2 style="margin-top:2.4rem">Talks, posters & workshop papers</h2>
+      <ol class="timeline">
+        {{ range $cv.talks }}
+        <li><time>{{ .when }}</time><div><h3>{{ .title }}</h3><p>{{ .kind }} · {{ .event }}</p></div></li>
+        {{ end }}
+      </ol>
+
+      <h2 style="margin-top:2.4rem">Methods & tools</h2>
+      <div class="grid-2" style="margin-top:1rem">
+        {{ range $cv.methods }}
+        <div class="card"><p class="eyebrow" style="margin:0 0 .7rem"><b>{{ .group }}</b></p><div class="chips">{{ range .items }}<span class="chip">{{ . }}</span>{{ end }}</div></div>
+        {{ end }}
+      </div>
+      {{ with $cv.funding }}<p class="muted" style="margin-top:2rem;font-size:.9rem">{{ . }}</p>{{ end }}
+    </div>
+  </div>
+</div>
+{{ end }}

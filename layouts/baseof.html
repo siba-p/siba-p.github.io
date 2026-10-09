@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="{{ site.Language.LanguageCode | default "en" }}" class="no-js">
+<head>
+  {{ partial "head.html" . }}
+</head>
+<body class="{{ if .IsHome }}is-home{{ end }} kind-{{ .Kind }} section-{{ .Section }}">
+  <a class="skip" href="#main">Skip to content</a>
+  {{ partial "header.html" . }}
+  <main id="main">
+    {{ block "main" . }}{{ end }}
+  </main>
+  {{ partial "footer.html" . }}
+  {{ $js := slice (resources.Get "js/assembly.js") (resources.Get "js/ising.js") (resources.Get "js/site.js") | resources.Concat "js/bundle.js" | minify | fingerprint }}
+  <script src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}" defer></script>
+</body>
+</html>

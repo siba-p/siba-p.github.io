@@ -1,0 +1,25 @@
+{{ define "main" }}
+<article>
+  <header class="wrap article-head">
+    <p class="eyebrow"><a href="{{ "notebook/" | relURL }}" style="text-decoration:none"><b>Lab notebook</b></a> · {{ .Date.Format "2 January 2006" }}</p>
+    <h1>{{ .Title }}</h1>
+    {{ with .Description }}<p class="lead">{{ . }}</p>{{ end }}
+    <div class="article-meta">
+      <span>{{ .ReadingTime }} min read</span>
+      {{ range .GetTerms "tags" }}<a href="{{ .RelPermalink }}">#{{ .LinkTitle }}</a>{{ end }}
+    </div>
+  </header>
+  <div class="wrap article-layout">
+    <div class="prose">{{ .Content }}</div>
+    {{ if and (gt .WordCount 400) .TableOfContents }}
+    <aside class="toc"><p class="eyebrow">On this page</p>{{ .TableOfContents }}</aside>
+    {{ end }}
+  </div>
+  <div class="wrap">
+    <nav class="post-nav" aria-label="More entries">
+      {{ with .NextInSection }}<a href="{{ .RelPermalink }}"><small>← Newer</small><br>{{ .Title }}</a>{{ end }}
+      {{ with .PrevInSection }}<a class="next" href="{{ .RelPermalink }}"><small>Older →</small><br>{{ .Title }}</a>{{ end }}
+    </nav>
+  </div>
+</article>
+{{ end }}

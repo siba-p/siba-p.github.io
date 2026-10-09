@@ -1,0 +1,6 @@
+{{ define "main" }}
+<header class="page-head"><div class="wrap"><p class="eyebrow">Lab notebook</p><h1>Tags</h1></div></header>
+<div class="wrap narrow section" style="padding-top:36px">
+  <div class="chips">{{ range .Data.Terms.ByCount }}<a class="chip" href="{{ .Page.RelPermalink }}">#{{ .Page.Title }} · {{ .Count }}</a>{{ end }}</div>
+</div>
+{{ end }}

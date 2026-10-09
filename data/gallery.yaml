@@ -1,0 +1,75 @@
+# Simulation Theatre. type: video | image. Drop new files into static/media or static/img and add a row.
+- type: video
+  src: media/polymer-surface.mp4
+  poster: media/polymer-surface.jpg
+  title: "Polymer meets patterned surface"
+  caption: "A coarse-grained copolymer exploring a chemically heterogeneous surface. Red sites attract strongly, white sites weakly. Hundreds of thousands of runs like this one trained the adhesion model."
+  tags: ["ML", "coarse-grained"]
+- type: video
+  src: media/dna-aunp-solvated.mp4
+  poster: media/dna-aunp-solvated.jpg
+  title: "DNA-grafted gold in water"
+  caption: "A T10 ss-DNA-functionalised Au201 nanoparticle, with the solvent rendered as a translucent volume."
+  tags: ["gold", "DNA"]
+- type: video
+  src: media/dna-aunp-box.mp4
+  poster: media/dna-aunp-box.jpg
+  title: "The full simulation cell"
+  caption: "The same nanoparticle seen in its periodic box, tumbling as the ligand shell breathes."
+  tags: ["gold", "DNA"]
+- type: video
+  src: media/aunp-polarizable.mp4
+  poster: media/aunp-polarizable.jpg
+  title: "Facets of a polarizable nanoparticle"
+  caption: "A truncated-octahedral gold core with Drude-style polarizable sites. {111} and {100} facets are coloured differently, which is the distinction that decides where citrate binds."
+  tags: ["gold", "polarizable"]
+- type: video
+  src: media/aunp-core.mp4
+  poster: media/aunp-core.jpg
+  title: "A bare gold core"
+  caption: "The atomistic truncated-octahedral gold core before ligands or solvent are added."
+  tags: ["gold"]
+- type: video
+  src: media/ssdna.mp4
+  poster: media/ssdna.jpg
+  title: "ss-DNA dodecamer"
+  caption: "5′-CGCGAATTCGCG-3′, the single strand used in the crowding study."
+  tags: ["DNA"]
+- type: video
+  src: media/ssdna-crowders-a.mp4
+  poster: media/ssdna-crowders-a.jpg
+  title: "DNA in a dense crowd"
+  caption: "ss-DNA surrounded by amino acid crowders at molar concentration."
+  tags: ["DNA", "crowding"]
+- type: video
+  src: media/ssdna-crowders-b.mp4
+  poster: media/ssdna-crowders-b.jpg
+  title: "Crowded, but extended"
+  caption: "Depending on the crowder, the strand extends or folds back into native-like hairpins."
+  tags: ["DNA", "crowding"]
+- type: video
+  src: media/ssdna-crowders-c.mp4
+  poster: media/ssdna-crowders-c.jpg
+  title: "Hairpin in a mixed crowd"
+  caption: "In binary crowder mixtures the response is non-additive, so a mixture can do what neither crowder does alone."
+  tags: ["DNA", "crowding"]
+- type: image
+  src: img/citrate-aunp.jpg
+  title: "Two models, two coronas"
+  caption: "Citrate-coated gold nanoparticles with a non-polarizable (left) and polarizable (right) gold model."
+  tags: ["gold", "citrate"]
+- type: image
+  src: img/dna-aunp-box.jpg
+  title: "A crowded simulation cell"
+  caption: "Four ss-DNA strands anchored to a gold core, in a periodic box filled with amino acid crowders and water."
+  tags: ["gold", "crowding"]
+- type: image
+  src: img/dna-aunp-crowded.jpg
+  title: "Into the crowd"
+  caption: "A DNA-grafted nanoparticle in a glycine + serine solution. Crowders are drawn as a molecular surface."
+  tags: ["gold", "crowding"]
+- type: image
+  src: img/dna-aunp-cartoon.jpg
+  title: "Ligand shell, close up"
+  caption: "Cartoon rendering of ss-DNA chains anchored to the gold core through alkyl linkers."
+  tags: ["gold", "DNA"]

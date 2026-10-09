@@ -1,0 +1,73 @@
+# Add new papers at the top of the relevant group. "me" is bolded automatically in author lists.
+# status: published | workshop | review | preparation
+me: "S. Panigrahy"
+items:
+  - key: panigrahy2026adhesion
+    status: review
+    year: 2026
+    authors: ["S. Panigrahy", "A. James", "D. Nayar"]
+    title: "Prediction of Polymer Adhesion and Inverse Design of Heterogeneous Surfaces using Data-Driven Approaches"
+    venue: "Molecular Systems Design & Engineering"
+    note: "Under peer review"
+    tags: ["machine learning", "inverse design", "polymer adhesion"]
+
+  - key: panigrahy2025neurips
+    status: workshop
+    year: 2025
+    authors: ["S. Panigrahy", "A. James", "D. Nayar"]
+    title: "Data-driven prediction of polymer surface adhesion using high-throughput MD and hybrid network models"
+    venue: "AI for Accelerated Materials Design (AI4Mat) Workshop, NeurIPS"
+    tags: ["machine learning", "umbrella sampling"]
+
+  - key: rajput2024crowding
+    status: published
+    year: 2024
+    authors: ["S. Rajput", "S. Panigrahy", "D. Nayar"]
+    title: "In Silico View of Crowding: Biomolecular Processes to Nanomaterial Design"
+    venue: "ACS Omega"
+    volume: "9"
+    pages: "29953–29965"
+    doi: "10.1021/acsomega.4c03344"
+    tags: ["review", "crowding", "nanomaterials"]
+
+  - key: panigrahy2024jcp
+    status: published
+    year: 2024
+    authors: ["S. Panigrahy", "D. Nayar"]
+    title: "Differential local ordering of mixed crowders determines effective size and stability of ss-DNA capped gold nanoparticle"
+    venue: "The Journal of Chemical Physics"
+    volume: "160"
+    pages: "014901"
+    doi: "10.1063/5.0179238"
+    tags: ["gold nanoparticles", "DNA", "Kirkwood–Buff"]
+
+  - key: panigrahy2023pccp
+    status: published
+    year: 2023
+    authors: ["S. Panigrahy", "R. Sahu", "S. K. Reddy", "D. Nayar"]
+    title: "Structure, energetics and dynamics in crowded amino acid solutions: a molecular dynamics study"
+    venue: "Physical Chemistry Chemical Physics"
+    volume: "25"
+    pages: "5430–5442"
+    doi: "10.1039/d2cp04238j"
+    tags: ["force fields", "NBFIX", "crowding"]
+
+  - key: panigrahy-ssdna
+    status: preparation
+    authors: ["S. Panigrahy", "D. Nayar"]
+    title: "Effect of mixed molecular crowding environment on the conformational properties of ss-DNA"
+    note: "Manuscript in preparation"
+    tags: ["DNA", "crowding"]
+
+  - key: panigrahy-citrate
+    status: preparation
+    authors: ["S. Panigrahy", "D. Nayar"]
+    title: "Effect of size on stability of citrate adsorbed to gold nanoparticle: assessing polarized and non-polarized models"
+    note: "Manuscript in preparation"
+    tags: ["gold nanoparticles", "polarizable force fields", "citrate"]
+
+thesis:
+  title: "Rational Design of Functionalized Nanomaterials for Biological Applications Using Molecular Dynamics and Machine Learning"
+  school: "Indian Institute of Technology Delhi"
+  year: 2026
+  advisor: "Prof. Divya Nayar"

@@ -1,0 +1,8 @@
+{{- $p := site.Params -}}
+{{- $cls := cond (.plain | default false) "" (.cls | default "btn btn-ghost") -}}
+<a{{ with $cls }} class="{{ . }}"{{ end }} href="https://github.com/{{ $p.github }}" rel="me">GitHub</a>
+{{ with $p.scholar }}<a{{ with $cls }} class="{{ . }}"{{ end }} href="{{ . }}" rel="me">Google Scholar</a>{{ end }}
+{{ with $p.orcid }}<a{{ with $cls }} class="{{ . }}"{{ end }} href="https://orcid.org/{{ . }}" rel="me">ORCID</a>{{ end }}
+{{ with $p.linkedin }}<a{{ with $cls }} class="{{ . }}"{{ end }} href="{{ . }}" rel="me">LinkedIn</a>{{ end }}
+{{ with $p.email }}<a{{ with $cls }} class="{{ . }}"{{ end }} href="mailto:{{ . }}">Email</a>{{ end }}
+{{ with $p.cv }}<a{{ with $cls }} class="{{ . }}"{{ end }} href="{{ . | relURL }}">CV (PDF)</a>{{ end }}

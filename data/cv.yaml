@@ -1,0 +1,39 @@
+positions:
+  - when: "2026 – present"
+    what: "Computational Materials Scientist"
+    where: "QpiAI"
+    detail: ""
+  - when: "2020 – 2026"
+    what: "PhD, Materials Science & Engineering"
+    where: "Indian Institute of Technology Delhi"
+    detail: "Thesis: Rational Design of Functionalized Nanomaterials for Biological Applications Using Molecular Dynamics and Machine Learning. Advisor: Prof. Divya Nayar, Computational Soft Matter Lab."
+  - when: "2018 – 2020"
+    what: "M.Tech, Materials Engineering"
+    where: "Defence Institute of Advanced Technology, Pune"
+    detail: ""
+
+talks:
+  - when: "2026"
+    kind: "Poster"
+    event: "CECAM workshop"
+    title: "Data-Driven Prediction of Polymer Adhesion on Heterogeneous Surfaces via Attention based Learning"
+  - when: "Dec 2025"
+    kind: "Workshop paper"
+    event: "AI4Mat Workshop, NeurIPS 2025"
+    title: "Data-driven prediction of polymer surface adhesion using high-throughput MD and hybrid network models"
+  - when: "Dec 2025"
+    kind: "Poster"
+    event: "AIMS 2025"
+    title: "Data-Driven Prediction of Polymer Adhesion on Heterogeneous Surfaces via Attention based Learning"
+
+methods:
+  - group: "Simulation"
+    items: ["All-atom molecular dynamics", "Coarse-grained (Kremer–Grest) models", "Umbrella sampling & PMFs", "Polarizable Drude models (GolP-CHARMM)", "Force-field reparameterisation (NBFIX)"]
+  - group: "Theory & analysis"
+    items: ["Kirkwood–Buff solvation theory", "Preferential interaction coefficients", "Solvation entropy decomposition", "Monte Carlo Ising pattern generation"]
+  - group: "Machine learning"
+    items: ["CNN / GRU / Transformer hybrids", "Tandem networks for inverse design", "Boolean particle swarm optimisation", "Hyperparameter search (Optuna)"]
+  - group: "Tools"
+    items: ["GROMACS", "Python · NumPy · PyTorch · TensorFlow", "VMD · OVITO", "HPC (PADUM, IIT Kanpur)"]
+
+funding: "PhD research supported by the National Supercomputing Mission (NSM), India, with computing on IIT Delhi's PADUM and IIT Kanpur's HPC facilities."

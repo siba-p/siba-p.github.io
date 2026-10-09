@@ -1,0 +1,71 @@
+# repo: GitHub "owner/name". Set public: false for repos that are not released yet (no link is shown).
+- name: Polygraft
+  repo: siba-p/Polygraft
+  public: true
+  kind: "Model builder"
+  tagline: "Coarse-grained polymer chains and polymer-grafted nanoparticles, from one config file."
+  features:
+    - "Uniform, patchy and Janus grafting on spherical cores"
+    - "Linear, star, branched and brush architectures; random or self-avoiding walks"
+    - "Kremer–Grest beads with user-defined LJ/WCA parameters"
+    - "Writes XYZ, LAMMPS data, GROMACS .gro and JSON metadata"
+  install: |
+    pip install -e ".[all]"
+    graftforge build-np --np-radius 5.0 --num-grafts 60 \
+      --pattern patchy --chain-length 20 --sequence AABB \
+      --output patchy_np.xyz
+  stack: ["Python", "Typer CLI", "YAML", "Docker", "Sphinx"]
+
+- name: ML_surfacepoly
+  repo: siba-p/ML_surfacepoly
+  public: true
+  kind: "Machine learning"
+  tagline: "Predict full polymer–surface PMF profiles with a hybrid CNN–GRU–attention network instead of running umbrella sampling."
+  features:
+    - "Monte Carlo Ising generation of sequences and surfaces at exact composition"
+    - "CNN encodes surface patterns; GRU encodes polymer sequence; attention couples them"
+    - "Forward prediction (R² = 0.995) and tandem inverse design"
+    - "Training, evaluation and plotting scripts"
+  install: |
+    git clone https://github.com/siba-p/ML_surfacepoly
+    cd ML_surfacepoly && pip install -r requirements.txt
+  stack: ["Python", "PyTorch", "TensorFlow/Keras", "Optuna"]
+
+- name: polygraft_builder
+  repo: siba-p/polygraft_builder
+  public: true
+  kind: "Model builder"
+  tagline: "A minimal, tested rewrite: binary A/B sequences, chain growth and grafting for simulation setup."
+  features:
+    - "Random and Ising-correlated ±1 sequences"
+    - "Linear, star and bottlebrush chains"
+    - "Surface-site detection and grafting on bead nanoparticles"
+  install: |
+    pip install -e ".[test]"
+    polygraft sequence --chain-length 40 --fraction-a 0.5 \
+      --mode ising --seed 1 --out sequence.txt
+  stack: ["Python", "pytest"]
+
+- name: nanobuilder
+  repo: siba-p/nanobuilder
+  public: false
+  kind: "Model builder"
+  tagline: "Bare and polarizable gold nanoparticles of Platonic shapes, ready for simulation."
+  features:
+    - "Bare nanoparticles of Platonic geometries"
+    - "Polarizable models with virtual sites"
+    - "Jupyter-based, step-by-step workflow"
+  stack: ["Python", "Jupyter"]
+
+- name: journal-abbrev-tool
+  repo: siba-p/journal-abbrev-tool
+  public: true
+  kind: "Research workflow"
+  tagline: "Abbreviate journal names in .bib files and format them with the right .bst style for submission."
+  features:
+    - "Journal abbreviation database"
+    - "Strips unwanted fields (url, eprint, …)"
+    - "Fetches the target journal's .bst automatically"
+  install: |
+    pip install git+https://github.com/siba-p/journal-abbrev-tool
+  stack: ["Python", "BibTeX"]

@@ -1,0 +1,7 @@
+{{ define "main" }}
+{{ partial "page-head.html" . }}
+<div class="wrap narrow section" style="padding-top:36px">
+  <div class="prose">{{ .Content }}</div>
+  {{ range .Pages }}{{ partial "entry.html" . }}{{ end }}
+</div>
+{{ end }}

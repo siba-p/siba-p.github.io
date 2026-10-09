@@ -1,0 +1,58 @@
+# The five research studies of the PhD thesis, ordered from smallest to largest system.
+# Used on the home page ("Across scales") and the Research page.
+- id: crowded-solutions
+  number: "01"
+  scale: "~1 nm · amino acids at 2–3 M"
+  title: "Fixing the force field before trusting the crowd"
+  short: "Standard force fields make crowded amino acid solutions clump artificially. A targeted NBFIX correction fixes it."
+  media: { type: image, src: "img/crowded-aa.jpg", alt: "Snapshot of a concentrated amino acid solution in a simulation box" }
+  question: "Can we trust standard biomolecular force fields at the packing fractions found inside a cell?"
+  approach: "All-atom MD of five neutral amino acids (Gly, Ala, Ser, Thr, Pro) at 2–3 M with AMBER ff99SB-ILDN and TIP3P water, benchmarked against osmotic coefficients, density, viscosity and self-diffusivity."
+  finding: "Standard parameters overestimate zwitterion–zwitterion association and produce aggregation that experiments don't show. Increasing the amine N – carboxylate O Lennard-Jones size by Δσ = 0.08 Å (NBFIX) restores the experimental osmotic coefficients, viscosities and diffusivities without touching water–water interactions."
+  paper: { label: "Phys. Chem. Chem. Phys. 2023", doi: "10.1039/d2cp04238j" }
+
+- id: ssdna-crowding
+  number: "02"
+  scale: "~4 nm · single-stranded DNA"
+  title: "Crowder chemistry, not just crowder volume"
+  short: "Alanine, serine and proline reshape a DNA strand in different ways, and their mixtures don't simply add up."
+  media: { type: video, src: "media/ssdna-crowders-a.mp4", poster: "media/ssdna-crowders-a.jpg", alt: "ss-DNA dodecamer surrounded by amino acid crowders" }
+  question: "Does a crowded environment act on DNA only through excluded volume, or does the crowder's chemistry matter?"
+  approach: "All-atom MD of the ss-DNA 12-mer 5′-CGCGAATTCGCG-3′ in Ala, Ser, Pro and their binary mixtures, analysed with RDFs and preferential interaction coefficients."
+  finding: "Alanine extends the chain through excluded volume, serine stiffens it through phosphate screening, and proline induces native-like hairpins. In mixtures, crowders compete for the same backbone sites and the response becomes non-additive. Ala+Pro even gives a bimodal conformational distribution."
+  paper: { label: "Manuscript in preparation" }
+
+- id: dna-aunp
+  number: "03"
+  scale: "~7 nm · DNA-grafted gold nanoparticle"
+  title: "Glue, spacers and the effective size of a nanoparticle"
+  short: "Glycine sticks to gold and folds the ligands down. Glycine + serine together push them out to the largest radius."
+  media: { type: video, src: "media/dna-aunp-solvated.mp4", poster: "media/dna-aunp-solvated.jpg", alt: "ss-DNA grafted gold nanoparticle in a solvated simulation box" }
+  image2: { src: "img/dna-aunp-box.jpg", alt: "DNA-grafted gold nanoparticle in a simulation box crowded with amino acids" }
+  question: "How do small crowders change the structure and solvation thermodynamics of a ligand-capped gold nanoparticle?"
+  approach: "A T10 ss-DNA-functionalised Au201 truncated-octahedron nanoparticle in glycine, serine and their mixture. Solvation free energy was split into energetic and entropic parts with Kirkwood–Buff theory."
+  finding: "The gold surface adds a third interaction site. Glycine acts as a surface ‘glue’ and gives the smallest effective radius. In Gly+Ser both crowders co-adsorb, force all linkers perpendicular, and give the largest radius (35.49 Å). The mechanism is soft, direct interaction, not depletion."
+  paper: { label: "J. Chem. Phys. 2024", doi: "10.1063/5.0179238" }
+
+- id: citrate-aunp
+  number: "04"
+  scale: "1.8–11.5 nm · citrate-capped gold"
+  title: "Polarizability decides where citrate sits"
+  short: "With a polarizable gold model, citrate binds selectively to {111} facets. Without one, it coats everything."
+  media: { type: video, src: "media/aunp-polarizable.mp4", poster: "media/aunp-polarizable.jpg", alt: "Polarizable gold nanoparticle with coloured facets rotating" }
+  image2: { src: "img/citrate-aunp.jpg", alt: "Citrate-coated gold nanoparticles, non-polarizable and polarizable models side by side" }
+  question: "Is metal polarizability a technical detail, or does it change the predicted nanoparticle corona?"
+  approach: "Six particle diameters (1.8–11.5 nm) and two surface densities, comparing the polarizable GolP-CHARMM (Drude) model with a non-polarizable gold force field."
+  finding: "The non-polarizable model gives non-specific, area-driven adsorption with a deep contact minimum (ΔF ≈ 58 kJ/mol). The polarizable model gives facet-selective binding on {111}, consistent with XPS, IR and STM. It also gives a shallower minimum (ΔF ≈ 36 kJ/mol), faster desorption and stronger interfacial water ordering."
+  paper: { label: "Manuscript in preparation" }
+
+- id: ml-adhesion
+  number: "05"
+  scale: "design space · ~0.5 M free-energy profiles"
+  title: "Learning adhesion, then running it backwards"
+  short: "A CNN–GRU–attention network predicts full PMF profiles from sequence and surface pattern, and a tandem model designs surfaces for a target."
+  media: { type: video, src: "media/polymer-surface.mp4", poster: "media/polymer-surface.jpg", alt: "Coarse-grained polymer adsorbing onto a chemically patterned surface" }
+  question: "Can a model trained on simulation data replace umbrella sampling, and then solve the inverse problem of designing a surface?"
+  approach: "Polymer sequences and surface patterns were generated with 1D/2D Monte Carlo Ising models at fixed composition. About half a million umbrella-sampling free-energy simulations were used to train a hybrid CNN (surface) + GRU (sequence) + transformer-attention model. A tandem network and Boolean particle swarm optimisation were used for inverse design."
+  finding: "The forward model reaches R² = 0.995 (MAE ≈ 0.45) on held-out PMF profiles, against 0.980 for a DNN baseline. The tandem inverse-design model generates surface patterns whose MD-validated PMFs match target free-energy landscapes, including outside the training distribution."
+  paper: { label: "NeurIPS AI4Mat 2025 · MSDE (under review)" }

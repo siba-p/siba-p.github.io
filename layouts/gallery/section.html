@@ -1,0 +1,27 @@
+{{ define "main" }}
+{{ partial "page-head.html" . }}
+{{ $tags := slice }}
+{{ range site.Data.gallery }}{{ $tags = $tags | append .tags }}{{ end }}
+<div class="wrap" style="padding-top:36px">
+  <div class="filters" role="group" aria-label="Filter">
+    <button type="button" data-tag="all" aria-pressed="true">All</button>
+    {{ range ($tags | uniq) }}<button type="button" data-tag="{{ . }}" aria-pressed="false">{{ . }}</button>{{ end }}
+  </div>
+  <div class="theatre">
+    {{ range site.Data.gallery }}
+    <figure class="shot" data-tags="{{ delimit .tags "," }}">
+      <button type="button" aria-label="Enlarge: {{ .title }}">
+        {{ partial "media.html" (dict "m" (merge . (dict "alt" .title))) }}
+      </button>
+      <figcaption><b>{{ .title }}</b>{{ .caption }}</figcaption>
+    </figure>
+    {{ end }}
+  </div>
+  <div class="prose" style="margin-top:2rem">{{ .Content }}</div>
+</div>
+<dialog class="viewer" aria-label="Media viewer">
+  <button class="icon-btn close" type="button" aria-label="Close">✕</button>
+  <div class="viewer-body"></div>
+  <p></p>
+</dialog>
+{{ end }}

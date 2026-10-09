@@ -1,0 +1,11 @@
+<a class="entry" href="{{ .RelPermalink }}">
+  <div class="stamp"><b>{{ .Date.Format "02" }}</b>{{ .Date.Format "Jan 2006" }}</div>
+  <div>
+    <h3>{{ .Title }}</h3>
+    <p>{{ .Description | default .Summary | plainify | truncate 190 }}</p>
+    <div class="meta">
+      <span>{{ .ReadingTime }} min read</span>
+      {{ range .Params.tags }}<span>#{{ . }}</span>{{ end }}
+    </div>
+  </div>
+</a>

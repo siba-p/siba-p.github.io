@@ -1,0 +1,9 @@
+<footer class="site-footer">
+  <div class="wrap">
+    <div>© {{ now.Year }} {{ site.Params.author }} · {{ site.Params.role }}, {{ site.Params.affiliation }}</div>
+    <nav aria-label="Elsewhere">
+      {{ partial "social.html" (dict "plain" true) }}
+      {{ with site.GetPage "/notebook" }}{{ with .OutputFormats.Get "rss" }}<a href="{{ .RelPermalink }}">RSS</a>{{ end }}{{ end }}
+    </nav>
+  </div>
+</footer>

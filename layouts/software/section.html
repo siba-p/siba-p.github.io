@@ -1,0 +1,27 @@
+{{ define "main" }}
+{{ partial "page-head.html" . }}
+<div class="wrap section" style="padding-top:40px">
+  <div class="grid-2">
+    {{ range site.Data.software }}
+    <article class="card tool reveal" id="{{ .name | urlize }}">
+      <header>
+        <div>
+          <span class="chip">{{ .kind }}</span>
+          <h3>{{ .name }}</h3>
+        </div>
+        {{ if .public }}<span class="status live-s">Open source</span>{{ else }}<span class="status">Release in preparation</span>{{ end }}
+      </header>
+      <p style="margin:0;color:var(--ink)">{{ .tagline }}</p>
+      <ul>{{ range .features }}<li>{{ . }}</li>{{ end }}</ul>
+      {{ with .install }}<pre><code>{{ . | strings.TrimSpace }}</code></pre>{{ end }}
+      <footer>
+        <div class="chips">{{ range .stack }}<span class="chip">{{ . }}</span>{{ end }}</div>
+        {{ if .public }}<a class="more" href="https://github.com/{{ .repo }}">View on GitHub</a>{{ end }}
+      </footer>
+      {{ if .public }}<span class="stars" data-repo="{{ .repo }}"></span>{{ end }}
+    </article>
+    {{ end }}
+  </div>
+  <div class="prose" style="margin-top:3rem">{{ .Content }}</div>
+</div>
+{{ end }}

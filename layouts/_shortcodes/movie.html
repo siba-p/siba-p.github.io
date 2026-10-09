@@ -1,0 +1,5 @@
+{{- /* Usage: {{< movie src="media/my-run.mp4" poster="media/my-run.jpg" caption="What it shows" >}} */ -}}
+<figure>
+  {{ partial "media.html" (dict "m" (dict "type" "video" "src" (.Get "src") "poster" (.Get "poster") "alt" (.Get "caption"))) }}
+  {{ with .Get "caption" }}<figcaption>{{ . | markdownify }}</figcaption>{{ end }}
+</figure>

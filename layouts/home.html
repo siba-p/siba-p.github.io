@@ -1,0 +1,156 @@
+{{ define "main" }}
+<section class="hero" aria-label="Introduction">
+  <canvas class="sim" data-sim data-panel="hero-panel" aria-label="Live simulation of nanoparticles self-assembling into a crystal" role="img"></canvas>
+  <div class="wrap hero-inner">
+    <div>
+      <p class="eyebrow"><b>{{ site.Params.role }}</b> · {{ site.Params.affiliation }} · {{ site.Params.phd }}</p>
+      <h1>Sibasankar<br>Panigrahy</h1>
+      <p class="lead">I study how nanoparticles <em style="color:var(--gold-bright);font-style:normal">organise themselves</em> in crowded, chemically messy environments, and I build machine-learning models that learn those rules well enough to <em style="color:var(--teal-bright);font-style:normal">design new interfaces</em>.</p>
+      <div class="hero-actions">
+        <a class="btn btn-gold" href="{{ "research/" | relURL }}">Explore the research</a>
+        <a class="btn btn-ghost" href="{{ "notebook/" | relURL }}">Read the lab notebook</a>
+      </div>
+    </div>
+    <aside class="sim-panel" id="hero-panel" aria-label="Simulation controls">
+      <header><span class="live">Live</span><span>Brownian dynamics · LJ</span></header>
+      <div class="sim-row">
+        <label for="hero-T">Temperature <span class="muted">k<sub>B</sub>T/ε</span></label>
+        <output data-out="T">1.25</output>
+        <input id="hero-T" type="range" min="0.2" max="1.6" step="0.01" value="1.25" data-ctl="T">
+      </div>
+      <div class="sim-stats">
+        <div><b data-stat="solid">0%</b><span>crystalline (z ≥ 5)</span></div>
+        <div><b data-stat="z">0.00</b><span>mean coordination</span></div>
+      </div>
+      <canvas class="sim-spark" aria-hidden="true"></canvas>
+      <div class="sim-buttons">
+        <button type="button" data-act="melt">Melt</button>
+        <button type="button" data-act="quench">Quench</button>
+        <button type="button" data-act="attention" aria-pressed="true">Attention</button>
+      </div>
+      <p class="sim-note">Particles cool and crystallise in real time. Drag to stir. Hover to see the softmax weights an attention head assigns to a particle's neighbours.</p>
+    </aside>
+  </div>
+  <a class="scroll-cue" href="#statement">Scroll</a>
+</section>
+
+<section class="section" id="statement">
+  <div class="wrap">
+    <figure class="statement reveal" style="margin:0">
+      <div>
+        <p class="eyebrow"><b>01</b> · The thesis in one sentence</p>
+        <figcaption>From my PhD thesis, <i>Rational Design of Functionalized Nanomaterials for Biological Applications Using Molecular Dynamics and Machine Learning</i>, IIT Delhi, 2026.</figcaption>
+      </div>
+      <blockquote>The chemical identity of molecules at a nanoparticle interface (crowder, DNA ligand or citrate ion) decides the thermodynamics, through an interplay of excluded volume and <em>soft chemical interactions</em> that simple depletion models and non-polarizable force fields miss.</blockquote>
+    </figure>
+    <div class="pillars reveal">
+      <div class="pillar">
+        <p class="eyebrow"><svg class="glyph" viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="17" cy="17" r="6"/><circle cx="6" cy="8" r="2.6"/><circle cx="28" cy="9" r="2.6"/><circle cx="27" cy="27" r="2.6"/><circle cx="6" cy="26" r="2.6"/><path d="M8.2 9.6 12.4 13M25.8 10.6l-4.3 3M24.9 25.3l-3.6-3.3M8.2 24.4l4.3-3.2" stroke-dasharray="2 2"/></svg>Simulate</p>
+        <h3>All-atom & coarse-grained MD</h3>
+        <p>Gold nanoparticles with DNA, citrate and amino acid crowders. Umbrella sampling, polarizable Drude gold, and force-field corrections validated against experiment.</p>
+      </div>
+      <div class="pillar">
+        <p class="eyebrow"><svg class="glyph" viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 26c4 0 4-18 8-18s3 12 6 12 3-6 6-6 4 12 8 12"/><path d="M3 30h28" opacity=".5"/></svg>Understand</p>
+        <h3>Solvation thermodynamics</h3>
+        <p>Kirkwood–Buff integrals, preferential binding and entropy decomposition. These turn trajectories into the reasons a particle grows, shrinks, sticks or stays stable.</p>
+      </div>
+      <div class="pillar">
+        <p class="eyebrow"><svg class="glyph" viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="6" width="8" height="8" rx="1.5"/><rect x="3" y="20" width="8" height="8" rx="1.5"/><circle cx="27" cy="17" r="4"/><path d="M11 10c6 0 8 7 12 7M11 24c6 0 8-7 12-7"/></svg>Learn & design</p>
+        <h3>Physics-trained neural networks</h3>
+        <p>Hybrid CNN–GRU–attention models trained on hundreds of thousands of free-energy profiles. They predict adhesion in milliseconds and design surfaces by inverse modelling.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow"><b>02</b> · Across scales</p>
+        <h2>Five studies, from a single amino acid to a design engine</h2>
+      </div>
+      <a class="more" href="{{ "research/" | relURL }}">Full research story</a>
+    </div>
+    <div class="scale-ruler" aria-hidden="true"><span>Å</span><span>1 nm</span><span>10 nm</span><span>design space</span></div>
+    <div class="studies">
+      {{ range site.Data.studies }}
+      <a class="study-card reveal" href="{{ printf "research/#%s" .id | relURL }}">
+        {{ partial "media.html" (dict "m" .media) }}
+        <div class="body">
+          <span class="num">{{ .number }} · {{ .scale }}</span>
+          <h3>{{ .title }}</h3>
+          <p>{{ .short }}</p>
+        </div>
+      </a>
+      {{ end }}
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <p class="eyebrow" style="margin-bottom:1.4rem"><b>03</b> · By the numbers</p>
+    <div class="numbers reveal">
+      <div><b>0.995</b><span>R² of the hybrid network on held-out free-energy profiles</span></div>
+      <div><b>~0.5<small>M</small></b><span>umbrella-sampling free-energy simulations in the training set</span></div>
+      <div><b>35.49<small>Å</small></b><span>largest effective radius of a DNA-capped gold particle, reached in mixed crowders</span></div>
+      <div><b>{{ len site.Data.publications.items }}</b><span>papers and manuscripts from the PhD</span></div>
+    </div>
+  </div>
+</section>
+
+{{ $posts := where site.RegularPages "Section" "notebook" }}
+{{ if $posts }}
+<section class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow"><b>04</b> · Lab notebook</p>
+        <h2>Notes from the bench, written as I go</h2>
+      </div>
+      <a class="more" href="{{ "notebook/" | relURL }}">All entries</a>
+    </div>
+    <div class="narrow">
+      {{ range first 3 $posts }}{{ partial "entry.html" . }}{{ end }}
+    </div>
+  </div>
+</section>
+{{ end }}
+
+<section class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow"><b>05</b> · Software</p>
+        <h2>Tools I build and release</h2>
+      </div>
+      <a class="more" href="{{ "software/" | relURL }}">All tools</a>
+    </div>
+    <div class="grid-3">
+      {{ range first 3 site.Data.software }}
+      <a class="card reveal" href="{{ "software/" | relURL }}#{{ .name | urlize }}">
+        <span class="chip">{{ .kind }}</span>
+        <h3 style="font-family:var(--f-mono);font-size:1.05rem;font-weight:600">{{ .name }}</h3>
+        <p>{{ .tagline }}</p>
+        {{ if .public }}<span class="stars" data-repo="{{ .repo }}">github.com/{{ .repo }}</span>{{ end }}
+      </a>
+      {{ end }}
+    </div>
+  </div>
+</section>
+
+<section class="section" style="border-top:0;padding-top:0">
+  <div class="wrap">
+    <div class="cta reveal">
+      <img class="lattice" src="{{ "img/lattice.svg" | relURL }}" alt="" aria-hidden="true">
+      <div>
+        <p class="eyebrow">Collaborate</p>
+        <h2>Interfaces, assembly, and models that learn from simulation</h2>
+        <p>I'm happy to talk about nanoparticle–biomolecule interfaces, force-field validation, free-energy datasets, or ML for inverse materials design.</p>
+      </div>
+      <div class="links">{{ partial "social.html" (dict "cls" "btn btn-ghost") }}</div>
+    </div>
+  </div>
+</section>
+{{ end }}

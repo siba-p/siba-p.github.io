@@ -1,0 +1,68 @@
+{{ define "main" }}
+{{ partial "page-head.html" . }}
+{{ $pubs := site.Data.publications }}
+{{ $me := $pubs.me }}
+{{ $groups := slice
+  (dict "key" "published" "title" "Journal articles")
+  (dict "key" "workshop" "title" "Peer-reviewed workshop papers")
+  (dict "key" "review" "title" "Under review")
+  (dict "key" "preparation" "title" "In preparation") }}
+<div class="wrap narrow" style="padding-top:12px">
+  {{ range $groups }}
+    {{ $g := . }}
+    {{ $items := where $pubs.items "status" $g.key }}
+    {{ with $items }}
+    <div class="group-title"><h2>{{ $g.title }}</h2><span class="eyebrow">{{ len . }}</span></div>
+    <ol class="pubs">
+      {{ range . }}
+      <li class="pub">
+        <div class="yr">{{ .year | default "—" }}</div>
+        <div>
+          <h3>{{ .title }}</h3>
+          <p class="authors">{{ range $i, $a := .authors }}{{ if $i }}, {{ end }}{{ if eq $a $me }}<b>{{ $a }}</b>{{ else }}{{ $a }}{{ end }}{{ end }}</p>
+          {{ $venue := .venue }}
+          <p class="venue">{{ with $venue }}{{ . }}{{ end }}{{ with .volume }}, {{ . }}{{ end }}{{ with .pages }}, {{ . }}{{ end }}{{ with .note }}{{ if $venue }} · {{ end }}{{ . }}{{ end }}</p>
+          <div class="actions">
+            {{ with .doi }}<a class="chip" href="https://doi.org/{{ . }}">DOI ↗</a>{{ end }}
+            {{ range .tags }}<span class="chip">{{ . }}</span>{{ end }}
+            {{ if .venue }}
+            <details>
+              <summary class="chip">BibTeX</summary>
+              {{ $type := cond (eq .status "workshop") "inproceedings" "article" }}
+              {{ $field := cond (eq .status "workshop") "booktitle" "journal" }}
+              <pre id="bib-{{ .key }}">@{{ $type }}{ {{- .key }},
+  title   = { {{- .title -}} },
+  author  = { {{- delimit .authors " and " -}} },
+  {{ $field }} = { {{- .venue -}} },{{ with .volume }}
+  volume  = { {{- . -}} },{{ end }}{{ with .pages }}
+  pages   = { {{- . -}} },{{ end }}{{ with .year }}
+  year    = { {{- . -}} },{{ end }}{{ with .doi }}
+  doi     = { {{- . -}} },{{ end }}
+}</pre>
+              <button class="chip" type="button" data-copy="bib-{{ .key }}" style="margin-top:.5rem;cursor:pointer">Copy</button>
+            </details>
+            {{ end }}
+          </div>
+        </div>
+      </li>
+      {{ end }}
+    </ol>
+    {{ end }}
+  {{ end }}
+
+  {{ with $pubs.thesis }}
+  <div class="group-title"><h2>Thesis</h2></div>
+  <ol class="pubs">
+    <li class="pub">
+      <div class="yr">{{ .year }}</div>
+      <div>
+        <h3>{{ .title }}</h3>
+        <p class="authors"><b>Sibasankar Panigrahy</b></p>
+        <p class="venue">PhD thesis, {{ .school }}. Advisor: {{ .advisor }}</p>
+      </div>
+    </li>
+  </ol>
+  {{ end }}
+  <div class="prose" style="margin-top:2rem">{{ .Content }}</div>
+</div>
+{{ end }}

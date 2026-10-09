@@ -1,0 +1,12 @@
+{{- /* Renders a media "plate". Expects dict: m (type, src, poster, alt), tag (optional), cls (optional), eager (bool) */ -}}
+{{- $m := .m -}}
+<div class="plate {{ .cls }}">
+  {{- if eq $m.type "video" }}
+  <video data-auto muted loop playsinline preload="none" poster="{{ $m.poster | relURL }}" aria-label="{{ $m.alt | default $m.title }}">
+    <source src="{{ $m.src | relURL }}" type="video/mp4">
+  </video>
+  {{- else }}
+  <img src="{{ $m.src | relURL }}" alt="{{ $m.alt | default $m.title }}" {{ if not .eager }}loading="lazy"{{ end }} decoding="async">
+  {{- end }}
+  {{- with .tag }}<span class="tag">{{ . }}</span>{{ end }}
+</div>
