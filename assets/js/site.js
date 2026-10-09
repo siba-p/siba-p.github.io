@@ -27,6 +27,14 @@
     nav.addEventListener("click", e => { if (e.target.closest("a")) { nav.classList.remove("open"); menuBtn.setAttribute("aria-expanded", "false"); } });
   }
 
+  /* Transparent header over the home hero */
+  const header = $(".site-header");
+  if (document.body.classList.contains("is-home") && header) {
+    const hero = $(".hero");
+    const onScroll = () => header.classList.toggle("scrolled", window.scrollY > (hero ? hero.offsetHeight - 70 : 200));
+    onScroll(); window.addEventListener("scroll", onScroll, { passive: true });
+  }
+
   /* Reveal */
   const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { rootMargin: "0px 0px -8% 0px" });
   $$(".reveal").forEach(el => io.observe(el));
@@ -98,6 +106,18 @@
       onStats: s => update && update(s)
     });
     update = wirePanel(panel, sim);
+    const cycle = canvas.parentElement.querySelector("[data-cycle-program]");
+    if (cycle) {
+      const order = [["complementary", "a ↔ a′", "#6f88ff", "#ff9f5a"], ["self", "a ↔ a, a′ ↔ a′", "#6f88ff", "#6f88ff"], ["universal", "all bind", "#c9d2ea", "#c9d2ea"]];
+      let k = 0;
+      cycle.addEventListener("click", () => {
+        k = (k + 1) % order.length;
+        const [name, label, c1, c2] = order[k];
+        sim.setProgram(name);
+        const dots = cycle.querySelectorAll("i"); dots[0].style.background = c1; dots[1].style.background = c2;
+        cycle.querySelector("span").textContent = label;
+      });
+    }
     if (sim.reduced && panel) { const p = $("[data-act=pause]", panel); if (p) p.textContent = "Play"; }
   });
 

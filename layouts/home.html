@@ -1,71 +1,47 @@
 {{ define "main" }}
 {{ $pubs := site.Data.publications }}
 <section class="hero" aria-label="Introduction">
-  <div class="grid-bg" aria-hidden="true"></div>
+  <canvas class="sim" data-sim data-sigma="26" data-max="640" data-phi="0.38" data-prewarm="1800" aria-label="Live simulation of DNA-coated gold nanoparticles self-assembling into a binary crystal" role="img"></canvas>
   <div class="wrap hero-inner">
-    <div>
-      <span class="kicker"><i></i>{{ site.Params.role }} at {{ site.Params.affiliation }}</span>
-      <h1>Sibasankar Panigrahy</h1>
-      <p class="tagline">Designing <em>programmable nanomaterials</em>, from molecular simulation to machine-learned design.</p>
-      <p class="lead">I study how functionalised nanoparticles organise and interact in complex, crowded environments using all-atom molecular dynamics, free-energy methods and solvation theory. I then build machine-learning models that turn those simulations into design rules for new interfaces.</p>
-      <div class="hero-actions">
-        <a class="btn btn-primary" href="{{ "research/" | relURL }}">View research</a>
-        <a class="btn btn-ghost" href="{{ "publications/" | relURL }}">Publications</a>
-        <a class="btn btn-ghost" href="#network">Collaborate</a>
-      </div>
-      <div class="hero-facts">
-        <div><b>PhD</b>IIT Delhi, 2026</div>
-        <div><b>{{ len $pubs.items }}</b>papers &amp; manuscripts</div>
-        <div><b>{{ len (where site.Data.software "public" true) }}</b>open-source tools</div>
+    <div class="hero-text">
+      <p class="role">{{ site.Params.role }} · {{ site.Params.affiliation }}</p>
+      <h1>Sibasankar<br>Panigrahy</h1>
+      <p class="intro">I design programmable nanomaterials with molecular simulation and machine learning.</p>
+      <div class="hero-links">
+        <a href="{{ "research/" | relURL }}">Research</a>
+        <a href="{{ "publications/" | relURL }}">Publications</a>
+        <a href="#network">Contact</a>
       </div>
     </div>
-
-    <figure class="demo" style="margin:0" id="hero-panel">
-      <div class="demo-top"><span class="live">LIVE</span><span><b>DNA-programmable assembly</b> · Brownian dynamics</span></div>
-      <div class="demo-stage">
-        <canvas data-sim data-panel="hero-panel" data-sigma="21" data-max="460" data-phi="0.5" data-prewarm="3000" aria-label="Live simulation of two species of DNA-coated gold nanoparticles self-assembling according to a binding program" role="img"></canvas>
-        <div class="demo-legend" aria-hidden="true"><span><i class="dot" style="background:#6f88ff"></i>Strand a</span><span><i class="dot" style="background:#ff9f5a"></i>Strand a′</span><span><i class="dot" style="background:#e9edf7"></i>Hybridised link</span></div>
-      </div>
-      <figcaption class="demo-ctl">
-        <div class="seg" role="group" aria-label="Binding program">
-          <button type="button" data-program="complementary" aria-pressed="true">a ↔ a′ only</button>
-          <button type="button" data-program="self">Self-complementary</button>
-          <button type="button" data-program="universal">Universal</button>
-        </div>
-        <div class="demo-row">
-          <label for="hero-T">Temperature</label>
-          <input id="hero-T" type="range" min="0.2" max="1.4" step="0.01" value="0.45" data-ctl="T">
-          <output data-out="T">0.45</output>
-        </div>
-        <div class="demo-stats">
-          <div><b data-stat="solid">0%</b>in crystallites</div>
-          <div><b data-stat="z">0.00</b>links per particle</div>
-          <button type="button" data-act="melt">Melt &amp; re-assemble</button>
-        </div>
-        <p class="demo-note" data-program-note>Complementary strands bind only unlike particles, so the system builds an alternating binary lattice.</p>
-      </figcaption>
-    </figure>
+  </div>
+  <div class="sim-caption" id="hero-caption">
+    <span class="t">Live simulation · DNA-programmable assembly</span>
+    <button type="button" data-cycle-program aria-label="Change binding program"><i style="background:#6f88ff"></i><i style="background:#ff9f5a"></i><span>a ↔ a′</span></button>
   </div>
 </section>
 
-<div class="strip">
-  <div class="wrap">
-    <span class="eyebrow">Affiliations &amp; venues</span>
-    <span class="org">QpiAI <small>Current</small></span>
-    <span class="org">IIT Delhi <small>PhD</small></span>
-    <span class="org">DIAT Pune <small>M.Tech</small></span>
-    <span class="org">NeurIPS AI4Mat <small>2025</small></span>
-    <span class="org">J. Chem. Phys. · PCCP · ACS Omega</span>
-  </div>
-</div>
-
 <section class="section">
+  <div class="wrap intro-block">
+    <div class="portrait"><img src="{{ "img/portrait.jpg" | relURL }}" alt="Portrait of Sibasankar Panigrahy" width="600" height="662"></div>
+    <div>
+      <p><strong>I am a computational materials scientist at QpiAI.</strong> My work asks how functionalised nanoparticles behave in crowded, chemically complex environments, and how simulation data can be turned into reliable design rules.</p>
+      <p>During my PhD at IIT Delhi with Prof. Divya Nayar, I combined all-atom molecular dynamics, Kirkwood–Buff solvation theory and machine learning to study DNA- and citrate-capped gold nanoparticles, and built attention-based networks that design surfaces for a target polymer adhesion.</p>
+      <div class="cv-line">
+        <div><b>Currently</b>QpiAI</div>
+        <div><b>PhD</b>IIT Delhi, 2026</div>
+        <div><b>M.Tech</b>DIAT Pune, 2020</div>
+        <div><b>&nbsp;</b><a href="{{ "about/" | relURL }}">Full profile →</a></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section alt">
   <div class="wrap">
     <div class="section-head">
       <div>
-        <span class="label">Research focus</span>
-        <h2>Three questions behind my work</h2>
-        <p>How do nanoparticle surfaces respond to their chemical surroundings, which simulations can we trust to tell us, and how do we turn the answers into designs?</p>
+        <span class="label">Research</span>
+        <h2>Research themes</h2>
       </div>
       <a class="more" href="{{ "research/" | relURL }}">Research overview</a>
     </div>
@@ -73,7 +49,6 @@
       <a class="card focus-card reveal" href="{{ "research/#dna-aunp" | relURL }}">
         <div class="plate cover"><img src="{{ "img/dna-aunp-box.jpg" | relURL }}" alt="DNA-grafted gold nanoparticle in a crowded simulation box" loading="lazy"></div>
         <div class="body">
-          <span class="eyebrow">Interfaces</span>
           <h3>Programmable nanoparticle interfaces</h3>
           <p>DNA- and citrate-functionalised gold nanoparticles. How ligand shells, metal polarizability and facets decide size, stability and binding.</p>
           <span class="more">DNA–gold and citrate studies</span>
@@ -82,7 +57,6 @@
       <a class="card focus-card reveal" href="{{ "research/#ssdna-crowding" | relURL }}">
         <div class="plate"><video data-auto muted loop playsinline preload="none" poster="{{ "media/ssdna-crowders-a.jpg" | relURL }}" aria-label="ss-DNA in a crowded amino acid solution"><source src="{{ "media/ssdna-crowders-a.mp4" | relURL }}" type="video/mp4"></video></div>
         <div class="body">
-          <span class="eyebrow">Thermodynamics</span>
           <h3>Crowding &amp; solvation</h3>
           <p>Kirkwood–Buff theory and validated force fields show how chemically specific crowders reshape DNA and nanoparticles, beyond simple depletion.</p>
           <span class="more">Crowding studies</span>
@@ -91,7 +65,6 @@
       <a class="card focus-card reveal" href="{{ "research/#ml-adhesion" | relURL }}">
         <div class="plate"><img src="{{ "img/ml-architecture.jpg" | relURL }}" alt="Architecture of the hybrid CNN, GRU and attention network" loading="lazy"></div>
         <div class="body">
-          <span class="eyebrow">Machine learning</span>
           <h3>Inverse design with hybrid networks</h3>
           <p>Attention-based models trained on large free-energy datasets predict polymer–surface adhesion and design surfaces for a target response.</p>
           <span class="more">ML for adhesion</span>
@@ -101,42 +74,7 @@
   </div>
 </section>
 
-<section class="section alt">
-  <div class="wrap">
-    <div class="section-head">
-      <div>
-        <span class="label">Approach</span>
-        <h2>From simulation to design</h2>
-        <p>Each project follows the same chain. A design rule is only as good as the simulation it was learned from.</p>
-      </div>
-    </div>
-    <div class="pipeline">
-      <div class="step reveal"><div class="n">01</div><h3>Simulate</h3><p>All-atom and coarse-grained molecular dynamics, umbrella sampling and potentials of mean force.</p><div class="chips"><span class="chip">GROMACS</span><span class="chip">Umbrella sampling</span></div></div>
-      <div class="step reveal"><div class="n">02</div><h3>Validate</h3><p>Correct force fields against experiment before trusting them: NBFIX for crowded solutions, polarizable gold for charged ligands.</p><div class="chips"><span class="chip">NBFIX</span><span class="chip">GolP-CHARMM</span></div></div>
-      <div class="step reveal"><div class="n">03</div><h3>Understand</h3><p>Kirkwood–Buff integrals, preferential binding and entropy decomposition, which explain why a structure forms.</p><div class="chips"><span class="chip">KB theory</span><span class="chip">Solvation entropy</span></div></div>
-      <div class="step reveal"><div class="n">04</div><h3>Learn &amp; design</h3><p>Hybrid CNN–GRU–attention models for forward prediction; tandem networks and swarm optimisation for inverse design.</p><div class="chips"><span class="chip">PyTorch</span><span class="chip">Inverse design</span></div></div>
-    </div>
-  </div>
-</section>
-
 <section class="section">
-  <div class="wrap">
-    <div class="section-head">
-      <div>
-        <span class="label">Highlights</span>
-        <h2>Selected results</h2>
-      </div>
-    </div>
-    <div class="metrics reveal">
-      <div><b>0.995</b><span>R² for predicting complete adhesion free-energy profiles</span><em>Hybrid CNN–GRU–attention · DNN baseline 0.980</em></div>
-      <div><b>470<small>k</small></b><span>umbrella-sampling simulations in the training dataset</span><em>Ising-sampled sequences and surfaces</em></div>
-      <div><b>{111}</b><span>facet-selective citrate binding, captured only with polarizable gold</span><em>6 particle sizes, 1.8–11.5 nm</em></div>
-      <div><b>0.08<small>Å</small></b><span>one NBFIX shift that recovers experimental osmotic data</span><em>5 amino acids at 2–3 M</em></div>
-    </div>
-  </div>
-</section>
-
-<section class="section alt">
   <div class="wrap">
     <div class="section-head">
       <div>
@@ -151,7 +89,7 @@
   </div>
 </section>
 
-<section class="section">
+<section class="section alt">
   <div class="wrap grid-2" style="align-items:start">
     <div class="panel reveal">
       <div class="panel-head"><h3>News</h3></div>
