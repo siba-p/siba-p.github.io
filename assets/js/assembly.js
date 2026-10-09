@@ -69,7 +69,7 @@
       dpr = Math.min(window.devicePixelRatio || 1, 2);
       W = Math.max(1, r.width); H = Math.max(1, r.height);
       canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
-      sPx = W < 520 ? opts.sigmaPx * 0.85 : opts.sigmaPx;
+      sPx = W < 440 ? opts.sigmaPx * 0.85 : opts.sigmaPx;
       Lx = W / sPx; Ly = H / sPx;
       N = Math.min(opts.maxN, Math.floor(opts.phi * Lx * Ly * 4 / Math.PI));
       ncx = Math.max(3, Math.floor(Lx / RC)); ncy = Math.max(3, Math.floor(Ly / RC));
