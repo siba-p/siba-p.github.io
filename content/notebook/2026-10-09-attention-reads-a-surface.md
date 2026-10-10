@@ -2,6 +2,7 @@
 title: "Teaching attention to read a surface"
 date: 2026-10-09T07:00:00+05:30
 description: "Replacing umbrella sampling with a CNN–GRU–attention network, then running it backwards to design surfaces."
+image: "img/ml-architecture.jpg"
 tags: ["machine learning", "free energy", "inverse design"]
 ---
 

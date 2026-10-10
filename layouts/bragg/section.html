@@ -1,0 +1,103 @@
+{{ define "main" }}
+{{ $D := dict "displayMode" true "output" "htmlAndMathml" }}{{ $I := dict "output" "htmlAndMathml" }}
+<div class="app" id="br">
+  <header class="app-bar">
+    <div class="wrap">
+      <div class="app-id">
+        <span class="app-logo">{{ partial "toolkit-icon.html" "xrd" }}</span>
+        <div>
+          <h1>Bragg</h1>
+          <p>Powder X-ray diffraction of cubic crystals. Watch peaks broaden as crystallites shrink, shift with the lattice parameter, and recover size and strain from a Williamson–Hall plot.</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="app-body">
+      <aside class="app-side" aria-label="Inputs">
+        <details class="sec" open><summary><span><span class="n">1</span>Crystal</span></summary><div class="sec-in">
+          <label class="fld"><span class="fld-l">Material</span><span class="fld-in"><select id="br-mat">
+            <optgroup label="FCC metals"><option>Au</option><option>Ag</option><option>Cu</option><option>Pt</option><option>Pd</option><option>Ni</option><option>Al</option></optgroup>
+            <optgroup label="BCC metals"><option>Fe</option><option>W</option></optgroup>
+            <optgroup label="Diamond"><option>Si</option></optgroup>
+            <optgroup label="Rock salt"><option>NaCl</option><option>MgO</option></optgroup>
+            <optgroup label="CsCl type"><option>CsCl</option></optgroup>
+          </select><em id="br-struct">fcc</em></span></label>
+          <label class="fld"><span class="fld-l">Lattice parameter <i class="tip" tabindex="0" data-tip="Change it to see lattice expansion or compression: every peak shifts to lower 2θ when a grows.">?</i></span><span class="fld-in"><input id="br-a" type="number" step="any"><em>Å</em></span></label>
+        </div></details>
+        <details class="sec" open><summary><span><span class="n">2</span>Microstructure</span></summary><div class="sec-in">
+          <div class="fld-range"><span class="fld-l">Crystallite size {{ transform.ToMath `D` $I }}</span><output id="br-D-o">10 nm</output><input id="br-D" type="range" min="0" max="100" step="1" value="50"></div>
+          <div class="fld-range"><span class="fld-l">Microstrain {{ transform.ToMath `\varepsilon` $I }}</span><output id="br-e-o">0.00%</output><input id="br-e" type="range" min="0" max="1" step="0.01" value="0"></div>
+          <label class="check"><input type="checkbox" id="br-bulk" checked> Overlay a bulk crystal (200 nm)</label>
+        </div></details>
+        <details class="sec" open><summary><span><span class="n">3</span>Instrument</span></summary><div class="sec-in">
+          <label class="fld"><span class="fld-l">Source</span><span class="fld-in"><select id="br-src"><option>Cu Kα</option><option>Co Kα</option><option>Mo Kα</option><option>Cr Kα</option><option>Ag Kα</option></select><em id="br-lam">1.5406 Å</em></span></label>
+          <div class="fld-row">
+            <label class="fld"><span class="fld-l">{{ transform.ToMath `2\theta` $I }} from</span><span class="fld-in"><input id="br-t1" type="number" value="20"><em>°</em></span></label>
+            <label class="fld"><span class="fld-l">to</span><span class="fld-in"><input id="br-t2" type="number" value="100"><em>°</em></span></label>
+          </div>
+          <div class="fld-row">
+            <label class="fld"><span class="fld-l">Instrument FWHM</span><span class="fld-in"><input id="br-ins" type="number" step="any" value="0.05"><em>°</em></span></label>
+            <label class="fld"><span class="fld-l">Debye–Waller {{ transform.ToMath `B` $I }}</span><span class="fld-in"><input id="br-B" type="number" step="any" value="0.5"><em>Å²</em></span></label>
+          </div>
+        </div></details>
+        <div class="side-foot">
+          <button type="button" class="btn btn-primary" id="br-csv">Download pattern (CSV)</button>
+          <div class="btn-row"><button type="button" class="btn-sm" id="br-report" style="flex:1;justify-content:center">Report</button><button type="button" class="btn-sm" id="br-peaks" style="flex:1;justify-content:center">Peaks CSV</button><button type="button" class="btn-sm" id="br-copy" style="flex:1;justify-content:center">Copy</button></div>
+        </div>
+      </aside>
+
+      <div class="app-main">
+        <section class="panel2">
+          <header><div><h2 id="br-title"></h2><p id="br-sub"></p></div></header>
+          <div class="chart-host" id="bc-pattern"></div>
+          <dl class="fl-kv br-kv" id="br-kv"></dl>
+        </section>
+        <section class="panel2">
+          <nav class="rtabs" role="tablist" id="br-tabs">
+            <button role="tab" data-view="bv-wh" aria-selected="true">Williamson–Hall</button>
+            <button role="tab" data-view="bv-table" aria-selected="false">Reflections</button>
+            <button role="tab" data-view="bv-calc" aria-selected="false">Size from a measured peak</button>
+          </nav>
+          <div class="rview" id="bv-wh"><div class="chart-host" id="bc-wh"></div><div class="x-side wh-text" id="br-whtext"></div></div>
+          <div class="rview" id="bv-table" hidden><div class="tscroll"><table class="dtable" id="br-table"></table></div></div>
+          <div class="rview" id="bv-calc" hidden>
+            <div class="calc">
+              <label class="fld"><span class="fld-l">Peak position {{ transform.ToMath `2\theta` $I }}</span><span class="fld-in"><input id="bc-tt" type="number" step="any" value="38.18"><em>°</em></span></label>
+              <label class="fld"><span class="fld-l">Measured FWHM</span><span class="fld-in"><input id="bc-fw" type="number" step="any" value="0.85"><em>°</em></span></label>
+              <label class="fld"><span class="fld-l">Shape factor {{ transform.ToMath `K` $I }}</span><span class="fld-in"><input id="bc-K" type="number" step="any" value="0.9"></span></label>
+              <div class="calc-out" id="bc-out"></div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <section class="app-method" id="method">
+      <div class="grid-2">
+        <div class="prose">
+          <h2>About Bragg</h2>
+          <p>X-ray diffraction is the quickest check of what a nanoparticle synthesis produced: which crystal phase, how large the crystallites are, and whether the lattice is strained. Bragg computes the full powder pattern from first principles, so you can see how each of these shows up in the data before you measure.</p>
+          <p>Python: <code>pip install git+https://github.com/siba-p/nanomatkit</code>, then <code>nanomatkit xrd Au --size 8</code>.</p>
+        </div>
+        <div class="prose eqs">
+          <h2>Method</h2>
+          <p><b>Peak positions</b> from Bragg's law for a cubic lattice,</p>
+          {{ transform.ToMath `\lambda = 2 d_{hkl} \sin\theta, \qquad d_{hkl} = \frac{a}{\sqrt{h^2+k^2+l^2}}.` $D }}
+          <p><b>Intensities</b> from the structure factor with Cromer–Mann atomic form factors {{ transform.ToMath `f_j(s)` $I }}, {{ transform.ToMath `s = \sin\theta/\lambda` $I }}:</p>
+          {{ transform.ToMath `I_{hkl} \propto m_{hkl}\, |F_{hkl}|^2\, \frac{1+\cos^2 2\theta}{\sin^2\theta\cos\theta}\, e^{-2Bs^2}, \qquad F_{hkl} = \sum_j f_j\, e^{2\pi i (h x_j + k y_j + l z_j)}.` $D }}
+          <p><b>Broadening</b>: Scherrer size and Williamson–Hall strain terms, combined with the instrument width,</p>
+          {{ transform.ToMath `\beta \cos\theta = \frac{K\lambda}{D} + 4\varepsilon \sin\theta.` $D }}
+          <p class="muted">Check: gold with Cu Kα gives (111) 38.19°, (200) 44.39°, (220) 64.58°, (311) 77.58° and relative intensities 100 : 49 : 31 : 35, against 100 : 52 : 32 : 36 in the reference pattern.</p>
+          <ol class="refs">
+            <li>B. D. Cullity &amp; S. R. Stock, <i>Elements of X-Ray Diffraction</i>, 3rd ed. (2001).</li>
+            <li>G. K. Williamson &amp; W. H. Hall, <i>Acta Metall.</i> 1, 22 (1953).</li>
+            <li><i>International Tables for Crystallography</i>, Vol. C, Table 6.1.1.4 (form factors).</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+{{ end }}

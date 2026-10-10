@@ -9,12 +9,6 @@
           <p>Kirkwood–Buff integrals from simulation RDFs, with the finite-size corrections that make them trustworthy, turned into solvation thermodynamics.</p>
         </div>
       </div>
-      <div class="app-badges">
-        <span>Validated: hard spheres to within 1% of the exact result</span>
-        <span>Runs locally · nothing is uploaded</span>
-        <a href="https://github.com/siba-p/kbkit">Python package & CLI ↗</a>
-        <a href="#method">Method</a>
-      </div>
     </div>
   </header>
 
@@ -48,7 +42,7 @@
               <label class="fld"><span class="fld-l">{{ transform.ToMath `N_w` (dict "output" "htmlAndMathml") }} solvent <i class="tip" tabindex="0" data-tip="Number of solvent (w) molecules in the box.">?</i></span><span class="fld-in"><input id="kb-nw" type="number" step="any" min="0"></span></label>
               <label class="fld"><span class="fld-l">{{ transform.ToMath `N_c` (dict "output" "htmlAndMathml") }} cosolvent <i class="tip" tabindex="0" data-tip="Number of cosolvent (c) molecules in the box.">?</i></span><span class="fld-in"><input id="kb-nc" type="number" step="any" min="0"></span></label>
             </div>
-            <label class="fld" data-show="binary"><span class="fld-l">Temperature</span><span class="fld-in"><input id="kb-T" type="number" step="any" value="298.15"><em>K</em></span></label>
+            <label class="fld"><span class="fld-l">Temperature <i class="tip" tabindex="0" data-tip="Sets the thermal motion in the system view; enters the compressibility in binary mode.">?</i></span><span class="fld-in"><input id="kb-T" type="number" step="any" value="298.15"><em>K</em></span></label>
           </div>
         </details>
         <details class="sec" open>
@@ -71,6 +65,14 @@
       </aside>
 
       <div class="app-main">
+        <section class="panel2 sysview" id="kb-sys">
+          <header><div><h2>System</h2><p>Box size, composition and temperature as entered; the shells come from the loaded g(r). Drag the box to rotate.</p></div></header>
+          <div class="sys-grid">
+            <figure><canvas id="kb-box" aria-label="3D sketch of the simulation box"></canvas><figcaption id="kb-box-cap"></figcaption></figure>
+            <figure><canvas id="kb-halo" aria-label="Radial map of g(r) around a central particle"></canvas><figcaption id="kb-halo-cap"></figcaption></figure>
+          </div>
+          <dl class="sys-read" id="kb-sysread"></dl>
+        </section>
         <section class="panel2 empty" id="kb-empty">
           <svg class="art" viewBox="0 0 120 120" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
             <circle cx="60" cy="60" r="12" fill="currentColor" fill-opacity=".15"/><circle cx="60" cy="60" r="28" stroke-dasharray="3 5" opacity=".7"/><circle cx="60" cy="60" r="46" stroke-dasharray="2 7" opacity=".4"/>

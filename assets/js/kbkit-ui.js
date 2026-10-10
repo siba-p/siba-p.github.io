@@ -24,6 +24,7 @@
     $$("[data-show]").forEach(el => { el.hidden = !el.dataset.show.split(" ").includes(m); });
     renderSlots();
     A.steps($("#kb-steps"), 1);
+    if (typeof viz === "function") viz(false);
   }
   function renderSlots() {
     $("#kb-slots").innerHTML = SLOTS[st.mode].map(s => {
@@ -33,18 +34,49 @@
     $$("#kb-slots .slot").forEach(el => A.bindDrop(el, async files => {
       const fl = files[0], txt = await fl.text(), p = K.parseRdf(txt);
       if (p.r.length < 10) { A.toast("No r, g(r) columns found in " + fl.name); return; }
-      st.files[el.dataset.slot] = { name: fl.name, ...p }; st.exact = null; renderSlots(); A.toast(`Loaded ${fl.name}`);
+      st.files[el.dataset.slot] = { name: fl.name, ...p }; st.exact = null; renderSlots(); viz(false); A.toast(`Loaded ${fl.name}`);
       if (ready()) compute(true);
     }));
   }
   $$(".app-mode").forEach(b => b.addEventListener("click", () => setMode(b.dataset.mode)));
-  $("#kb-lu").addEventListener("change", () => { $$(".lu3").forEach(e => { e.textContent = lu() + "³"; }); if (st.res) compute(true); });
+  $("#kb-lu").addEventListener("change", () => { $$(".lu3").forEach(e => { e.textContent = lu() + "³"; }); viz(false); if (st.res) compute(true); });
+
+
+  /* ---------- live system view ---------- */
+  const view = window.KBView ? window.KBView($("#kb-box"), $("#kb-halo")) : null;
+  function vizPair() {
+    const v = st.view && st.view.startsWith("v-") ? st.view.slice(2) : null;
+    if (v && st.files[v] && SLOTS[st.mode].some(x => x.id === v)) return v;
+    const s0 = SLOTS[st.mode].find(x => st.files[x.id]);
+    return s0 ? s0.id : null;
+  }
+  function viz(reset) {
+    if (!view) return;
+    const V = num("#kb-V"), m = st.mode, T0 = num("#kb-T") || 298.15;
+    const nw = m === "single" ? (num("#kb-nj") || 0) : (num("#kb-nw") || 0), nc = m === "single" ? 0 : (num("#kb-nc") || 0);
+    const pid = vizPair(), slot = pid && SLOTS[m].find(x => x.id === pid);
+    view.update({ V, nw, nc, T: T0, mode: m, unit: lu(), rdf: pid ? { r: st.files[pid].r, g: st.files[pid].g } : null, resetScale: reset });
+    const L = V > 0 ? Math.cbrt(V) : NaN, tot = nw + nc, rmax = pid ? st.files[pid].r[st.files[pid].r.length - 1] : NaN;
+    const names = m === "single" ? ["particles j", ""] : ["solvent", "cosolvent"];
+    $("#kb-box-cap").innerHTML = V > 0 ? (m === "single" ? `<i class="sw" style="background:#6f8fe8"></i>${Math.round(nw).toLocaleString()} particles j around a central i` : `<i class="sw" style="background:#6f8fe8"></i>${Math.round(nw).toLocaleString()} ${names[0]} &nbsp; <i class="sw" style="background:#f0a04b"></i>${Math.round(nc).toLocaleString()} ${names[1]}${m === "pb" ? ` &nbsp; <i class="sw" style="background:#eec254"></i>solute` : ""}`) + (tot > view.shown() ? ` · ${view.shown()} drawn` : "") : "";
+    const inf = view.info();
+    $("#kb-halo-cap").innerHTML = pid && inf ? `${A.tex(`g_{${slot.sub}}(r)`)} around a central particle${inf.peaks.length ? ": " + inf.peaks.map((pk, k) => `${k ? "second" : "first"} shell at ${A.tex(`r = ${pk.r.toFixed(2)}`)}`).join(", ") : ""}. Orange = depleted, blue = enriched${rmax > L / 2 ? `; red ring = ${A.tex("L/2")}` : ""}.` : "";
+    const ok = !(rmax > L / 2 + 1e-9);
+    const item = (a, b) => `<div><dt>${a}</dt><dd>${b}</dd></div>`;
+    $("#kb-sysread").innerHTML = V > 0 ? [
+      item("Box edge " + A.tex("L"), `${S.fmt(L, 3)} ${lu()}`),
+      item("Number density " + A.tex("\\rho"), tot > 0 ? `${S.fmt(tot / V, 4)} ${lu()}${A.tex("^{-3}")}` : "–"),
+      m !== "single" ? item("Cosolvent fraction " + A.tex("x_c"), tot > 0 ? S.fmt(nc / tot, 3) : "–") : "",
+      item("Temperature", `${S.fmt(T0, 1)} K`),
+      pid ? item("RDF cutoff vs " + A.tex("L/2"), `<span class="${ok ? "okv" : "badv"}">${S.fmt(rmax, 2)} ${ok ? "≤" : ">"} ${S.fmt(L / 2, 2)}</span>`) : ""
+    ].join("") : "";
+  }
 
   /* ---------- examples ---------- */
   async function getRdf(file) { const t = await (await fetch(root.dataset.base + file)).text(); return { name: file, ...K.parseRdf(t) }; }
   $$("[data-sample]").forEach(b => b.addEventListener("click", async () => {
     const k = b.dataset.sample;
-    $("#kb-lu").value = "σ"; $$(".lu3").forEach(e => { e.textContent = "σ³"; });
+    $("#kb-lu").value = "σ"; $$(".lu3").forEach(e => { e.textContent = "σ³"; }); $("#kb-T").value = 298.15;
     if (k === "hs") { setMode("single"); st.files = { ij: await getRdf("kbkit-hard-spheres.xvg") }; $("#kb-V").value = 893.6086; $("#kb-nj").value = 512; $("#kb-same").checked = true; st.exact = K.hardSphereG(0.3); }
     if (k === "ideal") { setMode("single"); st.files = { ij: await getRdf("kbkit-ideal-gas.xvg") }; $("#kb-V").value = 512; $("#kb-nj").value = 400; $("#kb-same").checked = true; st.exact = 0; }
     if (k === "binary") {
@@ -52,7 +84,7 @@
       st.files = { ww: await getRdf("kbkit-binary-ww.xvg"), cc: await getRdf("kbkit-binary-cc.xvg"), cw: await getRdf("kbkit-binary-cw.xvg") };
       $("#kb-V").value = 1127.5944; $("#kb-nw").value = 400; $("#kb-nc").value = 112; st.exact = null;
     }
-    renderSlots(); compute(false);
+    renderSlots(); viz(true); compute(false);
   }));
 
   /* ---------- compute ---------- */
@@ -97,6 +129,7 @@
   $("#kb-run").addEventListener("click", () => compute(false));
   let liveT = 0;
   const ready = () => SLOTS[st.mode].every(s => st.files[s.id]) && num("#kb-V") > 0;
+  ["#kb-V", "#kb-nj", "#kb-nw", "#kb-nc", "#kb-T"].forEach(id => $(id).addEventListener("input", () => viz(false)));
   ["#kb-V", "#kb-nj", "#kb-nw", "#kb-nc", "#kb-T", "#kb-p1", "#kb-p2", "#kb-f1", "#kb-f2"].forEach(id => $(id).addEventListener("input", () => {
     clearTimeout(liveT); liveT = setTimeout(() => { if (ready()) compute(true); }, 220);
   }));
@@ -152,7 +185,7 @@
     $("#kb-views").innerHTML = tabs.map(([id]) => `<div class="rview" id="${id}" ${id === keep ? "" : "hidden"}></div>`).join("");
     if (st.mode === "binary") renderThermo(); if (st.mode === "pb") renderPb();
     pairs.forEach(renderPair);
-    A.tabs($("#kb-tabs"), v => { st.view = v; });
+    A.tabs($("#kb-tabs"), v => { st.view = v; viz(false); });
   }
   const vol = v => (toNm3() ? `${S.fmt(v * toNm3() * K.NA, 2)} ${T("\\mathrm{cm^3\\,mol^{-1}}")}` : `${f(v, 3)} ${U3()}`);
   function renderThermo() {
@@ -291,6 +324,6 @@
         { title: "Methods", html: "<p>Running KB integrals with the Ganguly–van der Vegt finite-size correction (JCTC 2013) and Krüger–Vlugt finite-volume extrapolation (JPCL 2013); thermodynamic relations after Ben-Naim (2006).</p>" }] });
     A.steps($("#kb-steps"), 3); A.toast("Report downloaded");
   });
-  S.onTheme(() => { if (st.res) render(); });
+  S.onTheme(() => { if (st.res) render(); if (view) view.redraw(); });
   setMode("single");
 })();

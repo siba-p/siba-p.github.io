@@ -1,0 +1,85 @@
+{{ define "main" }}
+{{ $D := dict "displayMode" true "output" "htmlAndMathml" }}{{ $I := dict "output" "htmlAndMathml" }}
+<div class="app" id="bm">
+  <header class="app-bar">
+    <div class="wrap">
+      <div class="app-id">
+        <span class="app-logo">{{ partial "toolkit-icon.html" "box" }}</span>
+        <div>
+          <h1>BoxMaker</h1>
+          <p>How many solvent molecules, solutes and ions go into a simulation box at a target concentration, and what concentration the rounded counts actually give.</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="app-body">
+      <aside class="app-side" aria-label="Inputs">
+        <details class="sec" open><summary><span><span class="n">1</span>Box</span></summary><div class="sec-in">
+          <div class="fld-range"><span class="fld-l">Cubic box edge {{ transform.ToMath `L` $I }}</span><output id="bm-L-o">4.00 nm</output><input id="bm-L" type="range" min="2" max="15" step="0.05" value="4"></div>
+          <label class="fld"><span class="fld-l">or volume</span><span class="fld-in"><input id="bm-V" type="number" step="any" value="64"><em>nm³</em></span></label>
+        </div></details>
+        <details class="sec" open><summary><span><span class="n">2</span>Solvent</span></summary><div class="sec-in">
+          <label class="fld"><span class="fld-l">Solvent</span><span class="fld-in"><select id="bm-sol"><option>water</option><option>methanol</option><option>ethanol</option><option>DMSO</option><option>acetonitrile</option><option>chloroform</option></select></span></label>
+          <label class="fld"><span class="fld-l">Solution density <i class="tip" tabindex="0" data-tip="Leave as the pure-solvent density, or enter the measured density of the solution for concentrated mixtures.">?</i></span><span class="fld-in"><input id="bm-rho" type="number" step="any" value="0.997"><em>g/cm³</em></span></label>
+        </div></details>
+        <details class="sec" open><summary><span><span class="n">3</span>Solutes</span></summary><div class="sec-in">
+          <div id="bm-rows" class="bm-rows"></div>
+          <label class="fld"><span class="fld-l">Add a solute</span><span class="fld-in"><select id="bm-add">
+            <option value="">Choose…</option><option value="NaCl">NaCl (ion pair)</option><option value="KCl">KCl (ion pair)</option><option value="urea">Urea</option><option value="glycine">Glycine</option><option value="TMAO">TMAO</option><option value="glucose">Glucose</option><option value="trehalose">Trehalose</option><option value="ethanol">Ethanol</option><option value="custom">Custom molecule</option>
+          </select></span></label>
+        </div></details>
+        <div class="side-foot">
+          <button type="button" class="btn btn-primary" id="bm-copycmd">Copy GROMACS commands</button>
+          <div class="btn-row"><button type="button" class="btn-sm" id="bm-report" style="flex:1;justify-content:center">Report</button><button type="button" class="btn-sm" id="bm-csv" style="flex:1;justify-content:center">CSV</button><button type="button" class="btn-sm" id="bm-copy" style="flex:1;justify-content:center">Copy</button></div>
+        </div>
+      </aside>
+
+      <div class="app-main">
+        <section class="panel2 bm-hero">
+          <div class="bm-stage"><canvas id="bm-box" aria-label="3D sketch of the simulation box"></canvas><canvas id="bm-halo" hidden></canvas><div class="fl-legend" id="bm-legend"></div></div>
+          <div>
+            <h2 id="bm-title"></h2>
+            <p class="story" id="bm-story"></p>
+            <div class="tscroll" style="max-height:none"><table class="dtable" id="bm-table"></table></div>
+          </div>
+        </section>
+        <section class="panel2">
+          <nav class="rtabs" role="tablist" id="bm-tabs">
+            <button role="tab" data-view="mv-round" aria-selected="true">Rounding error</button>
+            <button role="tab" data-view="mv-cmd" aria-selected="false">GROMACS and Packmol</button>
+          </nav>
+          <div class="rview" id="mv-round"><div class="chart-host" id="mc-round"></div>
+            <details class="explain" open><summary>Why does the box size matter?</summary><div class="x-in"><p>Molecule counts must be whole numbers, so a small box can only reach certain concentrations. The steps show the concentration that the rounded count actually gives as the box grows, for the solute most affected by rounding, against its target (dashed). Your box is marked. At physiological salt (0.15 M) a 4 nm box holds only about six ion pairs, so a single ion changes the concentration by 17%.</p></div></details></div>
+          <div class="rview" id="mv-cmd" hidden>
+            <h3 style="font-size:.95rem;margin:0 0 .5rem">GROMACS</h3>
+            <div class="codebox"><pre id="bm-gmx"></pre></div>
+            <h3 style="font-size:.95rem;margin:1.2rem 0 .5rem">Packmol</h3>
+            <div class="codebox"><pre id="bm-pack"></pre><div class="btn-row"><button type="button" class="btn-sm" id="bm-dlpack">Download .inp</button></div></div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <section class="app-method" id="method">
+      <div class="grid-2">
+        <div class="prose">
+          <h2>About BoxMaker</h2>
+          <p>Setting up a crowded or salty solution means converting a concentration from a paper (molar, molal, mass or mole fraction) into exact molecule counts for a box, and keeping the total mass consistent with the solution density. BoxMaker does the conversion, shows the error from rounding, and writes the commands to build the box.</p>
+          <p>Python: <code>pip install git+https://github.com/siba-p/nanomatkit</code>, then <code>nanomatkit box --edge 4 --solute glycine:75.07:2.0:m</code>.</p>
+        </div>
+        <div class="prose eqs">
+          <h2>Method</h2>
+          <p><b>Mass balance</b> of a box of volume {{ transform.ToMath `V` $I }} at solution density {{ transform.ToMath `\rho` $I }}:</p>
+          {{ transform.ToMath `\rho V = \frac{N_w M_w + \sum_s N_s M_s}{N_A}.` $D }}
+          <p><b>Concentration units</b> for solute {{ transform.ToMath `s` $I }}:</p>
+          {{ transform.ToMath `c_s = \frac{N_s}{N_A V}, \qquad m_s = \frac{N_s}{N_w M_w}, \qquad x_s = \frac{N_s}{N_w + \sum_t N_t}, \qquad w_s = \frac{N_s M_s}{N_A \rho V}.` $D }}
+          <p>Molar and fixed-count solutes are placed first; the solvent then fills the remaining mass, with molal and mole-fraction solutes solved together with it.</p>
+          <p class="muted">Check: a 3 nm water box (0.997 g/cm³) holds 900 molecules; molality and mole-fraction targets are reproduced exactly before rounding.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+{{ end }}

@@ -1,19 +1,35 @@
 {{ define "main" }}
 {{ partial "page-head.html" . }}
-<div class="wrap narrow section" style="padding-top:36px">
-  {{ $tags := site.Taxonomies.tags }}
-  {{ if $tags }}
-  <div class="chips" style="margin-bottom:1.6rem">
-    {{ range $tags.ByCount }}<a class="chip" href="{{ .Page.RelPermalink }}">#{{ .Page.Title }} · {{ .Count }}</a>{{ end }}
-  </div>
+{{ $posts := .Pages.ByDate.Reverse }}
+<div class="wrap section nb" style="padding-top:44px">
+  {{ with index $posts 0 }}
+  <a class="nb-feature" href="{{ .RelPermalink }}">
+    <div class="nb-img">{{ with .Params.image }}<img src="{{ . | relURL }}" alt="" loading="lazy">{{ else }}<img src="{{ "img/lattice.svg" | relURL }}" alt="">{{ end }}</div>
+    <div class="nb-ftext">
+      <span class="nb-date">Latest · {{ .Date.Format "2 January 2006" }}</span>
+      <h2>{{ .Title }}</h2>
+      <p>{{ .Description | default .Summary | plainify | truncate 260 }}</p>
+      <span class="nb-read">Read · {{ .ReadingTime }} min</span>
+    </div>
+  </a>
   {{ end }}
-  {{ $pag := .Paginate .Pages }}
-  {{ range $pag.Pages }}{{ partial "entry.html" . }}{{ end }}
-  {{ if gt $pag.TotalPages 1 }}
-  <ul class="pagination">
-    {{ range $pag.Pagers }}<li{{ if eq . $pag }} class="active"{{ end }}><a href="{{ .URL }}">{{ .PageNumber }}</a></li>{{ end }}
-  </ul>
+  {{ $rest := after 1 $posts }}
+  {{ if $rest }}
+  {{ range $rest.GroupByDate "2006" }}
+  <section class="nb-year">
+    <h3 class="nb-y">{{ .Key }}</h3>
+    <ol class="nb-list">
+      {{ range .Pages }}
+      <li><a href="{{ .RelPermalink }}">
+        <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "Jan 2" }}</time>
+        <div><h4>{{ .Title }}</h4><p>{{ .Description | default .Summary | plainify | truncate 180 }}</p></div>
+        <span class="nb-min">{{ .ReadingTime }} min</span>
+      </a></li>
+      {{ end }}
+    </ol>
+  </section>
   {{ end }}
-  {{ with .OutputFormats.Get "rss" }}<p class="muted" style="margin-top:2rem;font-size:.9rem">Follow along by <a href="{{ .RelPermalink }}">RSS</a>.</p>{{ end }}
+  {{ end }}
+  {{ with .OutputFormats.Get "rss" }}<p class="nb-rss">Subscribe by <a href="{{ .RelPermalink }}">RSS</a>.</p>{{ end }}
 </div>
 {{ end }}

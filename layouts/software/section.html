@@ -1,65 +1,31 @@
 {{ define "main" }}
 {{ partial "page-head.html" . }}
-<div class="wrap section" style="padding-top:44px">
-  <div class="section-head">
-    <div>
-      <span class="label">Open research toolkit</span>
-      <h2>Statistical-mechanics tools for molecular simulation</h2>
-      <p>Each tool runs in the browser with nothing to install (files never leave your computer), and is also a pip-installable Python package with a command-line interface for scripts and HPC. Every one is validated against an exactly known answer.</p>
-    </div>
-  </div>
-  <div class="toolkit">
-    {{ range site.Data.toolkit }}
-    <article class="card tk reveal" id="{{ .name | urlize }}">
-      <header>
-        <span class="tk-badge">{{ partial "toolkit-icon.html" .icon }}</span>
-        <div>
-          <span class="eyebrow">{{ .field }}</span>
-          <h3>{{ .name }}</h3>
+<div class="wrap section sw" style="padding-top:40px">
+  {{ range site.Data.tools.groups }}
+  <section class="sw-group">
+    <div class="sw-head"><h2>{{ .title }}</h2><p>{{ .intro }}</p></div>
+    <div class="sw-grid">
+      {{ $tone := .tone }}
+      {{ range .tools }}
+      {{ $t := . }}
+      <article class="sw-card tone-{{ $tone }} reveal">
+        <a class="sw-art" href="{{ with .url }}{{ . | relURL }}{{ else }}https://github.com/{{ .repo }}{{ end }}" aria-label="{{ .name }}">
+          <span class="sw-motif" aria-hidden="true">{{ partial "toolkit-icon.html" .icon }}</span>
+          <span class="sw-icon">{{ partial "toolkit-icon.html" .icon }}</span>
+        </a>
+        <div class="sw-body">
+          <h3><a href="{{ with .url }}{{ . | relURL }}{{ else }}https://github.com/{{ .repo }}{{ end }}">{{ .name }}</a></h3>
+          <p>{{ .text }}</p>
+          <div class="sw-actions">
+            {{ with .url }}<a class="sw-open" href="{{ . | relURL }}">Open</a>{{ end }}
+            {{ with .repo }}<a class="sw-code" href="https://github.com/{{ . }}">{{ if $t.url }}Code{{ else }}View code{{ end }}</a>{{ end }}
+          </div>
         </div>
-      </header>
-      <p class="tk-tag">{{ .tagline }}</p>
-      <p>{{ .what }}</p>
-      {{ with .ml }}<p class="tk-ml"><span>AI/ML</span>{{ . }}</p>{{ end }}
-      <p class="tk-val"><span>Validated</span>{{ .validation }}</p>
-      <pre><code>{{ .install }}
-{{ .cli }}</code></pre>
-      <footer>
-        <a class="btn btn-primary" href="{{ .url | relURL }}">Open web app</a>
-        <a class="btn btn-ghost" href="https://github.com/{{ .repo }}">GitHub</a>
-        <span class="stars" data-repo="{{ .repo }}"></span>
-      </footer>
-    </article>
-    {{ end }}
-  </div>
-
-  <div class="section-head" style="margin-top:72px">
-    <div>
-      <span class="label">More software</span>
-      <h2>Builders and research code</h2>
+      </article>
+      {{ end }}
     </div>
-  </div>
-  <div class="grid-2">
-    {{ range site.Data.software }}
-    <article class="card tool reveal" id="{{ .name | urlize }}">
-      <header>
-        <div>
-          <span class="chip">{{ .kind }}</span>
-          <h3>{{ .name }}</h3>
-        </div>
-        {{ if .public }}<span class="status live-s">Open source</span>{{ else }}<span class="status">Release in preparation</span>{{ end }}
-      </header>
-      <p style="margin:0;color:var(--ink)">{{ .tagline }}</p>
-      <ul>{{ range .features }}<li>{{ . }}</li>{{ end }}</ul>
-      {{ with .install }}<pre><code>{{ . | strings.TrimSpace }}</code></pre>{{ end }}
-      <footer>
-        <div class="chips">{{ range .stack }}<span class="chip">{{ . }}</span>{{ end }}</div>
-        {{ if .public }}<a class="more" href="https://github.com/{{ .repo }}">View on GitHub</a>{{ end }}
-      </footer>
-      {{ if and .public .repo }}<span class="stars" data-repo="{{ .repo }}"></span>{{ end }}
-    </article>
-    {{ end }}
-  </div>
-  <div class="prose" style="margin-top:3rem">{{ .Content }}</div>
+  </section>
+  {{ end }}
+  <p class="sw-note">The web tools run in your browser with nothing to install and nothing uploaded. All code is open source on GitHub and installs with pip.</p>
 </div>
 {{ end }}

@@ -1,0 +1,99 @@
+{{ define "main" }}
+{{ $D := dict "displayMode" true "output" "htmlAndMathml" }}{{ $I := dict "output" "htmlAndMathml" }}
+<div class="app" id="fl">
+  <header class="app-bar">
+    <div class="wrap">
+      <div class="app-id">
+        <span class="app-logo">{{ partial "toolkit-icon.html" "nanoparticle" }}</span>
+        <div>
+          <h1>FacetLab</h1>
+          <p>Build FCC metal nanoparticles atom by atom, see which facets, edges and vertices they expose, and estimate ligand coverage.</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="app-body">
+      <aside class="app-side" aria-label="Inputs">
+        <details class="sec" open><summary><span><span class="n">1</span>Particle</span></summary><div class="sec-in">
+          <label class="fld"><span class="fld-l">Metal</span><span class="fld-in"><select id="fl-metal"><option>Au</option><option>Ag</option><option>Cu</option><option>Pt</option><option>Pd</option><option>Ni</option><option>Al</option><option>Ir</option><option>Rh</option></select><em id="fl-a">4.078 Å</em></span></label>
+          <div class="fld"><span class="fld-l">Shape</span>
+            <div class="shape-grid" id="fl-shape">
+              <button type="button" data-shape="truncated_octahedron" aria-pressed="true">Truncated octahedron</button>
+              <button type="button" data-shape="cuboctahedron">Cuboctahedron</button>
+              <button type="button" data-shape="octahedron">Octahedron</button>
+              <button type="button" data-shape="cube">Cube</button>
+              <button type="button" data-shape="wulff">Wulff</button>
+              <button type="button" data-shape="sphere">Sphere</button>
+            </div></div>
+          <div class="fld-range"><span class="fld-l">Size <i class="tip" tabindex="0" data-tip="Size index: number of atomic shells or truncation steps. The atom count and diameter update as you move it.">?</i></span><output id="fl-k-o">2</output><input id="fl-k" type="range" min="1" max="8" step="1" value="2"></div>
+          <div class="fld-range" id="fl-gam-row" hidden><span class="fld-l">{{ transform.ToMath `\gamma_{100}/\gamma_{111}` $I }} <i class="tip" tabindex="0" data-tip="Ratio of surface energies used in the Wulff construction. 0.87 gives a cuboctahedron, 1.15 a regular truncated octahedron, 1.73 or more an octahedron.">?</i></span><output id="fl-gam-o">1.15</output><input id="fl-gam" type="range" min="0.58" max="1.75" step="0.01" value="1.155"></div>
+        </div></details>
+        <details class="sec" open><summary><span><span class="n">2</span>Ligand shell</span></summary><div class="sec-in">
+          <label class="fld"><span class="fld-l">Grafting density <i class="tip" tabindex="0" data-tip="Ligands per nm² of atomistic surface. Alkanethiol SAMs on Au(111) reach about 4.6 nm⁻²; DNA or polymer brushes are typically 0.1–1 nm⁻².">?</i></span><span class="fld-in"><input id="fl-gd" type="number" step="any" min="0" value="4.6"><em>nm⁻²</em></span></label>
+        </div></details>
+        <details class="sec" open><summary><span><span class="n">3</span>View</span></summary><div class="sec-in">
+          <div class="seg" id="fl-color" role="group" aria-label="Colour atoms by"><button type="button" data-c="site" aria-pressed="true">Site type</button><button type="button" data-c="gcn">GCN</button><button type="button" data-c="metal">Metal</button></div>
+          <label class="check"><input type="checkbox" id="fl-cut"> Cut away the front half</label>
+        </div></details>
+        <div class="side-foot">
+          <button type="button" class="btn btn-primary" id="fl-xyz">Download XYZ</button>
+          <div class="btn-row"><button type="button" class="btn-sm" id="fl-report" style="flex:1;justify-content:center">Report</button><button type="button" class="btn-sm" id="fl-csv" style="flex:1;justify-content:center">Sites CSV</button><button type="button" class="btn-sm" id="fl-copy" style="flex:1;justify-content:center">Copy</button></div>
+        </div>
+      </aside>
+
+      <div class="app-main">
+        <section class="panel2 fl-hero">
+          <div class="fl-stage"><canvas id="fl-canvas" aria-label="3D model of the nanoparticle"></canvas><div class="fl-legend" id="fl-legend"></div></div>
+          <div class="fl-facts">
+            <h2 id="fl-title"></h2>
+            <p class="story" id="fl-story"></p>
+            <dl class="fl-kv" id="fl-kv"></dl>
+          </div>
+        </section>
+        <section class="panel2">
+          <nav class="rtabs" role="tablist" id="fl-tabs">
+            <button role="tab" data-view="fv-sites" aria-selected="true">Surface sites</button>
+            <button role="tab" data-view="fv-size" aria-selected="false">Size dependence</button>
+            <button role="tab" data-view="fv-lig" aria-selected="false">Ligands</button>
+          </nav>
+          <div class="rview" id="fv-sites"><div class="two"><div class="chart-host" id="fc-sites"></div><div class="chart-host" id="fc-gcn"></div></div>
+            <details class="explain"><summary>What do the site types and GCN mean?</summary><div class="x-in">
+              <p>An atom's coordination number {{ transform.ToMath `\mathrm{CN}` $I }} counts its nearest neighbours: 12 in the bulk, 9 on a {111} terrace, 8 on a {100} terrace, 7 on edges and 6 or fewer on vertices. The <b>generalized coordination number</b> also weights each neighbour by how coordinated it is itself,</p>
+              {{ transform.ToMath `\overline{\mathrm{CN}}_i = \sum_{j \in \mathrm{nn}(i)} \frac{\mathrm{CN}_j}{\mathrm{CN}_{\max}}, \qquad \mathrm{CN}_{\max} = 12,` $D }}
+              <p>and tracks adsorption energies on metal surfaces almost linearly, which is why it is used to rank catalytic sites (Calle-Vallejo <i>et al.</i>, 2015). Infinite terraces have {{ transform.ToMath `\overline{\mathrm{CN}} = 7.5` $I }} on {111} and {{ transform.ToMath `6.67` $I }} on {100}.</p></div></details></div>
+          <div class="rview" id="fv-size" hidden><div class="chart-host" id="fc-size"></div>
+            <details class="explain" open><summary>Why does size matter?</summary><div class="x-in"><p>Below about 3 nm, most atoms are on the surface and a large share of them sit on edges and vertices. These low-coordinated sites dominate catalysis, ligand binding and growth. The curves show how the dispersion (surface fraction) and the edge-plus-vertex share fall as the particle grows, for the selected shape and metal.</p></div></details></div>
+          <div class="rview" id="fv-lig" hidden><div id="fl-lig"></div></div>
+        </section>
+      </div>
+    </div>
+
+    <section class="app-method" id="method">
+      <div class="grid-2">
+        <div class="prose">
+          <h2>About FacetLab</h2>
+          <p>Gold and other FCC nanoparticles are rarely spheres. Their facets, edges and vertices decide where ligands, citrate or reactants bind. FacetLab builds the exact lattice structure for the common shapes, classifies every surface atom, and exports coordinates ready for a simulation.</p>
+          <p>Python package and command line: <code>pip install git+https://github.com/siba-p/nanomatkit</code>, then <code>nanomatkit np --shape truncated_octahedron -k 2 -o Au201.xyz</code>.</p>
+        </div>
+        <div class="prose eqs">
+          <h2>Method</h2>
+          <p><b>Construction.</b> FCC sites {{ transform.ToMath `\mathbf{r} = \tfrac{a}{2}(i,j,k)` $I }} with {{ transform.ToMath `i+j+k` $I }} even, kept if</p>
+          {{ transform.ToMath `|x|+|y|+|z| \le S \quad \{111\}, \qquad \max(|x|,|y|,|z|) \le M \quad \{100\}.` $D }}
+          <p><b>Wulff shape</b>: plane distances scale with surface energy,</p>
+          {{ transform.ToMath `\frac{M}{S/\sqrt{3}} = \frac{\gamma_{100}}{\gamma_{111}}.` $D }}
+          <p><b>Equivalent diameter</b> from the FCC volume per atom {{ transform.ToMath `a^3/4` $I }}:</p>
+          {{ transform.ToMath `d = \left(\frac{6}{\pi}\,\frac{N a^3}{4}\right)^{1/3}.` $D }}
+          <p><b>Ligands</b>: {{ transform.ToMath `N_\mathrm{lig} = \sigma_g A` $I }}, with {{ transform.ToMath `A` $I }} summed over surface atoms ({{ transform.ToMath `\tfrac{\sqrt3}{4}a^2` $I }} per {111}-like site, {{ transform.ToMath `\tfrac{a^2}{2}` $I }} per {100} site).</p>
+          <p class="muted">Checks: magic numbers 13, 55, 147, 309 (cuboctahedra) and 38, 201, 586, 1289 (truncated octahedra); {{ transform.ToMath `\mathrm{Au}_{201}` $I }} has 122 surface atoms.</p>
+          <ol class="refs">
+            <li>F. Calle-Vallejo <i>et al.</i>, <i>Science</i> 350, 185 (2015) (generalized coordination numbers).</li>
+            <li>L. D. Marks &amp; L. Peng, <i>J. Phys.: Condens. Matter</i> 28, 053001 (2016) (nanoparticle shape).</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+{{ end }}

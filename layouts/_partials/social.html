@@ -2,6 +2,7 @@
 {{- $cls := cond (.plain | default false) "" (.cls | default "btn btn-ghost") -}}
 {{- $links := slice (dict "name" "GitHub" "url" (printf "https://github.com/%s" $p.github) "rel" "me") -}}
 {{- with $p.scholar }}{{ $links = $links | append (dict "name" "Google Scholar" "url" . "rel" "me") }}{{ end -}}
+{{- with $p.openreview }}{{ $links = $links | append (dict "name" "OpenReview" "url" . "rel" "me") }}{{ end -}}
 {{- with $p.orcid }}{{ $links = $links | append (dict "name" "ORCID" "url" (printf "https://orcid.org/%s" .) "rel" "me") }}{{ end -}}
 {{- with $p.linkedin }}{{ $links = $links | append (dict "name" "LinkedIn" "url" . "rel" "me") }}{{ end -}}
 {{- with $p.email }}{{ $links = $links | append (dict "name" "Email" "url" (printf "mailto:%s" .) "rel" "") }}{{ end -}}

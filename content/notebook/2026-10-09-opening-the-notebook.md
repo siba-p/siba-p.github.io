@@ -2,6 +2,7 @@
 title: "Opening the lab notebook"
 date: 2026-10-09T06:00:00+05:30
 description: "Why I'm keeping a public research notebook, and what will go in it."
+image: "img/dna-aunp-render.jpg"
 tags: ["meta"]
 ---
 

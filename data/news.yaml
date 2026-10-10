@@ -1,5 +1,7 @@
 # Newest first. Markdown links allowed in "text".
 - when: "Oct 2026"
+  text: "Added three materials-science tools: [FacetLab](/facetlab/) for nanoparticle structure, [Bragg](/bragg/) for powder XRD and [BoxMaker](/boxmaker/) for simulation-box setup."
+- when: "Oct 2026"
   text: "Released an open research toolkit: [WindowWise](/windowwise/) for umbrella sampling, [KBkit](/kbkit/) for Kirkwood–Buff integrals and [Converge](/converge/) for simulation error bars. Each runs in the browser and installs with pip."
 - when: "2026"
   text: "Joined **QpiAI** as a Computational Materials Scientist."

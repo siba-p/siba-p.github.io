@@ -43,8 +43,9 @@
   <div class="wrap intro-block">
     <div class="portrait"><img src="{{ "img/portrait.jpg" | relURL }}" alt="Portrait of Sibasankar Panigrahy" width="600" height="662"></div>
     <div>
-      <p><strong>I am a computational materials scientist at QpiAI.</strong> My work asks how functionalised nanoparticles behave in crowded, chemically complex environments, and how simulation data can be turned into reliable design rules.</p>
-      <p>During my PhD at IIT Delhi with Prof. Divya Nayar, I combined all-atom molecular dynamics, Kirkwood–Buff solvation theory and machine learning to study DNA- and citrate-capped gold nanoparticles, and built attention-based networks that design surfaces for a target polymer adhesion.</p>
+      <p class="intro-lede">I use statistical mechanics, molecular simulation and machine learning to understand functional nanomaterials, and then to design them.</p>
+      <p>My doctoral work at IIT Delhi, with Prof. Divya Nayar, asked how gold nanoparticles coated with DNA or citrate behave in crowded, chemically complex surroundings. All-atom simulations and Kirkwood–Buff solvation theory showed that molecular chemistry, not excluded volume alone, sets their size, stability and binding. The thesis closed by turning hundreds of thousands of free-energy calculations into attention-based neural networks that design surfaces for a chosen polymer adhesion.</p>
+      <p>Today I continue this work at <strong>QpiAI</strong>, building simulation and AI methods for materials discovery.</p>
       <div class="cv-line">
         <div><b>Currently</b>QpiAI</div>
         <div><b>PhD</b>IIT Delhi, 2026</div>
@@ -97,39 +98,40 @@
   <div class="wrap">
     <div class="section-head">
       <div>
-        <span class="label">Open research tools</span>
-        <h2>Free tools for the simulation community</h2>
-        <p>Validated statistical-mechanics tools that run in your browser or install with pip.</p>
+        <span class="label">Beyond the thesis</span>
+        <h2>My research also spans</h2>
       </div>
-      <a class="more" href="{{ "software/" | relURL }}">All software</a>
     </div>
-    <div class="tools-row">
-      {{ range site.Data.toolkit }}
-      <a class="card tool-mini reveal" href="{{ .url | relURL }}">
-        <span class="tk-badge">{{ partial "toolkit-icon.html" .icon }}</span>
-        <div><span class="eyebrow">{{ .field }}</span><h3>{{ .name }}</h3><p>{{ .tagline }}</p></div>
+    <div class="spans">
+      <a class="span-card reveal" href="https://openreview.net/forum?id=RTQSTVPHJ9">
+        <svg viewBox="0 0 48 48" aria-hidden="true"><rect x="4" y="8" width="14" height="14" rx="3"/><rect x="4" y="26" width="14" height="14" rx="3"/><circle cx="38" cy="24" r="6"/><path d="M18 15c8 0 10 9 14 9M18 33c8 0 10-9 14-9"/></svg>
+        <h3>AI for accelerated materials design</h3>
+        <p>Hybrid CNN–GRU–attention networks and tandem inverse design, presented at the NeurIPS AI4Mat workshop.</p>
+        <span class="go">Read on OpenReview</span>
       </a>
-      {{ end }}
+      <a class="span-card reveal" href="{{ "publications/#pub-rajput2024crowding" | relURL }}">
+        <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="7"/><circle cx="10" cy="12" r="4"/><circle cx="38" cy="11" r="3"/><circle cx="40" cy="34" r="4.5"/><circle cx="9" cy="36" r="3"/><circle cx="25" cy="41" r="2.5"/></svg>
+        <h3>Macromolecular crowding</h3>
+        <p>How the crowded interior of a cell changes folding, binding and assembly, from biomolecules to nanomaterials.</p>
+        <span class="go">ACS Omega review</span>
+      </a>
+      <a class="span-card reveal" href="{{ "publications/#pub-panigrahy2023pccp" | relURL }}">
+        <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M6 36c4-20 8-24 12-10s6 12 9 4 5-12 8-6 5 8 7 8"/><path d="M6 40h36"/></svg>
+        <h3>Force-field development</h3>
+        <p>Reparameterising interactions against osmotic and transport data, so that concentrated solutions behave as they do in experiment.</p>
+        <span class="go">PCCP 2023</span>
+      </a>
+      <a class="span-card reveal" href="{{ "software/" | relURL }}">
+        <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 34c3 0 4-18 8-18s4 10 7 10 4-14 8-14 5 22 9 22"/><path d="M14 40l4-4M20 40l4-4M26 40l4-4"/></svg>
+        <h3>Open scientific software</h3>
+        <p>Validated tools for free energies, solvation thermodynamics, simulation statistics and nanomaterials.</p>
+        <span class="go">Software</span>
+      </a>
     </div>
   </div>
 </section>
 
 <section class="section alt">
-  <div class="wrap">
-    <div class="section-head">
-      <div>
-        <span class="label">Publications</span>
-        <h2>Selected publications</h2>
-      </div>
-      <a class="more" href="{{ "publications/" | relURL }}">All publications &amp; research lineage</a>
-    </div>
-    <div class="grid-3 sel-pubs">
-      {{ range first 3 (sort (where $pubs.items "status" "published") "year" "desc") }}{{ partial "pub-card.html" (merge . (dict "compact" true)) }}{{ end }}
-    </div>
-  </div>
-</section>
-
-<section class="section">
   <div class="wrap grid-2" style="align-items:start">
     <div class="panel reveal">
       <div class="panel-head"><h3>News</h3></div>

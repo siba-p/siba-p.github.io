@@ -43,6 +43,7 @@ summaryLength = 40
   scholar = ""      # e.g. "https://scholar.google.com/citations?user=XXXX"
   linkedin = ""     # e.g. "https://www.linkedin.com/in/your-handle"
   orcid = ""        # e.g. "0000-0000-0000-0000"
+  openreview = "https://openreview.net/profile?id=~Sibasankar_Panigrahy2"
   cv = ""           # e.g. "/files/Sibasankar_Panigrahy_CV.pdf" (put the PDF in static/files/)
 
 [menus]
@@ -62,14 +63,6 @@ summaryLength = 40
     name = "Notebook"
     pageRef = "/notebook"
     weight = 40
-  [[menus.main]]
-    name = "Theatre"
-    pageRef = "/gallery"
-    weight = 50
-  [[menus.main]]
-    name = "Playground"
-    pageRef = "/playground"
-    weight = 60
   [[menus.main]]
     name = "About"
     pageRef = "/about"

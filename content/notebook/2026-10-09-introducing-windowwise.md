@@ -2,6 +2,7 @@
 title: "Introducing WindowWise: plan, check and repair umbrella sampling"
 date: 2026-10-09T10:30:00+05:30
 description: "A free in-browser tool that designs umbrella windows before you simulate and tells you exactly which windows to add afterwards."
+image: "media/polymer-surface.jpg"
 tags: ["free energy", "umbrella sampling", "tools"]
 ---
 

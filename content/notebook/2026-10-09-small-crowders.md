@@ -2,6 +2,7 @@
 title: "Small crowders are not tiny PEG"
 date: 2026-10-09T06:30:00+05:30
 description: "What glycine and serine do to a DNA-coated gold nanoparticle, and why depletion isn't the right picture for them."
+image: "img/dna-aunp-box.jpg"
 tags: ["crowding", "gold nanoparticles", "Kirkwood–Buff"]
 ---
 

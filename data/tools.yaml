@@ -1,0 +1,56 @@
+# Software page. Groups appear in this order; each tool links to its web app (url) and/or code (repo).
+groups:
+  - title: "Statistical mechanics for simulation"
+    intro: "Free energies, solvation thermodynamics and the statistics of simulation data, each checked against an exactly known answer."
+    tone: indigo
+    tools:
+      - name: WindowWise
+        icon: umbrella
+        text: "Plan umbrella-sampling windows, reconstruct the free-energy profile with WHAM, and get the exact windows to add, with Gaussian-process active learning."
+        url: /windowwise/
+        repo: siba-p/windowwise
+      - name: KBkit
+        icon: solvation
+        text: "Kirkwood–Buff integrals with finite-size corrections, turned into preferential binding, activity derivatives and partial molar volumes."
+        url: /kbkit/
+        repo: siba-p/kbkit
+      - name: Converge
+        icon: convergence
+        text: "Find where equilibration ends, measure autocorrelation and report error bars that hold up, for any simulation time series."
+        url: /converge/
+        repo: siba-p/converge
+  - title: "Materials science"
+    intro: "Structure, diffraction and system setup for nanoparticles and solutions."
+    tone: amber
+    tools:
+      - name: FacetLab
+        icon: nanoparticle
+        text: "Build FCC metal nanoparticles atom by atom, classify facets, edges and vertices by generalized coordination, and estimate ligand coverage."
+        url: /facetlab/
+        repo: siba-p/nanomatkit
+      - name: Bragg
+        icon: xrd
+        text: "Powder X-ray diffraction of cubic crystals, with crystallite-size and strain broadening and a live Williamson–Hall analysis."
+        url: /bragg/
+        repo: siba-p/nanomatkit
+      - name: BoxMaker
+        icon: box
+        text: "Molecule and ion counts for a simulation box at any concentration unit, with the rounding error and GROMACS and Packmol commands."
+        url: /boxmaker/
+        repo: siba-p/nanomatkit
+      - name: Polygraft
+        icon: brush
+        text: "Coarse-grained polymer chains and polymer-grafted nanoparticles with uniform, patchy or Janus grafting, written for LAMMPS and GROMACS."
+        repo: siba-p/Polygraft
+  - title: "Machine learning and research workflow"
+    intro: "Models and utilities from my research."
+    tone: violet
+    tools:
+      - name: ML_surfacepoly
+        icon: network
+        text: "Hybrid CNN–GRU–attention networks that predict polymer–surface free-energy profiles from sequence and surface pattern."
+        repo: siba-p/ML_surfacepoly
+      - name: journal-abbrev-tool
+        icon: doc
+        text: "Abbreviate journal names in BibTeX files and format them with the right style for submission."
+        repo: siba-p/journal-abbrev-tool

@@ -2,12 +2,12 @@
   <div class="wrap">
     <div class="foot-grid">
       <div class="foot-brand">
-        <a class="brand" href="{{ "/" | relURL }}">{{ partial "logo.html" . }}<span>Sibasankar Panigrahy<small>{{ site.Params.role }}, {{ site.Params.affiliation }}</small></span></a>
+        <a class="brand" href="{{ "/" | relURL }}">{{ partial "logo.html" . }}<span>Sibasankar Panigrahy</span></a>
         <p>Programmable nanomaterials, molecular simulation and machine learning for materials design.</p>
       </div>
       <div>
         <h4>Explore</h4>
-        <ul>{{ range site.Menus.main }}<li><a href="{{ .URL }}">{{ .Name }}</a></li>{{ end }}</ul>
+        <ul>{{ range site.Menus.main }}<li><a href="{{ .URL }}">{{ .Name }}</a></li>{{ end }}<li><a href="{{ "gallery/" | relURL }}">Simulation gallery</a></li><li><a href="{{ "playground/" | relURL }}">Interactive models</a></li></ul>
       </div>
       <div>
         <h4>Connect</h4>
