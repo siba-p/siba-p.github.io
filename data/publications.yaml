@@ -70,6 +70,7 @@ items:
     title: "Data-driven prediction of polymer surface adhesion using high-throughput MD and hybrid network models"
     venue: "AI for Accelerated Materials Design (AI4Mat) Workshop, NeurIPS"
     short_venue: "NeurIPS AI4Mat"
+    url: "https://openreview.net/forum?id=RTQSTVPHJ9"
     image: "img/thumb-neurips.jpg"
     takeaway: "A CNN–GRU–attention network trained on about 470k umbrella-sampling runs predicts full adhesion free-energy profiles."
     tags: ["machine learning", "umbrella sampling"]

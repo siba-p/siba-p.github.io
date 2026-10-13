@@ -13,29 +13,23 @@
         <a href="#network">Contact</a>
       </div>
     </div>
-    <aside class="hero-panel" id="hero-panel" aria-label="Simulation controls">
-      <header><span class="live">Live</span><span>DNA-programmable assembly</span></header>
-      <div class="seg dark" role="group" aria-label="Binding program">
-        <button type="button" data-program="complementary" aria-pressed="true" title="Only complementary strands bind: alternating binary lattice">a ↔ a′</button>
-        <button type="button" data-program="self" title="Like binds like: the species sort into two crystals">Self</button>
-        <button type="button" data-program="universal" title="Every pair binds: mixed hexagonal crystal">All</button>
+  </div>
+  <div class="wrap dock-wrap">
+    <div class="dock" id="hero-panel" role="group" aria-label="Simulation controls">
+      <div class="dock-seg" role="group" aria-label="Which DNA strands bind">
+        <button type="button" data-program="complementary" aria-pressed="true" title="Complementary strands: only unlike particles bind, building an alternating lattice"><i class="d a"></i><i class="d b"></i></button>
+        <button type="button" data-program="self" title="Self-complementary strands: like binds like, so the two kinds sort apart"><i class="d a"></i><i class="d a"></i></button>
+        <button type="button" data-program="universal" title="Universal strands: every pair binds, giving a mixed crystal"><i class="d a"></i><i class="d m"></i></button>
       </div>
-      <div class="hp-row">
-        <label for="hero-T">Temperature <span>k<sub>B</sub>T/ε</span></label>
+      <label class="dock-temp" title="Temperature (reduced units). Lower it to let the particles crystallise.">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14.5V5a2 2 0 1 1 4 0v9.5a4 4 0 1 1-4 0z"/></svg>
+        <input id="hero-T" type="range" min="0.2" max="1.4" step="0.01" value="0.45" data-ctl="T" aria-label="Temperature">
         <output data-out="T">0.45</output>
-        <input id="hero-T" type="range" min="0.2" max="1.4" step="0.01" value="0.45" data-ctl="T">
-      </div>
-      <div class="hp-stats">
-        <div><b data-stat="solid">–</b><span>in crystallites</span></div>
-        <div><b data-stat="z">–</b><span>links / particle</span></div>
-      </div>
-      <canvas class="sim-spark" aria-hidden="true"></canvas>
-      <div class="hp-buttons">
-        <button type="button" data-act="melt">Melt</button>
-        <button type="button" data-act="quench">Quench</button>
-      </div>
-      <p class="hp-note" data-program-note>Complementary strands bind only unlike particles, building an alternating binary lattice. Drag to stir.</p>
-    </aside>
+      </label>
+      <button type="button" class="dock-btn" data-act="melt" title="Melt, then let it re-assemble" aria-label="Melt"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c1 3 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3.5 2-4.5 0 2 1 3 2 3 0-3-1-5 1-8.5z"/></svg></button>
+      <button type="button" class="dock-btn" data-act="quench" title="Quench: cool quickly" aria-label="Quench"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v20M4 6.5l16 11M20 6.5l-16 11M9 3.5l3 2.5 3-2.5M9 20.5l3-2.5 3 2.5"/></svg></button>
+      <span class="dock-stat" title="Share of particles bonded to three or more partners"><b data-stat="solid">–</b> ordered</span>
+    </div>
   </div>
 </section>
 

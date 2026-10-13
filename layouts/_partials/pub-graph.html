@@ -34,7 +34,7 @@
       {{- range $p.lanes }}
       {{- $y := index $lanes .id }}
       <line class="lane-line" x1="14" x2="880" y1="{{ $y }}" y2="{{ $y }}"/>
-      <text class="lane-label" x="14" y="{{ sub $y 8 }}">{{ .name }}</text>
+      <text class="lane-label" data-lane="{{ .id }}" tabindex="0" role="button" x="14" y="{{ sub $y 8 }}">{{ .name }}</text>
       {{- end }}
       <g class="thesis">
         <rect x="900" y="64" width="70" height="{{ sub $bottom 44 }}" rx="10"/>
@@ -60,5 +60,5 @@
       {{- end }}
     </svg>
   </div>
-  <p class="graph-tip" aria-live="polite"><b>Hover or tap a paper</b> to trace what it builds on and see its main result.</p>
+  <p class="graph-tip" aria-live="polite"><b>Hover a paper</b> to trace what it builds on; <b>click a research thread</b> to filter the list below.</p>
 </div>

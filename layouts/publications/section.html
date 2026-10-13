@@ -1,26 +1,68 @@
 {{ define "main" }}
 {{ partial "page-head.html" . }}
 {{ $p := site.Data.publications }}
-{{ $list := slice }}
-{{ range $p.items }}{{ $list = $list | append (merge . (dict "sy" (.year | default 0))) }}{{ end }}
-<div class="wrap section" style="padding-top:40px">
+{{ $me := $p.me }}
+<div class="wrap section pubs-page" style="padding-top:40px">
+  {{ with $p.thesis }}
+  <section class="thesis-card">
+    <div>
+      <p class="th-kicker">Doctoral thesis · {{ .school }} · {{ .year }}</p>
+      <h2>{{ .title }}</h2>
+      <p class="th-adv">Advised by {{ .advisor }}</p>
+    </div>
+    <svg class="th-art" viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="16"/><circle cx="60" cy="60" r="32" stroke-dasharray="3 6"/><circle cx="60" cy="60" r="50" stroke-dasharray="2 8" opacity=".6"/><circle cx="92" cy="40" r="5"/><circle cx="28" cy="78" r="5"/><circle cx="82" cy="94" r="4"/></svg>
+  </section>
+  {{ end }}
+
   {{ partial "pub-graph.html" . }}
 
-  <div class="filters" role="group" aria-label="Filter by research thread">
-    <button type="button" data-lane="all" aria-pressed="true">All ({{ len $p.items }})</button>
-    {{ range $p.lanes }}{{ $n := len (where $p.items "lane" .id) }}<button type="button" data-lane="{{ .id }}" aria-pressed="false">{{ .name }} ({{ $n }})</button>{{ end }}
-  </div>
-  <div class="pubs-list">
-    {{ range sort $list "sy" "desc" }}{{ partial "pub-card.html" . }}{{ end }}
-  </div>
+  <div class="pub-filter" id="pub-filter" hidden><span id="pub-filter-text"></span> <button type="button" id="pub-clear">Show all</button></div>
 
-  {{ with $p.thesis }}
-  <div class="callout" style="margin-top:28px">
-    <p class="label">Doctoral thesis · {{ .year }}</p>
-    <h3 style="margin:.6rem 0 .3rem">{{ .title }}</h3>
-    <p style="margin:0;color:var(--ink-2)">{{ .school }}. Advisor: {{ .advisor }}.</p>
-  </div>
+  {{ $years := slice }}
+  {{ range $p.items }}{{ if ne .status "preparation" }}{{ $years = $years | append (string .year) }}{{ end }}{{ end }}
+  {{ $groups := (sort ($years | uniq) "value" "desc") | append "In preparation" }}
+  {{ range $groups }}
+  {{ $g := . }}
+  <section class="pub-year" data-group>
+    <h3 class="pub-y">{{ $g }}</h3>
+    <ol class="pub-list">
+      {{ range $p.items }}
+      {{ $key := cond (eq .status "preparation") "In preparation" (string .year) }}
+      {{ if eq $key $g }}
+      {{ $it := . }}{{ $venue := .venue }}
+      <li class="pub-item" id="pub-{{ .key }}" data-lane="{{ .lane }}">
+        <div class="pi-thumb">{{ with .image }}<img src="{{ . | relURL }}" alt="" loading="lazy">{{ end }}</div>
+        <div class="pi-text">
+          <h4>{{ $link := cond (ne .doi nil) (printf "https://doi.org/%v" .doi) (.url | default "") }}{{ if $link }}<a href="{{ $link }}">{{ .title }}</a>{{ else }}{{ .title }}{{ end }}</h4>
+          <p class="pi-auth">{{ range $i, $a := .authors }}{{ if $i }}, {{ end }}{{ if eq $a $me }}<b>{{ $a }}</b>{{ else }}{{ $a }}{{ end }}{{ end }}</p>
+          <p class="pi-venue">{{ with $venue }}<i>{{ . }}</i>{{ end }}{{ with .volume }} {{ . }}{{ end }}{{ with .pages }}, {{ . }}{{ end }}{{ if and $venue (ne .status "preparation") }} · {{ .year }}{{ end }}{{ if eq .status "review" }} · under review{{ end }}{{ if eq .status "workshop" }} · workshop paper{{ end }}{{ if eq .status "preparation" }}Manuscript in preparation{{ end }}</p>
+          {{ with .takeaway }}<p class="pi-take">{{ . }}</p>{{ end }}
+          <div class="pi-links">
+            {{ with .doi }}<a href="https://doi.org/{{ . }}">Paper ↗</a>{{ else }}{{ with $it.url }}<a href="{{ . }}">Paper ↗</a>{{ end }}{{ end }}
+            {{ if .venue }}
+            <details>
+              <summary>Cite</summary>
+              {{- $type := cond (eq .status "workshop") "inproceedings" "article" }}
+              {{- $field := cond (eq .status "workshop") "booktitle" "journal" }}
+              <div class="pi-bib"><pre id="bib-{{ .key }}">@{{ $type }}{ {{- .key }},
+  title   = { {{- .title -}} },
+  author  = { {{- delimit .authors " and " -}} },
+  {{ $field }} = { {{- .venue -}} },{{ with .volume }}
+  volume  = { {{- . -}} },{{ end }}{{ with .pages }}
+  pages   = { {{- . -}} },{{ end }}{{ with .year }}
+  year    = { {{- . -}} },{{ end }}{{ with .doi }}
+  doi     = { {{- . -}} },{{ end }}
+}</pre><button type="button" data-copy="bib-{{ .key }}">Copy</button></div>
+            </details>
+            {{ end }}
+          </div>
+        </div>
+      </li>
+      {{ end }}
+      {{ end }}
+    </ol>
+  </section>
   {{ end }}
-  <div class="prose" style="margin-top:2rem">{{ .Content }}</div>
+  <p class="pub-profiles">Also on {{ with site.Params.openreview }}<a href="{{ . }}">OpenReview</a>{{ end }}{{ with site.Params.scholar }} and <a href="{{ . }}">Google Scholar</a>{{ end }}.</p>
 </div>
 {{ end }}

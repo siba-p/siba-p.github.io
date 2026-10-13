@@ -175,15 +175,28 @@
       n.addEventListener("blur", clear);
       n.addEventListener("click", () => {
         const card = document.getElementById("pub-" + n.dataset.key);
-        if (card) { card.hidden = false; card.classList.add("flash"); setTimeout(() => card.classList.remove("flash"), 1600); }
+        if (card) { card.hidden = false; const g = card.closest("[data-group]"); if (g) g.hidden = false; card.classList.add("flash"); setTimeout(() => card.classList.remove("flash"), 1600); }
       });
     });
   }
-  $$(".filters [data-lane]").forEach(btn => btn.addEventListener("click", () => {
-    $$(".filters [data-lane]").forEach(b => b.setAttribute("aria-pressed", b === btn));
-    const lane = btn.dataset.lane;
-    $$(".pub-card[data-lane]").forEach(c => { c.hidden = lane !== "all" && c.dataset.lane !== lane; });
-  }));
+  // Click a research thread in the lineage graph to filter the list
+  const laneLabels = $$(".graph .lane-label");
+  if (laneLabels.length) {
+    const filt = $("#pub-filter"), ftxt = $("#pub-filter-text");
+    const apply = lane => {
+      laneLabels.forEach(l => l.classList.toggle("on", l.dataset.lane === lane));
+      $$(".pub-item").forEach(c => { c.hidden = !!lane && c.dataset.lane !== lane; });
+      $$("[data-group]").forEach(g => { g.hidden = !g.querySelector(".pub-item:not([hidden])"); });
+      if (filt) { filt.hidden = !lane; if (lane) ftxt.textContent = `Showing ${laneLabels.find(l => l.dataset.lane === lane).textContent}`; }
+    };
+    let cur = null;
+    laneLabels.forEach(l => {
+      const go = () => { cur = cur === l.dataset.lane ? null : l.dataset.lane; apply(cur); };
+      l.addEventListener("click", go);
+      l.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
+    });
+    const clr = $("#pub-clear"); if (clr) clr.addEventListener("click", () => { cur = null; apply(null); });
+  }
 
   /* Network map: link legend cards and map nodes */
   const net = $("[data-net]");
