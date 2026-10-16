@@ -13,6 +13,11 @@
   {{ $js := slice (resources.Get "js/assembly.js") (resources.Get "js/ising.js") (resources.Get "js/site.js") | resources.Concat "js/bundle.js" | minify | fingerprint }}
   <script src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}" defer></script>
   {{- if .Params.math }}<script src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.js" crossorigin="anonymous" defer></script>{{ end }}
+  {{- if eq .Section "learn" }}
+  {{- $core := resources.Get "js/learn/00-core.js" }}
+  {{- $lj := (slice $core) | append (resources.Match "js/learn/[a-z]*.js") | resources.Concat "js/learn-bundle.js" | minify | fingerprint }}
+  <script src="{{ $lj.RelPermalink }}" integrity="{{ $lj.Data.Integrity }}" defer></script>
+  {{- end }}
   {{- range .Params.scripts }}
   {{- with resources.Get . | minify | fingerprint }}
   <script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" defer></script>

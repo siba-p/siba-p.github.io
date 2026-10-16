@@ -60,6 +60,10 @@ summaryLength = 40
     pageRef = "/software"
     weight = 30
   [[menus.main]]
+    name = "Learn"
+    pageRef = "/learn"
+    weight = 35
+  [[menus.main]]
     name = "Notebook"
     pageRef = "/notebook"
     weight = 40

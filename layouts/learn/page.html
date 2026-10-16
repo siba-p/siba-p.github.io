@@ -1,0 +1,64 @@
+{{ define "main" }}
+{{- $order := partial "learn-order.html" . -}}
+{{- $me := . -}}
+{{- $idx := -1 -}}{{- $cur := dict -}}
+{{- range $i, $o := $order }}{{ if eq $o.page.RelPermalink $me.RelPermalink }}{{ $idx = $i }}{{ $cur = $o }}{{ end }}{{ end -}}
+{{- $t := $cur.track | default dict -}}
+<article class="lesson tone-{{ $t.tone }}" data-learn-page="{{ .File.ContentBaseName }}">
+  <header class="lesson-head">
+    <div class="wrap">
+      <nav class="crumbs" aria-label="Breadcrumb"><a href="{{ "learn/" | relURL }}">Learn</a><span aria-hidden="true">/</span><a href="{{ "learn/" | relURL }}#track-{{ $t.id }}">{{ $t.title }}</a></nav>
+      <h1>{{ .Title }}</h1>
+      {{ with .Description }}<p class="lead">{{ . }}</p>{{ end }}
+      <ul class="lesson-meta">
+        <li><b>Lesson {{ $cur.num }}</b> of {{ len $order }}</li>
+        <li><span class="lvl lvl-{{ lower .Params.level }}">{{ .Params.level }}</span></li>
+        <li>About {{ .Params.minutes }} min</li>
+        {{ with .Params.lab }}<li class="lm-lab">Lab: {{ . }}</li>{{ end }}
+      </ul>
+      {{ with .Params.prereqs }}
+      <p class="prereq">Helpful first:
+        {{ range $j, $s := . }}{{ with site.GetPage (printf "/learn/%s" $s) }}{{ if $j }}, {{ end }}<a href="{{ .RelPermalink }}">{{ .Title }}</a>{{ end }}{{ end }}
+      </p>
+      {{ end }}
+    </div>
+  </header>
+
+  <div class="wrap lesson-layout">
+    <aside class="course-nav" aria-label="Course outline">
+      <details class="cn-box" open>
+        <summary>Course outline <span class="cn-prog" data-learn-count-wrap><b data-learn-count>0</b>/{{ len $order }}</span></summary>
+        {{ range site.Data.learn }}
+        {{- $tt := . -}}
+        <div class="cn-track tone-{{ $tt.tone }}{{ if eq $tt.id $t.id }} is-cur{{ end }}">
+          <p class="cn-th"><span>{{ $tt.n }}</span>{{ $tt.short }}</p>
+          <ol>
+            {{ range $order }}{{ if eq .track.id $tt.id }}
+            {{- $p := .page }}
+            <li><a href="{{ $p.RelPermalink }}" data-learn-slug="{{ $p.File.ContentBaseName }}"{{ if eq $p.RelPermalink $me.RelPermalink }} aria-current="page"{{ end }}><span class="cn-n">{{ .num }}</span><span class="cn-t">{{ $p.Title }}</span></a>
+              {{ if eq $p.RelPermalink $me.RelPermalink }}{{ with $me.TableOfContents }}<div class="cn-toc">{{ . }}</div>{{ end }}{{ end }}
+            </li>
+            {{ end }}{{ end }}
+          </ol>
+        </div>
+        {{ end }}
+      </details>
+    </aside>
+
+    <div class="lesson-body prose">
+      {{ .Content }}
+      <div class="lesson-finish">
+        <button type="button" class="btn btn-primary" data-learn-mark="{{ .File.ContentBaseName }}">Mark this lesson complete</button>
+        <p class="muted">Progress is stored in this browser only.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <nav class="lesson-pager" aria-label="Lessons">
+      {{ if gt $idx 0 }}{{ with index $order (sub $idx 1) }}<a href="{{ .page.RelPermalink }}"><small>← Previous · {{ .num }}</small><span>{{ .page.Title }}</span></a>{{ end }}{{ else }}<span></span>{{ end }}
+      {{ if lt (add $idx 1) (len $order) }}{{ with index $order (add $idx 1) }}<a class="next" href="{{ .page.RelPermalink }}"><small>Next · {{ .num }} →</small><span>{{ .page.Title }}</span></a>{{ end }}{{ else }}<a class="next" href="{{ "learn/" | relURL }}"><small>Finished →</small><span>Back to the learning path</span></a>{{ end }}
+    </nav>
+  </div>
+</article>
+{{ end }}

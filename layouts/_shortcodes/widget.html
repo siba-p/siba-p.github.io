@@ -1,0 +1,8 @@
+{{- /* Interactive lab. Usage: {{< widget name="gd" title="Gradient descent on a loss surface" caption="…" >}}
+       Optional opts='{"key": 1}' passes JSON options to the widget. */ -}}
+{{- $name := .Get "name" | default (.Get 0) -}}
+<figure class="lw" data-widget="{{ $name }}"{{ with .Get "opts" }} data-opts="{{ . }}"{{ end }}{{ with .Get "id" }} id="{{ . }}"{{ end }}>
+  {{ with .Get "title" }}<div class="lw-head"><span class="lw-tag">Interactive</span><h4>{{ . | $.Page.RenderString }}</h4></div>{{ end }}
+  <div class="lw-body"><p class="lw-loading">Loading the interactive figure…</p><noscript><p class="lw-loading">This interactive figure needs JavaScript.</p></noscript></div>
+  {{ with .Get "caption" }}<figcaption>{{ . | $.Page.RenderString }}</figcaption>{{ end }}
+</figure>

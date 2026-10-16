@@ -761,3 +761,23 @@ dialog.viewer .close { position: absolute; right: 8px; top: 8px; z-index: 2; bac
 .pi-bib button { position: absolute; top: 8px; right: 8px; font: 500 .74rem var(--f-body); padding: .35em .7em; border-radius: 7px; border: 1px solid rgb(255 255 255 / .2); background: rgb(255 255 255 / .08); color: #e3e7f1; cursor: pointer; }
 .pub-profiles { margin-top: 2.6rem; color: var(--ink-3); font-size: .92rem; }
 @media (max-width: 760px) { .pub-year { grid-template-columns: 1fr; } .pub-y { margin: 0 0 6px; } .pub-item { grid-template-columns: 84px minmax(0, 1fr); gap: 16px; } .pi-thumb { width: 84px; } .thesis-card { grid-template-columns: 1fr; padding: 24px; } .th-art { display: none; } }
+
+/* Home: course band */
+.learn-band { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 0.95fr); gap: 32px 56px; align-items: center; }
+.lb-text h2 { margin: 0 0 .8rem; max-width: 20ch; }
+.lb-text p { color: var(--ink-2); max-width: 56ch; }
+.lb-cta { display: flex; gap: .7rem; flex-wrap: wrap; margin-top: 1.4rem; }
+.lb-tracks { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.lb-tracks a { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 12px; align-items: center; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); color: var(--ink); text-decoration: none; transition: border-color .2s, transform .2s; }
+.lb-tracks a:hover { border-color: var(--line-2); transform: translateX(3px); text-decoration: none; }
+.lb-tracks b { display: block; font: 600 .98rem var(--f-display); }
+.lb-tracks small { color: var(--ink-3); font-size: .8rem; }
+.lb-n { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; font: 600 .92rem var(--f-display); }
+.lb-teal { background: color-mix(in oklab, var(--teal) 14%, transparent); color: var(--teal); }
+.lb-indigo { background: color-mix(in oklab, var(--accent) 14%, transparent); color: var(--accent); }
+.lb-gold { background: color-mix(in oklab, var(--gold) 16%, transparent); color: var(--gold); }
+.lb-violet { background: rgb(109 79 224 / .13); color: #6d4fe0; }
+.lb-rose { background: rgb(214 51 108 / .12); color: #d6336c; }
+:root[data-theme="dark"] .lb-violet { color: #a993ff; } :root[data-theme="dark"] .lb-rose { color: #ff7aa5; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .lb-violet { color: #a993ff; } :root:not([data-theme="light"]) .lb-rose { color: #ff7aa5; } }
+@media (max-width: 860px) { .learn-band { grid-template-columns: minmax(0, 1fr); } }

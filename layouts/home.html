@@ -123,7 +123,26 @@
   </div>
 </section>
 
-<section class="section alt">
+{{- $order := partial "learn-order.html" . }}
+<section class="section alt" id="learn">
+  <div class="wrap learn-band">
+    <div class="lb-text">
+      <h2>Learn machine learning for materials, from first principles</h2>
+      <p>An open, interactive course for scientists, written with derivations and references to the original papers. It starts at the Linux prompt and builds up to interatomic potentials, differentiable simulation and diffusion models. Every lesson has a working model to change in the browser.</p>
+      <div class="lb-cta">
+        <a class="btn btn-primary" href="{{ "learn/" | relURL }}">Open the course</a>
+        {{ with index $order 0 }}<a class="btn btn-ghost" href="{{ .page.RelPermalink }}">Start with lesson {{ .num }}</a>{{ end }}
+      </div>
+    </div>
+    <ol class="lb-tracks">
+      {{ range site.Data.learn }}{{ $t := . }}{{ $n := 0 }}{{ range $order }}{{ if eq .track.id $t.id }}{{ $n = add $n 1 }}{{ end }}{{ end }}
+      <li class="reveal"><a href="{{ "learn/" | relURL }}#track-{{ $t.id }}"><span class="lb-n lb-{{ $t.tone }}">{{ $t.n }}</span><span><b>{{ $t.title }}</b><small>{{ $n }} lessons · {{ $t.stage }}</small></span></a></li>
+      {{ end }}
+    </ol>
+  </div>
+</section>
+
+<section class="section">
   <div class="wrap grid-2" style="align-items:start">
     <div class="panel reveal">
       <div class="panel-head"><h3>News</h3></div>

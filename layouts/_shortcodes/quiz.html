@@ -1,0 +1,25 @@
+{{- /* Usage:
+{{< quiz >}}
+- q: "Question, Markdown and $math$ allowed"
+  options: ["First", "Second", "Third"]
+  answer: 1          # zero-based index of the right option
+  why: "Explanation shown after answering"
+{{< /quiz >}} */ -}}
+{{- $qs := .Inner | transform.Unmarshal -}}
+<section class="quiz" aria-labelledby="quiz-h-{{ .Ordinal }}">
+  <h2 id="quiz-h-{{ .Ordinal }}">Check yourself</h2>
+  <ol class="qz-list">
+  {{- range $i, $q := $qs }}
+    <li class="qz" data-answer="{{ $q.answer }}">
+      <div class="qz-q">{{ $q.q | $.Page.RenderString }}</div>
+      <div class="qz-opts" role="group">
+        {{- range $j, $o := $q.options }}
+        <button type="button" class="qz-o" data-i="{{ $j }}"><span class="qz-mark" aria-hidden="true">{{ index (slice "A" "B" "C" "D" "E") $j }}</span><span>{{ $o | $.Page.RenderString }}</span></button>
+        {{- end }}
+      </div>
+      <div class="qz-why" hidden>{{ $q.why | $.Page.RenderString }}</div>
+    </li>
+  {{- end }}
+  </ol>
+  <p class="qz-score" aria-live="polite"></p>
+</section>

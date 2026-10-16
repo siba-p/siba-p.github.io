@@ -1,0 +1,8 @@
+{{- /* Editable Python cell that runs in the browser with Pyodide. Cells on a page share one
+       interpreter, so later cells can use names defined in earlier ones.
+       Usage: {{< py >}}print("hello"){{< /py >}}  Optional: {{< py title="…" >}} */ -}}
+<div class="pycell">
+  <div class="pc-bar"><span class="pc-lang">Python{{ with .Get "title" }} · {{ . }}{{ end }}</span><span class="pc-status" aria-live="polite"></span><button type="button" class="pc-btn pc-reset" title="Restore the original code">Reset</button><button type="button" class="pc-btn pc-run">Run <kbd>⇧↵</kbd></button></div>
+  <textarea class="pc-code" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Python code">{{ trim .Inner "\n" }}</textarea>
+  <pre class="pc-out" hidden></pre>
+</div>

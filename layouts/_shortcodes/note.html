@@ -1,0 +1,7 @@
+{{- /* Callout. Usage: {{< note type="tip|warn|practice|key|math" title="…" >}}Markdown{{< /note >}} */ -}}
+{{- $type := .Get "type" | default "tip" -}}
+{{- $titles := dict "tip" "Tip" "warn" "Common mistake" "practice" "In practice" "key" "Key ideas" "math" "The maths" "try" "Try this" -}}
+<aside class="callout c-{{ $type }}">
+  <p class="c-title">{{ .Get "title" | default (index $titles $type) }}</p>
+  {{ .Inner | $.Page.RenderString (dict "display" "block") }}
+</aside>

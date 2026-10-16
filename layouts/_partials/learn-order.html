@@ -1,0 +1,12 @@
+{{- /* Returns every lesson in teaching order: by track (data/learn.yaml), then weight. */ -}}
+{{- $all := where site.RegularPages "Section" "learn" -}}
+{{- $order := slice -}}
+{{- range site.Data.learn -}}
+  {{- $t := . -}}
+  {{- $i := 0 -}}
+  {{- range (where $all "Params.track" $t.id).ByWeight -}}
+    {{- $i = add $i 1 -}}
+    {{- $order = $order | append (dict "page" . "track" $t "num" (printf "%d.%d" $t.n $i)) -}}
+  {{- end -}}
+{{- end -}}
+{{- return $order -}}

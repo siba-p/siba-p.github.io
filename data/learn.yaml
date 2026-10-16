@@ -1,0 +1,42 @@
+# Tracks of the Learn section, in the order they are taught. Lessons live in content/learn/
+# and name their track with `track:`; their order inside a track is `weight`.
+- id: toolbox
+  n: 1
+  title: "Scientific computing toolbox"
+  short: "Toolbox"
+  stage: "Foundation"
+  tone: teal
+  blurb: "The shell, Python and Fortran: the three tools every simulation and machine-learning project runs on. Start here if the command line is new to you."
+  icon: terminal
+- id: ml
+  n: 2
+  title: "Machine learning foundations"
+  short: "ML foundations"
+  stage: "Foundation"
+  tone: indigo
+  blurb: "What it means for a model to learn: loss functions, optimisation, generalisation, neural networks and honest uncertainty, each built from scratch."
+  icon: curve
+- id: sim
+  n: 3
+  title: "Molecular simulation"
+  short: "Simulation"
+  stage: "Core"
+  tone: gold
+  blurb: "Potential energy surfaces, molecular dynamics and the statistics that turn a trajectory into a number you can trust. The data most materials ML is trained on comes from here."
+  icon: atoms
+- id: arch
+  n: 4
+  title: "Representations and architectures"
+  short: "Architectures"
+  stage: "Core"
+  tone: violet
+  blurb: "How atoms become inputs a network can use: symmetry, descriptors, graph neural networks and the attention mechanism behind transformers."
+  icon: graph
+- id: ai4mat
+  n: 5
+  title: "Machine learning for materials"
+  short: "AI for materials"
+  stage: "Advanced"
+  tone: rose
+  blurb: "Crystal graphs, machine-learned interatomic potentials, differentiable simulation, diffusion models for structure generation and closed-loop discovery."
+  icon: crystal
