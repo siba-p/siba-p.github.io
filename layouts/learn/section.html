@@ -1,89 +1,101 @@
 {{ define "main" }}
 {{- $order := partial "learn-order.html" . -}}
-<header class="page-head learn-head">
-  <img class="lattice" src="{{ "img/lattice.svg" | relURL }}" alt="" aria-hidden="true">
-  <div class="wrap">
-    <h1>{{ .Title }}</h1>
-    {{ with .Params.lead }}<p class="lead">{{ . | markdownify }}</p>{{ end }}
-    <div class="lh-stats">
-      <span><b>{{ len site.Data.learn }}</b> tracks</span>
-      <span><b>{{ len $order }}</b> lessons</span>
-      <span><b>{{ len $order }}</b> interactive labs</span>
-      <span class="lh-progress" data-learn-total="{{ len $order }}" hidden><b data-learn-count>0</b> completed</span>
-    </div>
-    <div class="lh-cta">
-      {{ with index $order 0 }}<a class="btn btn-primary" href="{{ .page.RelPermalink }}" data-learn-resume>Start with lesson {{ .num }}</a>{{ end }}
-      <a class="btn btn-ghost" href="#path">See the full path</a>
-    </div>
-  </div>
-</header>
-
-<section class="section tight">
-  <div class="wrap">
-    <div class="learn-how">
-      <div><span class="lhw-n">1</span><h3>Read a short explanation</h3><p>Each lesson starts from the question a scientist actually has, then builds the idea with as little notation as it needs.</p></div>
-      <div><span class="lhw-n">2</span><h3>Change it and watch</h3><p>Every lesson has a working model to play with: drag the data, move a slider, run the code. The numbers are computed live in your browser.</p></div>
-      <div><span class="lhw-n">3</span><h3>Check yourself</h3><p>Short questions at the end of each lesson explain why each answer is right or wrong. Your progress is kept in this browser only.</p></div>
-    </div>
-  </div>
-</section>
-
-<section class="section alt learn-path" id="path">
-  <div class="wrap">
-    <div class="section-head">
+{{- $roman := slice "I" "II" "III" "IV" "V" "VI" -}}
+{{- $cid := .Params.course -}}
+{{- if $cid }}
+  {{- /* ================= one volume: a textbook contents page ================= */ -}}
+  {{- $c := index (where site.Data.learn "id" $cid) 0 -}}
+  {{- $mine := where $order "course.id" $cid -}}
+  <header class="vol-head tone-{{ $c.tone }}">
+    <div class="wrap vol-head-in">
+      <div class="vol-cover vol-{{ $c.id }}" aria-hidden="true"><span class="vol-rn">{{ index $roman (sub $c.n 1) }}</span>{{ partial "learn-cover.html" $c.id }}</div>
       <div>
-        <h2>The learning path</h2>
-        <p>Five tracks that grow from the tools of the trade to current research. Tracks 1 to 3 can be taken in any order; tracks 4 and 5 build on them.</p>
+        <nav class="crumbs" aria-label="Breadcrumb"><a href="{{ "learn/" | relURL }}">Learn</a><span aria-hidden="true">/</span><span>Volume {{ index $roman (sub $c.n 1) }}</span></nav>
+        <h1>{{ $c.title }}</h1>
+        <p class="lead">{{ $c.blurb }}</p>
+        <div class="lh-stats"><span><b>{{ len $c.parts }}</b> parts</span><span><b>{{ len $mine }}</b> chapters</span><span>{{ $c.level }}</span>
+          <span class="lh-progress" data-learn-total hidden data-learn-slugs="{{ range $mine }}{{ .page.File.ContentBaseName }} {{ end }}"><b data-learn-count>0</b> of {{ len $mine }} read</span></div>
+        <div class="lh-cta">{{ with index $mine 0 }}<a class="btn btn-primary" href="{{ .page.RelPermalink }}" data-learn-resume>Begin with chapter {{ .num }}</a>{{ end }}<a class="btn btn-ghost" href="{{ "learn/" | relURL }}">The whole library</a></div>
       </div>
     </div>
-    <ol class="lp-route" aria-label="Tracks">
-      {{ range site.Data.learn }}
-      <li class="tone-{{ .tone }}"><a href="#track-{{ .id }}"><span class="lp-rn">{{ .n }}</span><span class="lp-rt">{{ .short }}</span><span class="lp-rs">{{ .stage }}</span><span class="lp-bar"><i data-learn-bar="{{ .id }}"></i></span></a></li>
+  </header>
+  <section class="section tone-{{ $c.tone }}">
+    <div class="wrap contents">
+      <h2 class="contents-h">Contents</h2>
+      {{ range $pi, $p := $c.parts }}
+      <section class="toc-part" id="track-{{ $p.id }}">
+        <header><span class="toc-pn">Part {{ index $roman $pi }}</span><h3>{{ $p.title }}</h3><p>{{ $p.blurb }}</p></header>
+        <ol class="toc">
+          {{ range $mine }}{{ if eq .part.id $p.id }}{{ $pg := .page }}
+          <li><a href="{{ $pg.RelPermalink }}" data-learn-slug="{{ $pg.File.ContentBaseName }}">
+            <span class="toc-n">{{ .num }}</span>
+            <span class="toc-b"><b>{{ $pg.Title }}</b><span>{{ $pg.Description }}</span>
+              <span class="toc-m"><span class="lvl lvl-{{ lower $pg.Params.level }}">{{ $pg.Params.level }}</span>{{ with $pg.Params.lab }}<span>Lab · {{ . }}</span>{{ end }}</span></span>
+            <span class="toc-r"><span>{{ $pg.Params.minutes }} min</span><span class="lp-done" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span></span>
+          </a></li>
+          {{ end }}{{ end }}
+        </ol>
+      </section>
       {{ end }}
-    </ol>
-
-    {{ range site.Data.learn }}
-    {{- $t := . -}}
-    <section class="lp-track tone-{{ $t.tone }}" id="track-{{ $t.id }}" aria-labelledby="th-{{ $t.id }}">
-      <header class="lp-th">
-        <span class="lp-icon">{{ partial "learn-icon.html" $t.icon }}</span>
-        <div>
-          <p class="lp-meta">Track {{ $t.n }} · {{ $t.stage }}</p>
-          <h3 id="th-{{ $t.id }}">{{ $t.title }}</h3>
-          <p>{{ $t.blurb }}</p>
-        </div>
-      </header>
-      <ol class="lp-lessons">
-        {{ range $order }}{{ if eq .track.id $t.id }}
-        {{- $p := .page }}
-        <li>
-          <a class="lp-lesson" href="{{ $p.RelPermalink }}" data-learn-slug="{{ $p.File.ContentBaseName }}">
-            <span class="lp-num">{{ .num }}</span>
-            <span class="lp-body">
-              <b>{{ $p.Title }}</b>
-              <span>{{ $p.Description }}</span>
-              <span class="lp-tags"><span class="lvl lvl-{{ lower $p.Params.level }}">{{ $p.Params.level }}</span><span>{{ $p.Params.minutes }} min</span>{{ with $p.Params.lab }}<span class="lp-lab"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6M10 3v6L4.5 18.5A1.7 1.7 0 0 0 6 21h12a1.7 1.7 0 0 0 1.5-2.5L14 9V3"/></svg>{{ . }}</span>{{ end }}</span>
-            </span>
-            <span class="lp-done" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
-          </a>
-        </li>
-        {{ end }}{{ end }}
-      </ol>
-    </section>
-    {{ end }}
-  </div>
-</section>
-
-<section class="section">
-  <div class="wrap">
-    <div class="section-head"><div><h2>Quick references</h2><p>Pages to keep open while you work.</p></div></div>
-    <div class="lq-grid">
-      {{ with site.GetPage "/learn/linux-for-simulation" }}<a class="card lq" href="{{ .RelPermalink }}#reference"><h3>Linux command reference</h3><p>About 75 commands for files, text, remote machines, jobs and HPC schedulers, searchable, with a command explainer.</p></a>{{ end }}
-      {{ with site.GetPage "/learn/linux-for-simulation" }}<a class="card lq" href="{{ .RelPermalink }}#job-scripts"><h3>Slurm job-script builder</h3><p>Choose nodes, tasks, GPUs and time; get a commented batch script to submit.</p></a>{{ end }}
-      {{ with site.GetPage "/learn/fortran" }}<a class="card lq" href="{{ .RelPermalink }}#compiling"><h3>Compiling Fortran</h3><p>gfortran and Intel flags for debugging, optimisation, OpenMP, MPI and linking LAPACK.</p></a>{{ end }}
-      {{ with site.GetPage "/learn/python-for-science" }}<a class="card lq" href="{{ .RelPermalink }}"><h3>Python in the browser</h3><p>Real Python with NumPy, running in this page. Nothing to install.</p></a>{{ end }}
+      <nav class="course-next" aria-label="Other volumes">
+        {{ range site.Data.learn }}{{ if ne .id $cid }}<a class="tone-{{ .tone }}" href="{{ printf "learn/%s/" .slug | relURL }}"><span class="cn-cn">{{ index $roman (sub .n 1) }}</span><span><small>Volume {{ index $roman (sub .n 1) }}</small><b>{{ .title }}</b></span></a>{{ end }}{{ end }}
+      </nav>
     </div>
-    <div class="prose learn-about">{{ .Content }}</div>
-  </div>
-</section>
+  </section>
+{{- else }}
+  {{- /* ================= the library ================= */ -}}
+  <header class="lib-head">
+    <div class="wrap">
+      <h1>{{ .Title }}</h1>
+      {{ with .Params.lead }}<p class="lead">{{ . | markdownify }}</p>{{ end }}
+      <div class="lh-stats"><span><b>{{ len site.Data.learn }}</b> volumes</span><span><b>{{ len $order }}</b> chapters</span><span>each with a hands-on lab</span>
+        <span class="lh-progress" data-learn-total hidden><b data-learn-count>0</b> read</span></div>
+    </div>
+  </header>
+
+  <section class="section tight lib-shelf-wrap">
+    <div class="wrap">
+      <div class="shelf">
+        {{ range site.Data.learn }}{{ $c := . }}{{ $mine := where $order "course.id" $c.id }}
+        <a class="volume tone-{{ $c.tone }}" href="{{ printf "learn/%s/" $c.slug | relURL }}" data-learn-slugs="{{ range $mine }}{{ .page.File.ContentBaseName }} {{ end }}">
+          <span class="vol-cover vol-{{ $c.id }}" aria-hidden="true"><span class="vol-rn">{{ index $roman (sub $c.n 1) }}</span>{{ partial "learn-cover.html" $c.id }}</span>
+          <span class="vol-body">
+            <b>{{ $c.title }}</b>
+            <span class="vol-blurb">{{ $c.blurb }}</span>
+            <span class="vol-parts">{{ range $i, $p := $c.parts }}<span><i>{{ index $roman $i }}</i>{{ $p.title }}</span>{{ end }}</span>
+            <span class="vol-foot"><span>{{ len $mine }} chapters · {{ $c.level }}</span><span class="lp-bar"><i data-learn-bar></i></span></span>
+          </span>
+        </a>
+        {{ end }}
+      </div>
+    </div>
+  </section>
+
+  <section class="section alt">
+    <div class="wrap">
+      <div class="section-head"><div><h2>How the ideas connect</h2><p>Every chapter is a star; lines show what each one builds on. Hover a chapter to light up everything you need first, and click to open it.</p></div></div>
+      {{- $nodes := slice -}}
+      {{- range $order }}{{ $nodes = $nodes | append (dict "s" .page.File.ContentBaseName "t" .page.Title "n" .num "c" .course.id "u" .page.RelPermalink "d" .page.Description "m" .page.Params.minutes "p" (.page.Params.prereqs | default slice)) }}{{ end -}}
+      {{- $courses := slice -}}{{ range site.Data.learn }}{{ $courses = $courses | append (dict "id" .id "t" .title "tone" .tone "r" (index $roman (sub .n 1))) }}{{ end -}}
+      <figure class="lw lw-map" data-widget="learnmap" data-opts="{{ dict "nodes" $nodes "courses" $courses | jsonify }}"><div class="lw-body"><p class="lw-loading">Loading the map…</p></div></figure>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="learn-how">
+        <div><span class="lhw-n">1</span><h3>Read it like a textbook</h3><p>Each chapter builds an idea from the ground up, with the mathematics written out and coloured to match the figures, and ends with the papers and books that go further.</p></div>
+        <div><span class="lhw-n">2</span><h3>Change it and watch</h3><p>Every chapter has a working model: drag points, move sliders, run code. Everything is computed live in your browser.</p></div>
+        <div><span class="lhw-n">3</span><h3>Check yourself</h3><p>Short questions explain why each answer is right or wrong. Progress is kept in this browser only.</p></div>
+      </div>
+      <div class="lq-grid" style="margin-top:48px">
+        {{ with site.GetPage "/learn/linux-for-simulation" }}<a class="card lq" href="{{ .RelPermalink }}#reference"><h3>Linux command reference</h3><p>About 75 commands, searchable, with a command explainer.</p></a>{{ end }}
+        {{ with site.GetPage "/learn/linux-for-simulation" }}<a class="card lq" href="{{ .RelPermalink }}#job-scripts"><h3>Slurm job-script builder</h3><p>Choose nodes, tasks, GPUs and time; get a commented script.</p></a>{{ end }}
+        {{ with site.GetPage "/learn/fortran" }}<a class="card lq" href="{{ .RelPermalink }}#compiling-the-flags-that-matter"><h3>Compiling Fortran</h3><p>gfortran and Intel flags for debugging, speed, OpenMP and MPI.</p></a>{{ end }}
+        {{ with site.GetPage "/learn/python-for-science" }}<a class="card lq" href="{{ .RelPermalink }}"><h3>Python in the browser</h3><p>Real Python with NumPy, running in the page.</p></a>{{ end }}
+      </div>
+      <div class="prose learn-about">{{ .Content }}</div>
+    </div>
+  </section>
+{{- end }}
 {{ end }}

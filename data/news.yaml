@@ -1,6 +1,6 @@
 # Newest first. Markdown links allowed in "text".
 - when: "Oct 2026"
-  text: "Opened [Learn](/learn/), an interactive course in machine learning for materials: 20 lessons from the Linux shell, Python and Fortran to MLIPs, differentiable MD and diffusion models, each with a hands-on lab."
+  text: "Opened [Learn](/learn/), a library of four interactive volumes: computing and Linux, machine learning from a single neuron, molecular science from Newton to statistical mechanics, and machine learning for materials. 32 chapters, each with a hands-on lab."
 - when: "Oct 2026"
   text: "Added three materials-science tools: [FacetLab](/facetlab/) for nanoparticle structure, [Bragg](/bragg/) for powder XRD and [BoxMaker](/boxmaker/) for simulation-box setup."
 - when: "Oct 2026"

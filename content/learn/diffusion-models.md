@@ -16,7 +16,7 @@ Everything so far has been **discriminative**: given a structure, predict a prop
 Three families dominate.
 
 - **Variational autoencoders** (VAEs) compress a structure to a low-dimensional latent vector and decode it back; sampling latent vectors and decoding gives new structures. CDVAE (2022) combined a VAE with a diffusion-style decoder for crystals.
-- **Autoregressive models** generate a structure token by token: a sequence of atoms, or the text of a CIF file ([lesson 4.3](../transformers/)).
+- **Autoregressive models** generate a structure token by token: a sequence of atoms, or the text of a CIF file ([the lesson on attention](../transformers/)).
 - **Diffusion models** learn to reverse a gradual noising process. They now produce the most realistic images, molecules, protein backbones and crystals, and are the subject of the rest of this lesson.
 
 ## The forward process: destroying data, gently
@@ -90,9 +90,9 @@ A crystal is not a cloud of points in a plane, and each part of it needs its own
 - **Atom types** are discrete: they are diffused with discrete (categorical) noise, for example randomly masking or replacing elements.
 - **Fractional coordinates** live on a torus (they wrap around at 0 and 1), so the noise is a **wrapped Gaussian** and the score is computed on the periodic domain.
 - **The lattice** (three vectors) is diffused separately and must be generated consistently with the atoms.
-- **The denoising network** must be equivariant to rotations, invariant to permutations and to the choice of unit cell, which is where the periodic equivariant GNNs of lessons 4.2 and 5.1 come in.
+- **The denoising network** must be equivariant to rotations, invariant to permutations and to the choice of unit cell, which is where the periodic equivariant graph networks of the [graph-network](../graph-neural-networks/) and [crystal-graph](../materials-representations/) lessons come in.
 
-**DiffCSP** (Jiao et al., 2023) jointly diffuses lattices and fractional coordinates for crystal structure prediction. **MatterGen** (Zeni et al., 2025) diffuses atom types, coordinates and lattice together, then fine-tunes with adapter modules so that generation can be steered towards target chemistry, symmetry, magnetic density or bulk modulus. In both cases generated candidates are relaxed with an MLIP or DFT, checked for stability against the convex hull ([lesson 5.1](../materials-representations/)), screened for novelty against known databases, and only then proposed for synthesis. The generative model narrows the search; it does not replace the physics.
+**DiffCSP** (Jiao et al., 2023) jointly diffuses lattices and fractional coordinates for crystal structure prediction. **MatterGen** (Zeni et al., 2025) diffuses atom types, coordinates and lattice together, then fine-tunes with adapter modules so that generation can be steered towards target chemistry, symmetry, magnetic density or bulk modulus. In both cases generated candidates are relaxed with an MLIP or DFT, checked for stability against the convex hull ([the lesson on crystal graphs](../materials-representations/)), screened for novelty against known databases, and only then proposed for synthesis. The generative model narrows the search; it does not replace the physics.
 
 ## In practice
 

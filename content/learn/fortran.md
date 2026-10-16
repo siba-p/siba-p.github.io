@@ -1,7 +1,7 @@
 ---
 title: "Fortran for scientific computing"
 description: "Modern Fortran from a first program to modules, array syntax, memory layout and performance, compiler flags for debugging and speed, Makefiles, OpenMP, MPI, LAPACK, and calling Fortran from Python. Every program here was compiled and run."
-track: toolbox
+track: code
 weight: 4
 level: Core
 minutes: 70
@@ -197,7 +197,7 @@ A NumPy array of shape `(n, 3)` in the default (C) order has the same bytes as a
 
 Real programs are split into **subroutines** (which act through their arguments) and **functions** (which return a value), placed inside **modules**. A module gives the compiler an *explicit interface*: it can check every call for the right number, type and shape of arguments. The `intent` attribute documents and enforces which arguments are inputs and outputs.
 
-Here is a Lennard-Jones energy and force routine with periodic boundaries, in a module, the same physics as [lesson 3.2](../molecular-dynamics/):
+Here is a Lennard-Jones energy and force routine with periodic boundaries, in a module, the same physics as [the molecular dynamics lesson](../molecular-dynamics/):
 
 ```fortran
 module lj_mod

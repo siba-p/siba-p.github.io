@@ -6,7 +6,7 @@ weight: 2
 level: Core
 minutes: 60
 lab: "Run a Lennard-Jones fluid and break the integrator"
-prereqs: ["potential-energy-surfaces"]
+prereqs: ["potential-energy-surfaces", "boltzmann-and-maxwell"]
 ---
 
 ## The idea
@@ -94,7 +94,7 @@ where $N_{\text{df}}$ is the number of degrees of freedom ($3N - 3$ in 3D after 
 3. **Equilibrate at constant volume and temperature** (NVT) for tens to hundreds of picoseconds, often with restraints on the solute.
 4. **Equilibrate at constant pressure** (NPT) until the density is stable.
 5. **Production**: a long run with canonical thermostat and barostat, saving coordinates every few picoseconds.
-6. **Analyse**, checking equilibration and statistical errors ([lesson 3.3](../trajectory-analysis/)).
+6. **Analyse**, checking equilibration and statistical errors ([the lesson on trajectory analysis](../trajectory-analysis/)).
 
 In GROMACS each stage is a preprocess-then-run pair (each `.mdp` file holds the stage's settings):
 

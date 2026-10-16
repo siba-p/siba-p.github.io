@@ -75,7 +75,7 @@ $$
 The first term rewards fitting the data; the second penalises kernels that could explain *too many* different data sets (a very short length-scale can fit anything). The balance is an automatic Occam's razor, and it is why GPs rarely overfit badly. Press **Fit hyperparameters** in the lab after adding six or eight points; the readout shows the log marginal likelihood for whatever settings you choose by hand, and you can try to beat the optimiser.
 
 {{< note type="tip" title="Kernels encode physics" >}}
-Kernels can be added and multiplied to build in prior knowledge: a periodic kernel for a function of a torsion angle, a linear plus RBF kernel for a trend with local wiggles, a kernel on composition vectors or atomic environments for materials. The **SOAP** kernel, which compares the smoothed neighbour densities of two atomic environments, underlies the Gaussian approximation potentials (GAP) discussed in [lesson 5.2](../mlip/). Kernel ridge regression, widely used for molecular properties, gives exactly the GP posterior mean, without the variance.
+Kernels can be added and multiplied to build in prior knowledge: a periodic kernel for a function of a torsion angle, a linear plus RBF kernel for a trend with local wiggles, a kernel on composition vectors or atomic environments for materials. The **SOAP** kernel, which compares the smoothed neighbour densities of two atomic environments, underlies the Gaussian approximation potentials (GAP) discussed in [the lesson on interatomic potentials](../mlip/). Kernel ridge regression, widely used for molecular properties, gives exactly the GP posterior mean, without the variance.
 {{< /note >}}
 
 ## In practice
@@ -138,7 +138,7 @@ Whatever the method, **check the calibration**: on held-out data, about 95% of t
 - q: "An ensemble of five interatomic potentials agrees closely on most MD frames but disagrees strongly on a few. What is the sensible use of this signal?"
   options: ["Discard the frames where they disagree", "Compute those frames with DFT and add them to the training set", "Average the five predictions and trust the result"]
   answer: 1
-  why: "Large ensemble disagreement indicates high epistemic uncertainty, typically configurations unlike the training data. Labelling them with the reference method is the core of active learning (lesson 5.5)."
+  why: "Large ensemble disagreement indicates high epistemic uncertainty, typically configurations unlike the training data. Labelling them with the reference method is the core of active learning (see the active-learning lesson)."
 {{< /quiz >}}
 
 ## References and further reading

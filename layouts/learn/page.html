@@ -3,15 +3,16 @@
 {{- $me := . -}}
 {{- $idx := -1 -}}{{- $cur := dict -}}
 {{- range $i, $o := $order }}{{ if eq $o.page.RelPermalink $me.RelPermalink }}{{ $idx = $i }}{{ $cur = $o }}{{ end }}{{ end -}}
-{{- $t := $cur.track | default dict -}}
-<article class="lesson tone-{{ $t.tone }}" data-learn-page="{{ .File.ContentBaseName }}">
+{{- $c := $cur.course | default dict -}}
+{{- $mine := where $order "course.id" $c.id -}}
+<article class="lesson tone-{{ $c.tone }}" data-learn-page="{{ .File.ContentBaseName }}">
   <header class="lesson-head">
     <div class="wrap">
-      <nav class="crumbs" aria-label="Breadcrumb"><a href="{{ "learn/" | relURL }}">Learn</a><span aria-hidden="true">/</span><a href="{{ "learn/" | relURL }}#track-{{ $t.id }}">{{ $t.title }}</a></nav>
+      <nav class="crumbs" aria-label="Breadcrumb"><a href="{{ "learn/" | relURL }}">Learn</a><span aria-hidden="true">/</span><a href="{{ printf "learn/%s/" $c.slug | relURL }}">{{ $c.title }}</a><span aria-hidden="true">/</span><a href="{{ printf "learn/%s/" $c.slug | relURL }}#track-{{ $cur.part.id }}">{{ $cur.part.title }}</a></nav>
       <h1>{{ .Title }}</h1>
       {{ with .Description }}<p class="lead">{{ . }}</p>{{ end }}
       <ul class="lesson-meta">
-        <li><b>Lesson {{ $cur.num }}</b> of {{ len $order }}</li>
+        <li><b>Lesson {{ $cur.num }}</b></li>
         <li><span class="lvl lvl-{{ lower .Params.level }}">{{ .Params.level }}</span></li>
         <li>About {{ .Params.minutes }} min</li>
         {{ with .Params.lab }}<li class="lm-lab">Lab: {{ . }}</li>{{ end }}
@@ -27,21 +28,21 @@
   <div class="wrap lesson-layout">
     <aside class="course-nav" aria-label="Course outline">
       <details class="cn-box" open>
-        <summary>Course outline <span class="cn-prog" data-learn-count-wrap><b data-learn-count>0</b>/{{ len $order }}</span></summary>
-        {{ range site.Data.learn }}
-        {{- $tt := . -}}
-        <div class="cn-track tone-{{ $tt.tone }}{{ if eq $tt.id $t.id }} is-cur{{ end }}">
-          <p class="cn-th"><span>{{ $tt.n }}</span>{{ $tt.short }}</p>
+        <summary>Course {{ $c.n }}: {{ $c.short }} <span class="cn-prog" data-learn-slugs="{{ range $mine }}{{ .page.File.ContentBaseName }} {{ end }}"><b data-learn-count>0</b>/{{ len $mine }}</span></summary>
+        {{ range $pi, $p := $c.parts }}
+        <div class="cn-track tone-{{ $c.tone }}{{ if eq $p.id $cur.part.id }} is-cur{{ end }}">
+          <p class="cn-th"><span>{{ add $pi 1 }}</span>{{ $p.title }}</p>
           <ol>
-            {{ range $order }}{{ if eq .track.id $tt.id }}
-            {{- $p := .page }}
-            <li><a href="{{ $p.RelPermalink }}" data-learn-slug="{{ $p.File.ContentBaseName }}"{{ if eq $p.RelPermalink $me.RelPermalink }} aria-current="page"{{ end }}><span class="cn-n">{{ .num }}</span><span class="cn-t">{{ $p.Title }}</span></a>
-              {{ if eq $p.RelPermalink $me.RelPermalink }}{{ with $me.TableOfContents }}<div class="cn-toc">{{ . }}</div>{{ end }}{{ end }}
+            {{ range $mine }}{{ if eq .part.id $p.id }}
+            {{- $pg := .page }}
+            <li><a href="{{ $pg.RelPermalink }}" data-learn-slug="{{ $pg.File.ContentBaseName }}"{{ if eq $pg.RelPermalink $me.RelPermalink }} aria-current="page"{{ end }}><span class="cn-n">{{ .num }}</span><span class="cn-t">{{ $pg.Title }}</span></a>
+              {{ if eq $pg.RelPermalink $me.RelPermalink }}{{ with $me.TableOfContents }}<div class="cn-toc">{{ . }}</div>{{ end }}{{ end }}
             </li>
             {{ end }}{{ end }}
           </ol>
         </div>
         {{ end }}
+        <p class="cn-all"><a href="{{ "learn/" | relURL }}">← All four courses</a></p>
       </details>
     </aside>
 
@@ -56,8 +57,8 @@
 
   <div class="wrap">
     <nav class="lesson-pager" aria-label="Lessons">
-      {{ if gt $idx 0 }}{{ with index $order (sub $idx 1) }}<a href="{{ .page.RelPermalink }}"><small>← Previous · {{ .num }}</small><span>{{ .page.Title }}</span></a>{{ end }}{{ else }}<span></span>{{ end }}
-      {{ if lt (add $idx 1) (len $order) }}{{ with index $order (add $idx 1) }}<a class="next" href="{{ .page.RelPermalink }}"><small>Next · {{ .num }} →</small><span>{{ .page.Title }}</span></a>{{ end }}{{ else }}<a class="next" href="{{ "learn/" | relURL }}"><small>Finished →</small><span>Back to the learning path</span></a>{{ end }}
+      {{ if gt $idx 0 }}{{ with index $order (sub $idx 1) }}<a href="{{ .page.RelPermalink }}"><small>← {{ if ne .course.id $c.id }}Previous course · {{ end }}{{ .num }}</small><span>{{ .page.Title }}</span></a>{{ end }}{{ else }}<span></span>{{ end }}
+      {{ if lt (add $idx 1) (len $order) }}{{ with index $order (add $idx 1) }}<a class="next" href="{{ .page.RelPermalink }}"><small>{{ if ne .course.id $c.id }}Next course: {{ .course.title }} · {{ else }}Next · {{ end }}{{ .num }} →</small><span>{{ .page.Title }}</span></a>{{ end }}{{ else }}<a class="next" href="{{ "learn/" | relURL }}"><small>Finished →</small><span>Back to all courses</span></a>{{ end }}
     </nav>
   </div>
 </article>

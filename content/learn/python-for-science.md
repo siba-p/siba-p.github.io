@@ -1,7 +1,7 @@
 ---
 title: "Python for scientists"
 description: "Real Python, running in this page: numbers and units, lists and dictionaries, functions, NumPy arrays and why they are fast, reading simulation output, fitting, a small simulation, and the habits that keep scientific code correct."
-track: toolbox
+track: code
 weight: 3
 level: Foundation
 minutes: 60
@@ -127,7 +127,7 @@ For a real file, pass the file name: `np.loadtxt("energy.xvg", comments=["#", "@
 
 ## Fitting
 
-The Arrhenius fit from [lesson 2.1](../learning-from-data/), now with `numpy.polyfit`, which also returns the covariance matrix of the parameters:
+The Arrhenius fit from [the first fitting lesson](../learning-from-data/), now with `numpy.polyfit`, which also returns the covariance matrix of the parameters:
 
 {{< py >}}
 # fitting: an Arrhenius plot with numpy.polyfit
@@ -144,7 +144,7 @@ For nonlinear models use `scipy.optimize.curve_fit`, which works the same way: a
 
 ## A small simulation
 
-Brownian particles take random Gaussian steps; their mean-squared displacement grows as $6Dt$, so its slope gives the diffusion coefficient ([lesson 3.3](../trajectory-analysis/)). The whole simulation is three array operations:
+Brownian particles take random Gaussian steps; their mean-squared displacement grows as $6Dt$, so its slope gives the diffusion coefficient ([the lesson on trajectory analysis](../trajectory-analysis/)). The whole simulation is three array operations:
 
 {{< py >}}
 # a tiny simulation: Brownian particles and their diffusion coefficient

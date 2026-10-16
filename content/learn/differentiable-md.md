@@ -11,7 +11,7 @@ prereqs: ["molecular-dynamics", "neural-networks"]
 
 ## A simulation is a function
 
-A molecular dynamics run maps parameters to observables. Give it the Lennard-Jones $\sigma$ and $\varepsilon$, partial charges, or the weights of a neural-network potential, and after many integration steps it returns a density, a radial distribution function, a diffusion coefficient. Usually we evaluate that function and compare it with experiment by hand. **Differentiable simulation** also computes its derivatives, $\partial\langle O\rangle/\partial\boldsymbol\theta$, exactly and cheaply, so that parameters can be fitted to observables by gradient descent, just as network weights are fitted to labels ([lesson 2.2](../gradient-descent/)).
+A molecular dynamics run maps parameters to observables. Give it the Lennard-Jones $\sigma$ and $\varepsilon$, partial charges, or the weights of a neural-network potential, and after many integration steps it returns a density, a radial distribution function, a diffusion coefficient. Usually we evaluate that function and compare it with experiment by hand. **Differentiable simulation** also computes its derivatives, $\partial\langle O\rangle/\partial\boldsymbol\theta$, exactly and cheaply, so that parameters can be fitted to observables by gradient descent, just as network weights are fitted to labels ([the gradient-descent lesson](../gradient-descent/)).
 
 What makes this possible is that every step of an MD integrator is a composition of differentiable operations: distances, pair forces, multiplications by $\Delta t$. The chain rule runs straight through all of them.
 

@@ -15,7 +15,7 @@ A molecule is a finite set of atoms. A crystal is infinite: a **lattice** of tra
 
 Two consequences matter for machine learning.
 
-- **The unit cell is not unique.** Any supercell, or any other choice of lattice vectors spanning the same lattice, describes the same crystal. A representation must give the same answer for all of them: an extra symmetry beyond those of [lesson 4.1](../symmetry-descriptors/).
+- **The unit cell is not unique.** Any supercell, or any other choice of lattice vectors spanning the same lattice, describes the same crystal. A representation must give the same answer for all of them: an extra symmetry beyond those of [the lesson on symmetry and descriptors](../symmetry-descriptors/).
 - **Neighbours cross the cell boundary.** An atom near one face of the cell has neighbours that are periodic images of atoms near the opposite face. A model that only looks inside the cell sees the wrong environment.
 
 ## Composition-only models
@@ -31,11 +31,11 @@ Xie and Grossman's **crystal graph convolutional neural network** (CGCNN, 2018) 
 Things to notice in the lab:
 
 - In the **triangular** lattice there is only one atom per cell, so *every* edge goes to a periodic image of itself: the graph is a single node with six self-loops of different image shifts. Without periodic images there would be no graph at all.
-- Raising $r_c$ past each coordination shell adds a shell of edges at once; the histogram is the discrete version of the radial distribution function from [lesson 3.3](../trajectory-analysis/).
+- Raising $r_c$ past each coordination shell adds a shell of edges at once; the histogram is the discrete version of the radial distribution function from [the lesson on trajectory analysis](../trajectory-analysis/).
 - **Strain** splits shells that were degenerate: under uniaxial strain the six nearest neighbours of the triangular lattice become two plus four, and a cut-off placed between the new distances changes the coordination number abruptly. Smooth cut-off functions and distance expansions are what keep the model's output continuous under such changes.
 - Supercells give the same per-atom environments, so the per-atom features and an extensive sum over atoms do not depend on the choice of cell.
 
-Later models refine the idea. **MEGNet** adds a global state vector (temperature, pressure); **ALIGNN** adds a second "line graph" whose nodes are bonds, so that messages carry bond angles; **M3GNet** and **CHGNet** add three-body interactions and are trained on energies, forces and stresses from relaxation trajectories, so they serve as universal interatomic potentials ([lesson 5.2](../mlip/)).
+Later models refine the idea. **MEGNet** adds a global state vector (temperature, pressure); **ALIGNN** adds a second "line graph" whose nodes are bonds, so that messages carry bond angles; **M3GNet** and **CHGNet** add three-body interactions and are trained on energies, forces and stresses from relaxation trajectories, so they serve as universal interatomic potentials ([the lesson on interatomic potentials](../mlip/)).
 
 ## Where the data come from
 
@@ -49,7 +49,7 @@ Structure-based models are trained on high-throughput DFT databases:
 | Open Catalyst (OC20, OC22) | about a million adsorbate–surface relaxations for catalysis |
 | Matbench | a curated benchmark of 13 tasks with fixed splits, for comparing models fairly |
 
-Two cautions apply to all of them. First, they are **DFT** numbers, usually with the PBE functional: band gaps are systematically underestimated, and formation energies carry functional-dependent errors and empirical corrections. A model trained on them learns PBE, not experiment. Second, databases are **biased** towards known chemistry and towards structures that someone chose to compute, which is exactly the regime where a discovery model should be least trusted ([lesson 2.3](../generalisation/)).
+Two cautions apply to all of them. First, they are **DFT** numbers, usually with the PBE functional: band gaps are systematically underestimated, and formation energies carry functional-dependent errors and empirical corrections. A model trained on them learns PBE, not experiment. Second, databases are **biased** towards known chemistry and towards structures that someone chose to compute, which is exactly the regime where a discovery model should be least trusted ([the lesson on generalisation](../generalisation/)).
 
 ## Stability: the convex hull
 

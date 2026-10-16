@@ -1,18 +1,18 @@
 ---
-title: "Machine learning for molecules and materials, from first principles"
-lead: "An open, interactive course for scientists: from the Linux shell and the maths of fitting, through molecular dynamics and neural networks, to interatomic potentials, differentiable simulation and diffusion models for materials. Every lesson has a working model you can change."
-description: "An interactive course in machine learning for materials science: Linux, Python and Fortran, ML foundations, molecular dynamics, graph neural networks, transformers, MLIPs, differentiable MD and diffusion models."
+title: "A library for computational science"
+lead: "Four volumes, written like textbooks and built to be played with: how computers and Linux work, machine learning from a single neuron, molecular science from Newton to statistical mechanics, and where the two meet in materials research."
+description: "An interactive library for computational science: how computers and Linux work, Python and Fortran, neural networks from a single neuron, classical and quantum mechanics, statistical mechanics, molecular dynamics, and machine learning for materials."
 ---
 
-## About this course
+## About this library
 
-**Who it is for.** Students and researchers in chemistry, physics, materials science and chemical engineering who want to *use* machine learning in their research and understand what it is doing. You need school-level calculus and some comfort with vectors and matrices. No prior programming is assumed: track 1 starts at the shell prompt.
+**Who it is for.** Students and researchers in chemistry, physics, materials science and chemical engineering who want to *use* machine learning in their research and understand what it is doing. You need school-level calculus and some comfort with vectors and matrices. No prior programming is assumed: Volume I starts with what happens inside the processor. The volumes can be read in any order, and the map above shows which chapters each one builds on.
 
-**How it is built.** Each lesson follows the same arc: the scientific question, the idea, an interactive lab, the mathematics, how it is done in practice, common mistakes, and a short self-check. Equations are kept, because they are the shortest honest description of an idea, but each one is explained in words first. Every interactive figure computes its result live in your browser; none of them is an animation of a pre-recorded answer.
+**How it is built.** Each chapter follows the same arc: the scientific question, the idea, an interactive lab, the mathematics, how it is done in practice, common mistakes, and a short self-check. Equations are kept, because they are the shortest honest description of an idea, but each one is explained in words first. Every interactive figure computes its result live in your browser; none of them is an animation of a pre-recorded answer.
 
-**What it is not.** It is not a replacement for a textbook. Each lesson ends with the primary papers and the book chapters that go deeper, and they are worth reading.
+**What it is not.** It is not a replacement for a textbook. Each chapter ends with the primary papers and the book chapters that go deeper, and they are worth reading.
 
-### Core textbooks for the whole course
+### Core textbooks for the whole library
 
 <div class="refs">
 

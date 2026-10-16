@@ -127,16 +127,16 @@
 <section class="section alt" id="learn">
   <div class="wrap learn-band">
     <div class="lb-text">
-      <h2>Learn machine learning for materials, from first principles</h2>
-      <p>An open, interactive course for scientists, written with derivations and references to the original papers. It starts at the Linux prompt and builds up to interatomic potentials, differentiable simulation and diffusion models. Every lesson has a working model to change in the browser.</p>
+      <h2>A library for computational science, from first principles</h2>
+      <p>Four open volumes for scientists, written like textbooks with derivations and references to the original papers: how computers and Linux work, machine learning from a single neuron, molecular science from Newton to statistical mechanics, and machine learning for materials. Every chapter has a working model to change in the browser.</p>
       <div class="lb-cta">
-        <a class="btn btn-primary" href="{{ "learn/" | relURL }}">Open the course</a>
-        {{ with index $order 0 }}<a class="btn btn-ghost" href="{{ .page.RelPermalink }}">Start with lesson {{ .num }}</a>{{ end }}
+        <a class="btn btn-primary" href="{{ "learn/" | relURL }}">Open the library</a>
+        {{ with index $order 0 }}<a class="btn btn-ghost" href="{{ .page.RelPermalink }}">Start with chapter {{ .num }}</a>{{ end }}
       </div>
     </div>
     <ol class="lb-tracks">
       {{ range site.Data.learn }}{{ $t := . }}{{ $n := 0 }}{{ range $order }}{{ if eq .track.id $t.id }}{{ $n = add $n 1 }}{{ end }}{{ end }}
-      <li class="reveal"><a href="{{ "learn/" | relURL }}#track-{{ $t.id }}"><span class="lb-n lb-{{ $t.tone }}">{{ $t.n }}</span><span><b>{{ $t.title }}</b><small>{{ $n }} lessons · {{ $t.stage }}</small></span></a></li>
+      <li class="reveal"><a href="{{ printf "learn/%s/" $t.slug | relURL }}"><span class="lb-n lb-{{ $t.tone }}">{{ $t.n }}</span><span><b>{{ $t.title }}</b><small>{{ $n }} chapters · {{ $t.level }}</small></span></a></li>
       {{ end }}
     </ol>
   </div>

@@ -4,6 +4,7 @@ description: "The Born–Oppenheimer picture, forces as gradients, pair potentia
 track: sim
 weight: 1
 level: Foundation
+prereqs: ["motion-and-phase-space"]
 minutes: 45
 lab: "Pull two atoms apart and read the force"
 ---
@@ -20,7 +21,7 @@ $$
 
 Everything else follows from $E(\mathbf R)$. **Minima** are stable structures: molecules, crystals, adsorption geometries. **First-order saddle points** connect minima and are transition states; their height sets reaction rates. The **curvature** at a minimum, the Hessian $\partial^2 E/\partial\mathbf r_i\partial\mathbf r_j$, gives vibrational frequencies and phonons. Molecular dynamics moves the atoms across the surface under these forces.
 
-Computing $E(\mathbf R)$ from quantum mechanics, typically with density functional theory (DFT), is accurate but expensive: the cost grows roughly as $N^3$ with the number of electrons, which limits routine DFT molecular dynamics to a few hundred atoms for tens of picoseconds. A **force field** or **interatomic potential** replaces the quantum calculation with a cheap analytic function of the positions. This lesson is about the classical forms; [lesson 5.2](../mlip/) replaces them with machine-learned ones.
+Computing $E(\mathbf R)$ from quantum mechanics, typically with density functional theory (DFT), is accurate but expensive: the cost grows roughly as $N^3$ with the number of electrons, which limits routine DFT molecular dynamics to a few hundred atoms for tens of picoseconds. A **force field** or **interatomic potential** replaces the quantum calculation with a cheap analytic function of the positions. This lesson is about the classical forms; [the lesson on interatomic potentials](../mlip/) replaces them with machine-learned ones.
 
 ## Pair potentials
 
@@ -55,7 +56,7 @@ $$
 u(r) \approx u(r_0) + \tfrac12 k\,(r-r_0)^2, \qquad k = \left.\frac{\mathrm d^2u}{\mathrm dr^2}\right|_{r_0},
 $$
 
-and a diatomic of reduced mass $\mu = m_1m_2/(m_1+m_2)$ vibrates with angular frequency $\omega = \sqrt{k/\mu}$, usually quoted as a wavenumber $\tilde\nu = \omega/(2\pi c)$. For the Morse potential, $k = 2D_e a^2$. The H₂ parameters in the lab give about 4400 cm⁻¹, close to the measured harmonic frequency; the C–H bond gives about 2900 cm⁻¹, the familiar C–H stretch region of an infrared spectrum. These numbers matter for simulation: the fastest vibration in a system sets the largest stable time step ([lesson 3.2](../molecular-dynamics/)).
+and a diatomic of reduced mass $\mu = m_1m_2/(m_1+m_2)$ vibrates with angular frequency $\omega = \sqrt{k/\mu}$, usually quoted as a wavenumber $\tilde\nu = \omega/(2\pi c)$. For the Morse potential, $k = 2D_e a^2$. The H₂ parameters in the lab give about 4400 cm⁻¹, close to the measured harmonic frequency; the C–H bond gives about 2900 cm⁻¹, the familiar C–H stretch region of an infrared spectrum. These numbers matter for simulation: the fastest vibration in a system sets the largest stable time step ([the molecular dynamics lesson](../molecular-dynamics/)).
 
 ## Anatomy of a classical force field
 

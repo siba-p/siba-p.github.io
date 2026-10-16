@@ -1,8 +1,8 @@
 ---
 title: "Symmetry and atomic descriptors"
 description: "Why a model of atoms must respect translation, rotation, reflection and permutation; invariance against equivariance; locality; and the descriptors (Coulomb matrices, symmetry functions, SOAP, ACE) that build these symmetries in."
-track: arch
-weight: 1
+track: ai4mat
+weight: 0
 level: Core
 minutes: 45
 lab: "Rotate, renumber and mirror a cluster"
@@ -29,7 +29,7 @@ There are three ways to give a model these symmetries:
 
 1. **Data augmentation**: show it many rotated copies and hope it learns. Approximate, and wasteful.
 2. **Invariant descriptors**: transform the structure into features that are invariant by construction, then use any regressor (this lesson).
-3. **Equivariant architectures**: build networks whose internal features transform correctly under rotation at every layer ([lesson 4.2](../graph-neural-networks/) and [lesson 5.2](../mlip/)).
+3. **Equivariant architectures**: build networks whose internal features transform correctly under rotation at every layer ([the lesson on graph neural networks](../graph-neural-networks/) and [the lesson on interatomic potentials](../mlip/)).
 
 ## Locality and extensivity
 

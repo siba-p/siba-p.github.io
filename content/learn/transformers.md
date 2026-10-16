@@ -37,7 +37,7 @@ In the lab, try:
 
 ## Why divide by √d?
 
-If the components of $\mathbf q$ and $\mathbf k$ are independent with zero mean and unit variance, their dot product $\sum_{a=1}^{d_k} q_a k_a$ has variance $d_k$. For $d_k = 64$ the scores have a standard deviation of 8, the softmax saturates (one weight near 1, the rest near 0), and its gradients vanish. Dividing by $\sqrt{d_k}$ restores unit variance. It is a small detail with a large effect on trainability, and the same reasoning underlies careful weight initialisation ([lesson 2.4](../neural-networks/)).
+If the components of $\mathbf q$ and $\mathbf k$ are independent with zero mean and unit variance, their dot product $\sum_{a=1}^{d_k} q_a k_a$ has variance $d_k$. For $d_k = 64$ the scores have a standard deviation of 8, the softmax saturates (one weight near 1, the rest near 0), and its gradients vanish. Dividing by $\sqrt{d_k}$ restores unit variance. It is a small detail with a large effect on trainability, and the same reasoning underlies careful weight initialisation ([the lesson on neural networks in practice](../neural-networks/)).
 
 ## Multi-head attention
 

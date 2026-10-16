@@ -1,12 +1,12 @@
 ---
-title: "Neural networks from scratch"
+title: "Neural networks in practice"
 description: "Neurons, layers and activation functions; why networks can approximate any smooth function; backpropagation derived with the chain rule; and the choices that matter when the output is an energy whose derivative is a force."
 track: ml
 weight: 4
 level: Core
 minutes: 55
 lab: "Train a network live and watch its neurons"
-prereqs: ["gradient-descent"]
+prereqs: ["backpropagation", "gradient-descent"]
 ---
 
 ## From fixed features to learned features
@@ -129,15 +129,15 @@ for step in range(2001):
 ## Initialisation and training in practice
 
 - **Initial weights must be random**, or every neuron in a layer receives the same gradient and they stay identical forever. Their *scale* matters too: too large and tanh neurons saturate (their gradient vanishes); too small and the signal dies out through the layers. Glorot (Xavier) initialisation uses variance $1/d_{\text{in}}$ or $2/(d_{\text{in}}+d_{\text{out}})$ for tanh; He initialisation uses $2/d_{\text{in}}$ for ReLU. Press *New initial weights* in the lab: different starting points reach different, comparably good fits, a reminder that the loss surface of a network has many minima.
-- **Standardise inputs and outputs**, for the conditioning reasons in [lesson 2.2](../gradient-descent/).
-- **Monitor a validation set** and stop or decay the learning rate when it stops improving ([lesson 2.3](../generalisation/)).
+- **Standardise inputs and outputs**, for the conditioning reasons in [the gradient-descent lesson](../gradient-descent/).
+- **Monitor a validation set** and stop or decay the learning rate when it stops improving ([the lesson on generalisation](../generalisation/)).
 
 ## When the output is an energy
 
 In molecular science a network often predicts an energy $E$, and the forces are its negative gradient with respect to atomic positions, $\mathbf F_i = -\partial E/\partial\mathbf r_i$, obtained by the same automatic differentiation. That has consequences you can see in the lab.
 
 - **The activation must be smooth.** A ReLU network is piecewise linear, so its derivative is piecewise *constant* and jumps at every kink. Train ReLU on the bond-energy curve, then switch the lab to *Slope dy/dx*: the energy fit can look good, but its slope, the force, is a staircase, and molecular dynamics with such forces does not conserve energy. Interatomic potentials use tanh, SiLU or similar smooth activations.
-- **Fitting forces as well as energies** gives far more information per calculation: one DFT run of $N$ atoms yields one energy but $3N$ force components. This is the subject of [lesson 5.2](../mlip/).
+- **Fitting forces as well as energies** gives far more information per calculation: one DFT run of $N$ atoms yields one energy but $3N$ force components. This is the subject of [the lesson on interatomic potentials](../mlip/).
 - **The step function** is a warning in the other direction: smooth networks round off discontinuities, and a network asked to fit one will overshoot (try tanh on the step with few neurons).
 
 {{< quiz >}}

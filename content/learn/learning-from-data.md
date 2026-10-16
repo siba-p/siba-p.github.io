@@ -68,7 +68,7 @@ $$
 Geometrically, $\mathbf X\hat{\boldsymbol\theta}$ is the orthogonal projection of $\mathbf y$ onto the column space of $\mathbf X$: the residual vector is perpendicular to every feature column. Numerically, never form $(\mathbf X^\top\mathbf X)^{-1}$ explicitly; squaring $\mathbf X$ squares its condition number. Libraries solve the problem with a QR or singular-value decomposition instead (`numpy.linalg.lstsq` uses the SVD).
 
 {{< note type="key" title="Linear in the parameters, not in x" >}}
-"Linear regression" means linear in $\boldsymbol\theta$. The columns of $\mathbf X$ can be any fixed functions of the input: $x^2$, $\sin x$, $1/T$, $\ln c$. The Arrhenius equation $k = A\,e^{-E_a/RT}$ becomes linear after a logarithm, $\ln k = \ln A - (E_a/R)(1/T)$, with features $(1, 1/T)$. Polynomial fits, Fourier fits and the descriptor-based potentials in [lesson 5.2](../mlip/) are all linear models in this sense. Neural networks are the first models in the course that are *not*.
+"Linear regression" means linear in $\boldsymbol\theta$. The columns of $\mathbf X$ can be any fixed functions of the input: $x^2$, $\sin x$, $1/T$, $\ln c$. The Arrhenius equation $k = A\,e^{-E_a/RT}$ becomes linear after a logarithm, $\ln k = \ln A - (E_a/R)(1/T)$, with features $(1, 1/T)$. Polynomial fits, Fourier fits and the descriptor-based potentials in [the lesson on interatomic potentials](../mlip/) are all linear models in this sense. Neural networks are the first models in the course that are *not*.
 {{< /note >}}
 
 ## Where least squares comes from: maximum likelihood

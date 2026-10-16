@@ -2,7 +2,7 @@
 title: "Linux for simulation work: remote machines, jobs and data"
 description: "Working on clusters: SSH keys and configuration, moving data with rsync, sessions that survive disconnection, software modules and conda, the Slurm scheduler and job scripts, file systems and quotas. With a command explainer, a job-script builder and a searchable reference of about 75 commands."
 track: toolbox
-weight: 2
+weight: 4
 level: Foundation
 minutes: 55
 lab: "Explain any command; build a Slurm script"

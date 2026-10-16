@@ -97,7 +97,7 @@ If you can afford the Hessian, **Newton's method** jumps straight to the minimum
 
 ## Where the gradient comes from
 
-Every method above needs $\nabla L$. For a model with a million parameters, finite differences would need a million extra loss evaluations per step. **Reverse-mode automatic differentiation** (backpropagation) computes the full gradient for about the cost of two or three evaluations of the loss, whatever the number of parameters. It is the subject of [lesson 2.4](../neural-networks/), and its forward-mode cousin reappears in [differentiable molecular dynamics](../differentiable-md/).
+Every method above needs $\nabla L$. For a model with a million parameters, finite differences would need a million extra loss evaluations per step. **Reverse-mode automatic differentiation** (backpropagation) computes the full gradient for about the cost of two or three evaluations of the loss, whatever the number of parameters. It is the subject of [the lesson on neural networks in practice](../neural-networks/), and its forward-mode cousin reappears in [differentiable molecular dynamics](../differentiable-md/).
 
 {{< quiz >}}
 - q: "The largest curvature (Hessian eigenvalue) of your loss near the minimum is 50. Which fixed learning rate keeps plain gradient descent stable?"

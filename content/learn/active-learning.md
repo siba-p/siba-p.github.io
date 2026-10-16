@@ -13,14 +13,14 @@ prereqs: ["uncertainty-gaussian-processes"]
 
 You can afford twenty more syntheses, or two hundred more DFT calculations. Which ones? Choosing by intuition, on a grid or at random wastes most of the budget. **Sequential experimental design** uses everything measured so far to choose the next experiment, so that each one is as informative or as promising as possible. Two closely related goals use the same machinery.
 
-- **Active learning** chooses data to make a *model* good everywhere it will be used, for example DFT calculations to train an interatomic potential ([lesson 5.2](../mlip/)).
+- **Active learning** chooses data to make a *model* good everywhere it will be used, for example DFT calculations to train an interatomic potential ([the lesson on interatomic potentials](../mlip/)).
 - **Bayesian optimisation** (BO) chooses experiments to find the *best* material, the composition or process conditions that maximise a property, in as few trials as possible.
 
 ## The loop
 
 Both are a loop of four steps:
 
-1. Fit a **surrogate model** to all data so far, one that predicts both a mean $\mu(\mathbf x)$ and an uncertainty $\sigma(\mathbf x)$. Gaussian processes ([lesson 2.5](../uncertainty-gaussian-processes/)) are the classic choice for small data; ensembles of networks or of trees for larger data.
+1. Fit a **surrogate model** to all data so far, one that predicts both a mean $\mu(\mathbf x)$ and an uncertainty $\sigma(\mathbf x)$. Gaussian processes ([the lesson on Gaussian processes](../uncertainty-gaussian-processes/)) are the classic choice for small data; ensembles of networks or of trees for larger data.
 2. Compute an **acquisition function** $a(\mathbf x)$ that scores how useful it would be to measure at $\mathbf x$.
 3. Run the experiment (or calculation) at $\mathbf x_{\text{next}} = \arg\max_{\mathbf x} a(\mathbf x)$.
 4. Add the result to the data and repeat.

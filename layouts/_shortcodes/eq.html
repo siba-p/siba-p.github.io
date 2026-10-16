@@ -1,0 +1,17 @@
+{{- /* An equation "reading card": a key equation, its coloured symbols explained, and a sentence
+       saying it in words. Usage:
+{{< eq title="Newton's second law" say="Force changes momentum." >}}
+$$ ... $$
+- $\textcolor{#e8792b}{F}$: force
+- $m$: mass
+{{< /eq >}}
+   The first $$…$$ block is the equation; list items become the legend. */ -}}
+{{- $inner := .Inner -}}
+{{- $parts := split $inner "\n- " -}}
+{{- $eqn := index $parts 0 -}}
+<aside class="eqcard">
+  {{ with .Get "title" }}<p class="eq-title">{{ . }}</p>{{ end }}
+  {{ $eqn | $.Page.RenderString (dict "display" "block") }}
+  {{ if gt (len $parts) 1 }}<ul class="eq-read">{{ range after 1 $parts }}<li>{{ . | $.Page.RenderString }}</li>{{ end }}</ul>{{ end }}
+  {{ with .Get "say" }}<p class="eq-say">{{ . | $.Page.RenderString }}</p>{{ end }}
+</aside>

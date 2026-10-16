@@ -11,7 +11,7 @@ prereqs: ["potential-energy-surfaces", "molecular-dynamics", "graph-neural-netwo
 
 ## The trade-off they break
 
-Every atomistic simulation chooses a model of the potential energy surface ([lesson 3.1](../potential-energy-surfaces/)). Density functional theory is accurate and general, but its cost grows roughly as $N^3$ in the number of electrons, limiting it to hundreds of atoms for picoseconds. Classical force fields are fast and scale linearly, but their fixed functional forms cannot describe bond breaking, changing coordination or chemistry they were not parameterised for. A **machine-learned interatomic potential** (MLIP) is a flexible function, fitted to DFT energies and forces, that reproduces the DFT surface closely while keeping the linear scaling and speed of a force field. With MLIPs, near-DFT-quality molecular dynamics of millions of atoms for nanoseconds has become routine.
+Every atomistic simulation chooses a model of the potential energy surface ([the lesson on potential energy surfaces](../potential-energy-surfaces/)). Density functional theory is accurate and general, but its cost grows roughly as $N^3$ in the number of electrons, limiting it to hundreds of atoms for picoseconds. Classical force fields are fast and scale linearly, but their fixed functional forms cannot describe bond breaking, changing coordination or chemistry they were not parameterised for. A **machine-learned interatomic potential** (MLIP) is a flexible function, fitted to DFT energies and forces, that reproduces the DFT surface closely while keeping the linear scaling and speed of a force field. With MLIPs, near-DFT-quality molecular dynamics of millions of atoms for nanoseconds has become routine.
 
 ## The anatomy of an MLIP
 
@@ -19,15 +19,15 @@ Almost every MLIP shares the same skeleton.
 
 1. **Locality.** The energy is a sum of atomic energies, each a function of the atom's neighbourhood within a cut-off $r_c$ (typically 5–6 Å):
    $$ E(\mathbf R) = \sum_{i=1}^{N} \varepsilon_{Z_i}\big(\{\mathbf r_{ij}, Z_j\}_{r_{ij} < r_c}\big). $$
-2. **Symmetry.** $\varepsilon$ is invariant to rotation, translation and permutation of like neighbours, through invariant descriptors ([lesson 4.1](../symmetry-descriptors/)) or an equivariant network ([lesson 4.2](../graph-neural-networks/)).
+2. **Symmetry.** $\varepsilon$ is invariant to rotation, translation and permutation of like neighbours, through invariant descriptors ([the lesson on symmetry and descriptors](../symmetry-descriptors/)) or an equivariant network ([the lesson on graph neural networks](../graph-neural-networks/)).
 3. **Conservative forces and stress by differentiation.** Forces and the stress tensor are derivatives of the single predicted energy, computed by automatic differentiation:
    $$ \mathbf F_i = -\frac{\partial E}{\partial\mathbf r_i}, \qquad \sigma_{\alpha\beta} = \frac{1}{V}\frac{\partial E}{\partial \epsilon_{\alpha\beta}}, $$
-   where $\epsilon$ is a homogeneous strain of the cell (sign conventions for stress vary between codes). Because the forces are an exact gradient, energy is conserved in MD ([lesson 3.2](../molecular-dynamics/)). Models that predict forces directly, without an energy, are faster but not conservative, and can drift or heat up in long simulations.
+   where $\epsilon$ is a homogeneous strain of the cell (sign conventions for stress vary between codes). Because the forces are an exact gradient, energy is conserved in MD ([the molecular dynamics lesson](../molecular-dynamics/)). Models that predict forces directly, without an energy, are faster but not conservative, and can drift or heat up in long simulations.
 
 ## Four generations of architectures
 
 - **Descriptor + neural network.** Behler and Parrinello (2007): atom-centred symmetry functions fed to element-specific networks. ANI applied the idea to organic molecules; DeePMD learns a local-frame descriptor and is widely used for large-scale materials simulation.
-- **Kernel methods.** Gaussian approximation potentials (GAP; Bartók et al., 2010) use SOAP kernels with sparse Gaussian-process regression, which provides a built-in variance ([lesson 2.5](../uncertainty-gaussian-processes/)).
+- **Kernel methods.** Gaussian approximation potentials (GAP; Bartók et al., 2010) use SOAP kernels with sparse Gaussian-process regression, which provides a built-in variance ([the lesson on Gaussian processes](../uncertainty-gaussian-processes/)).
 - **Linear models in complete bases.** Moment tensor potentials (MTP) and the atomic cluster expansion (ACE) are linear in their parameters over a systematically improvable many-body basis. They are fast, data-efficient and easy to fit.
 - **Message-passing and equivariant networks.** SchNet, NequIP, Allegro and MACE learn the representation end to end. Equivariant models in particular reach a given accuracy with far less data, which matters when each training point is an expensive DFT calculation. Most new work uses this family.
 
@@ -47,7 +47,7 @@ The lab makes four points that hold for real potentials.
 
 1. **Forces are worth many energies.** With four training points and energies only, the networks interpolate wildly; with forces the same four points constrain the curve tightly.
 2. **Inside the training range, errors are small; outside, anything can happen.** Remove short distances from the training set and the repulsive wall disappears: a real MD simulation with such a potential lets atoms collapse onto each other, the most common failure of a new MLIP.
-3. **The ensemble knows when it is guessing.** Where the five networks agree, they are usually right; where they disagree, they are usually wrong. That spread is the trigger for active learning ([lesson 5.5](../active-learning/)).
+3. **The ensemble knows when it is guessing.** Where the five networks agree, they are usually right; where they disagree, they are usually wrong. That spread is the trigger for active learning ([the active-learning lesson](../active-learning/)).
 4. **Fine structure needs data.** The small bump near 2.4 Å is invisible to the model unless points are sampled there.
 
 ## Building a training set
@@ -55,7 +55,7 @@ The lab makes four points that hold for real potentials.
 The data set matters more than the architecture. Good practice:
 
 - **Cover the configurations the simulation will visit**: MD snapshots at and above the target temperature, strained and rattled cells, surfaces, defects, and the short-distance repulsive region.
-- **Remove near-duplicates.** Consecutive MD frames add almost nothing ([lesson 2.3](../generalisation/)). Select diverse frames, for example by farthest-point sampling in descriptor space.
+- **Remove near-duplicates.** Consecutive MD frames add almost nothing ([the lesson on generalisation](../generalisation/)). Select diverse frames, for example by farthest-point sampling in descriptor space.
 - **Use consistent DFT settings** for every label: the same functional, pseudopotentials, plane-wave cut-off, k-point density and smearing. Mixed settings inject noise the model cannot fit.
 - **Grow the set iteratively**: train, run MD, find configurations where an ensemble disagrees or where the simulation fails, compute them with DFT, add, retrain. Tools such as FLARE (on-the-fly learning during MD) and DP-GEN (for DeePMD potentials) automate this loop.
 

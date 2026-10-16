@@ -317,14 +317,11 @@
   }
   function paintProgress() {
     const s = doneSet();
+    const slugsOf = el => { const h = el && el.closest("[data-learn-slugs]"); return h ? h.dataset.learnSlugs.trim().split(/\s+/).filter(Boolean) : null; };
     $$("[data-learn-slug]").forEach(a => a.classList.toggle("is-done", s.has(a.dataset.learnSlug)));
-    $$("[data-learn-count]").forEach(b => { b.textContent = $$(".lp-lesson[data-learn-slug], .course-nav [data-learn-slug]").filter((a, i, arr) => s.has(a.dataset.learnSlug) && arr.findIndex(x => x.dataset.learnSlug === a.dataset.learnSlug) === i).length; });
-    const tot = $("[data-learn-total]"); if (tot) tot.hidden = s.size === 0;
-    $$("[data-learn-bar]").forEach(bar => {
-      const sec = $("#track-" + bar.dataset.learnBar); if (!sec) return;
-      const ls = $$("[data-learn-slug]", sec), n = ls.filter(a => s.has(a.dataset.learnSlug)).length;
-      bar.style.width = (ls.length ? (100 * n / ls.length) : 0) + "%";
-    });
+    $$("[data-learn-count]").forEach(b => { const list = slugsOf(b); b.textContent = list ? list.filter(x => s.has(x)).length : s.size; });
+    $$("[data-learn-total]").forEach(t => { const list = slugsOf(t); t.hidden = !(list ? list.some(x => s.has(x)) : s.size); });
+    $$("[data-learn-bar]").forEach(bar => { const list = slugsOf(bar) || []; bar.style.width = (list.length ? 100 * list.filter(x => s.has(x)).length / list.length : 0) + "%"; });
     const resume = $("[data-learn-resume]");
     if (resume && s.size) { const next = $$(".lp-lesson[data-learn-slug]").find(a => !s.has(a.dataset.learnSlug)); if (next) { resume.href = next.getAttribute("href"); resume.textContent = "Continue with " + $(".lp-num", next).textContent; } }
     $$("[data-learn-mark]").forEach(b => { const on = s.has(b.dataset.learnMark); b.textContent = on ? "Completed ✓  (undo)" : "Mark this lesson complete"; b.classList.toggle("btn-primary", !on); b.classList.toggle("btn-ghost", on); });
