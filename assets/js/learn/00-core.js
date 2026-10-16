@@ -353,13 +353,14 @@
     pyReady = new Promise((res, rej) => {
       status("Loading Python (about 10 MB, first run only)…");
       const s = h("script", { src: PYODIDE + "pyodide.js", crossorigin: "anonymous" });
-      s.onload = async () => { try { const py = await window.loadPyodide({ indexURL: PYODIDE }); res(py); } catch (e) { rej(e); } };
+      s.onload = async () => { try { const py = await window.loadPyodide({ indexURL: PYODIDE }); py.runPython("import warnings; warnings.filterwarnings('ignore', category=DeprecationWarning)"); res(py); } catch (e) { rej(e); } };
       s.onerror = () => rej(new Error("Could not download Python. Check your connection and try again."));
       document.head.append(s);
     });
     pyReady.catch(() => { pyReady = null; });
     return pyReady;
   }
+  LW.loadPy = st => loadPy(st || (() => {}));
   function pycells() {
     $$(".pycell").forEach(cell => {
       const ta = $(".pc-code", cell), out = $(".pc-out", cell), run = $(".pc-run", cell), st = $(".pc-status", cell), orig = ta.value;
