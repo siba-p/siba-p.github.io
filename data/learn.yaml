@@ -1,72 +1,138 @@
-# The Learn section: four courses, each divided into parts. A lesson in content/learn/ names its
-# part with `track:`; its order inside the part is `weight`. Lessons are numbered within a course.
-- id: computing
+# The Learn section: subjects, each divided into themes. A topic in content/learn/ names its theme
+# with `track:`; `weight` orders topics inside a theme. There is no fixed reading order across
+# subjects: topics declare what they build on (`prereqs:`) and topic pages list what builds on them.
+# Themes with no topics yet are hidden.
+- id: math
   n: 1
-  slug: computing
-  title: "Computing for scientists"
-  short: "Computing"
-  tone: teal
-  icon: chip
-  level: "Start here"
-  blurb: "What actually happens inside a computer, how Linux and the shell are built, and the two languages of scientific computing, Python and Fortran. No prior experience assumed."
-  parts:
-    - id: machine
-      title: "How a computer works"
-      blurb: "Processor, memory and the way numbers are stored: the hardware every simulation runs on."
-    - id: toolbox
-      title: "Linux and the shell"
-      blurb: "The operating system, layer by layer, and the command line that drives it, from your laptop to a supercomputer."
-    - id: code
-      title: "Programming"
-      blurb: "Python for analysis and machine learning, Fortran for the fastest numerical codes."
-- id: ml
-  n: 2
-  slug: machine-learning
-  title: "Machine learning, from the neuron up"
-  short: "Machine learning"
-  tone: indigo
+  slug: mathematics
+  title: "Mathematics for science"
+  short: "Mathematics"
+  mark: "Maths"
+  tone: violet
   icon: curve
   level: "Foundations"
-  blurb: "Starting from one artificial neuron and building, picture by picture, to deep networks, uncertainty, graph networks and transformers."
+  blurb: "Functions, differential and integral calculus, linear algebra, multivariable calculus and probability: the mathematics used throughout simulation and machine learning, developed from first principles."
+  parts:
+    - id: calc
+      title: "Calculus"
+      blurb: "Functions, derivatives, Taylor series, integrals and numerical approximation."
+    - id: linalg
+      title: "Linear algebra and many variables"
+      blurb: "Vectors, matrices as linear maps, eigenvectors, partial derivatives, gradients and the Hessian."
+    - id: chance
+      title: "Probability and statistics"
+      blurb: "Random variables, distributions, expectation and variance, the central limit theorem and Bayes' theorem."
+- id: computing
+  n: 2
+  slug: computing
+  title: "Computers, Linux and compiled code"
+  short: "Computing"
+  mark: "Computing"
+  tone: teal
+  icon: chip
+  level: "Foundations"
+  blurb: "Processor architecture, memory hierarchy and number representation; the Linux operating system and the shell; and compiled languages for numerical work."
+  parts:
+    - id: machine
+      title: "Computer architecture"
+      blurb: "The fetch–decode–execute cycle, the memory hierarchy, integers and IEEE 754 floating point."
+    - id: toolbox
+      title: "Linux and the shell"
+      blurb: "Kernel, system calls and processes; how bash parses a command; files, pipes, scripting and cluster job scheduling."
+    - id: code
+      title: "Compiled languages"
+      blurb: "Fortran for numerical kernels: types, arrays, modules, compilation and parallelism."
+- id: python
+  n: 3
+  slug: python
+  title: "Python for scientific computing"
+  short: "Python"
+  mark: "Python"
+  tone: sky
+  icon: code
+  level: "Foundations"
+  blurb: "The Python language from the interpreter up: how source code becomes bytecode, the object and memory model, control flow, functions, data structures and classes, then NumPy, data handling and performance."
+  parts:
+    - id: pycore
+      title: "The language"
+      blurb: "Interpreter, objects and names, control flow, functions and scope, built-in collections and classes."
+    - id: pysci
+      title: "Scientific Python"
+      blurb: "NumPy arrays and their memory layout, vectorisation and broadcasting, plotting and data files, and making code fast."
+- id: ml
+  n: 4
+  slug: machine-learning
+  title: "Machine learning"
+  short: "Machine learning"
+  mark: "Learning"
+  tone: indigo
+  icon: curve
+  level: "Core"
+  blurb: "From a single artificial neuron to deep networks: regression and classification, optimisation, generalisation, unsupervised learning, kernels and Gaussian processes, and architectures for images, graphs and sequences."
   parts:
     - id: neuron
-      title: "The neuron"
-      blurb: "One neuron, how it learns, how layers of neurons bend space, and how backpropagation assigns the blame."
+      title: "Neurons and networks"
+      blurb: "The artificial neuron, logistic regression, multilayer networks as maps of space, and backpropagation."
     - id: ml
       title: "Learning from data"
-      blurb: "Fitting, optimisation, generalisation, practical neural networks and honest uncertainty."
+      blurb: "Regression, loss functions and likelihood, optimisation, generalisation, practical training and uncertainty."
+    - id: unsup
+      title: "Structure without labels"
+      blurb: "Dimensionality reduction and clustering."
     - id: arch
       title: "Architectures"
-      blurb: "Networks for graphs and sequences: message passing and attention."
+      blurb: "Convolutional networks, graph neural networks and transformers."
 - id: science
-  n: 3
+  n: 5
   slug: science
-  title: "Molecular science and simulation"
-  short: "Science"
+  title: "Physics and statistical mechanics"
+  short: "Statistical mechanics"
+  mark: "Physics"
   tone: gold
   icon: atoms
-  level: "Foundations"
-  blurb: "From particles, forces and momentum, through quantum energy levels and statistical mechanics, to molecular dynamics and the analysis of trajectories."
+  level: "Core"
+  blurb: "Classical and quantum mechanics of particles, then statistical mechanics: microstates and entropy, the ensembles, free energy, fluctuations, phase transitions and the structure of liquids."
   parts:
     - id: physics
-      title: "Particles and motion"
-      blurb: "Position, velocity, momentum, energy and phase space; then why energy comes in quanta."
+      title: "Mechanics"
+      blurb: "Newtonian and Hamiltonian mechanics, phase space, and quantised energy levels."
     - id: statmech
       title: "Statistical mechanics"
-      blurb: "Counting microstates: entropy, temperature, the Boltzmann distribution and molecular speeds."
-    - id: sim
-      title: "Molecular simulation"
-      blurb: "Potential energy surfaces, molecular dynamics and turning trajectories into trustworthy numbers."
+      blurb: "Entropy and temperature, the Boltzmann distribution, ensembles and free energy, fluctuations, phase transitions and liquid structure."
+- id: sim
+  n: 6
+  slug: molecular-simulation
+  title: "Molecular simulation"
+  short: "Simulation"
+  mark: "Simulation"
+  tone: orange
+  icon: atoms
+  level: "Core"
+  blurb: "How molecular dynamics and Monte Carlo simulations are built and used: interaction models, boundary conditions, integrators, thermostats and barostats, sampling and free energies, and the analysis of trajectories."
+  parts:
+    - id: models
+      title: "Interaction models"
+      blurb: "Potential energy surfaces and force fields; periodic boundaries, cut-offs, neighbour lists and long-range electrostatics."
+    - id: dyn
+      title: "Dynamics"
+      blurb: "Molecular dynamics, numerical integration of the equations of motion, thermostats and barostats."
+    - id: sampling
+      title: "Sampling and free energy"
+      blurb: "Metropolis Monte Carlo, rare events and free-energy methods."
+    - id: analysis
+      title: "Analysis"
+      blurb: "Structure, transport coefficients and statistical error from trajectories."
 - id: ai4mat
-  n: 4
+  n: 7
   slug: ai-for-materials
   title: "Machine learning for materials"
   short: "AI for materials"
+  mark: "Materials"
   tone: rose
   icon: crystal
   level: "Advanced"
-  blurb: "Where courses 2 and 3 meet: descriptors, crystal graphs, interatomic potentials, differentiable simulation, generative models and closed-loop discovery."
+  blurb: "Descriptors and symmetry, crystal graphs, machine-learned interatomic potentials, differentiable simulation, generative models and closed-loop discovery."
   parts:
     - id: ai4mat
       title: "Machine learning for materials"
-      blurb: "Each lesson assumes the neuron and simulation courses."
+      blurb: "Methods that combine the machine-learning and simulation subjects."

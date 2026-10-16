@@ -1,6 +1,19 @@
 {{- $id := . -}}
 <svg class="vol-art" viewBox="0 0 200 260" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-{{- if eq $id "computing" }}
+{{- if eq $id "math" }}
+  <g stroke="currentColor" stroke-width="1" opacity=".22">{{ range $i := seq 0 10 }}<line x1="{{ mul $i 20 }}" y1="0" x2="{{ mul $i 20 }}" y2="260"/>{{ end }}{{ range $i := seq 0 13 }}<line x1="0" y1="{{ mul $i 20 }}" x2="200" y2="{{ mul $i 20 }}"/>{{ end }}</g>
+  <path d="M0 150 C 30 60, 60 60, 90 130 S 150 220, 200 110 L200 260 L0 260 Z" fill="currentColor" opacity=".16"/>
+  <path d="M0 150 C 30 60, 60 60, 90 130 S 150 220, 200 110" fill="none" stroke="currentColor" stroke-width="2.6" opacity=".9"/>
+  <path d="M10 40 L120 140" stroke="currentColor" stroke-width="1.6" stroke-dasharray="5 4" opacity=".7"/>
+  <circle cx="54" cy="80" r="5" fill="currentColor"/>
+{{- else if eq $id "python" }}
+  <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity=".5">{{ range $i := seq 0 7 }}<path d="M{{ add 24 (mul (mod $i 3) 12) }} {{ add 40 (mul $i 26) }}h{{ add 40 (mul (mod (mul $i 7) 5) 22) }}"/>{{ end }}</g>
+  <g fill="none" stroke="currentColor" stroke-width="3" opacity=".9"><path d="M120 60 l40 40 -40 40"/><path d="M110 170h60"/></g>
+{{- else if eq $id "sim" }}
+  <g fill="none" stroke="currentColor" stroke-width="1.4" opacity=".35"><rect x="30" y="40" width="140" height="140"/><rect x="0" y="40" width="30" height="140"/><rect x="170" y="40" width="30" height="140"/></g>
+  <g fill="currentColor">{{ range $i := seq 0 13 }}<circle cx="{{ add 42 (mod (mul $i 37) 120) }}" cy="{{ add 54 (mod (mul $i 53) 112) }}" r="7" opacity=".8"/>{{ end }}</g>
+  <path d="M10 225c20-18 40 10 60-6s40 12 60-4 40 8 60-6" fill="none" stroke="currentColor" stroke-width="2" opacity=".7"/>
+{{- else if eq $id "computing" }}
   <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity=".55">
     <rect x="62" y="96" width="76" height="76" rx="8"/><rect x="82" y="116" width="36" height="36" rx="4"/>
     <path d="M76 96V60h-30M100 96V40M124 96V70h40M138 112h34v-40M138 134h50M138 156h24v50M124 172v40h30M100 172v70M76 172v26H30M62 156H20M62 134H40v-56M62 112H10"/>

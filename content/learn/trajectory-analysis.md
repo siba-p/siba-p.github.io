@@ -1,7 +1,7 @@
 ---
 title: "From trajectories to properties"
 description: "Turning a trajectory into numbers you can trust: ensemble averages, equilibration, correlated errors and block averaging, radial distribution functions, diffusion coefficients and a first look at free energies."
-track: sim
+track: analysis
 weight: 3
 level: Core
 minutes: 50

@@ -1,7 +1,7 @@
 ---
 title: "Potential energy surfaces and force fields"
 description: "The Born–Oppenheimer picture, forces as gradients, pair potentials, the anatomy of a classical force field, and why their limits motivate machine-learned potentials."
-track: sim
+track: models
 weight: 1
 level: Foundation
 prereqs: ["motion-and-phase-space"]

@@ -1,7 +1,7 @@
 ---
 title: "Molecular dynamics from scratch"
 description: "Newton's equations on a computer: the Verlet integrator and why it conserves energy, choosing the time step, periodic boundaries and cut-offs, thermostats and barostats, and a working MD workflow."
-track: sim
+track: dyn
 weight: 2
 level: Core
 minutes: 60

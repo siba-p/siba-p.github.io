@@ -1,7 +1,7 @@
 ---
 title: "Python for scientists"
 description: "Real Python, running in this page: numbers and units, lists and dictionaries, functions, NumPy arrays and why they are fast, reading simulation output, fitting, a small simulation, and the habits that keep scientific code correct."
-track: code
+track: pysci
 weight: 3
 level: Foundation
 minutes: 60

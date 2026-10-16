@@ -1,24 +1,26 @@
 {{ define "main" }}
 {{- $order := partial "learn-order.html" . -}}
 {{- $me := . -}}
-{{- $idx := -1 -}}{{- $cur := dict -}}
-{{- range $i, $o := $order }}{{ if eq $o.page.RelPermalink $me.RelPermalink }}{{ $idx = $i }}{{ $cur = $o }}{{ end }}{{ end -}}
+{{- $slug := .File.ContentBaseName -}}
+{{- $cur := dict -}}
+{{- range $order }}{{ if eq .page.RelPermalink $me.RelPermalink }}{{ $cur = . }}{{ end }}{{ end -}}
 {{- $c := $cur.course | default dict -}}
 {{- $mine := where $order "course.id" $c.id -}}
-<article class="lesson tone-{{ $c.tone }}" data-learn-page="{{ .File.ContentBaseName }}">
+{{- /* topics that list this one as a prerequisite */ -}}
+{{- $leads := slice -}}
+{{- range $order }}{{ if in (.page.Params.prereqs | default slice) $slug }}{{ $leads = $leads | append . }}{{ end }}{{ end -}}
+<article class="lesson tone-{{ $c.tone }}" data-learn-page="{{ $slug }}">
   <header class="lesson-head">
     <div class="wrap">
-      <nav class="crumbs" aria-label="Breadcrumb"><a href="{{ "learn/" | relURL }}">Learn</a><span aria-hidden="true">/</span><a href="{{ printf "learn/%s/" $c.slug | relURL }}">{{ $c.title }}</a><span aria-hidden="true">/</span><a href="{{ printf "learn/%s/" $c.slug | relURL }}#track-{{ $cur.part.id }}">{{ $cur.part.title }}</a></nav>
+      <nav class="crumbs" aria-label="Breadcrumb"><a href="{{ "learn/" | relURL }}">Learn</a><span aria-hidden="true">/</span><a href="{{ printf "learn/%s/" $c.slug | relURL }}">{{ $c.short }}</a><span aria-hidden="true">/</span><a href="{{ printf "learn/%s/" $c.slug | relURL }}#theme-{{ $cur.part.id }}">{{ $cur.part.title }}</a></nav>
       <h1>{{ .Title }}</h1>
       {{ with .Description }}<p class="lead">{{ . }}</p>{{ end }}
       <ul class="lesson-meta">
-        <li><b>Lesson {{ $cur.num }}</b></li>
         <li><span class="lvl lvl-{{ lower .Params.level }}">{{ .Params.level }}</span></li>
-        <li>About {{ .Params.minutes }} min</li>
-        {{ with .Params.lab }}<li class="lm-lab">Lab: {{ . }}</li>{{ end }}
+        {{ with .Params.lab }}<li class="lm-lab">Interactive: {{ . }}</li>{{ end }}
       </ul>
       {{ with .Params.prereqs }}
-      <p class="prereq">Helpful first:
+      <p class="prereq">Builds on
         {{ range $j, $s := . }}{{ with site.GetPage (printf "/learn/%s" $s) }}{{ if $j }}, {{ end }}<a href="{{ .RelPermalink }}">{{ .Title }}</a>{{ end }}{{ end }}
       </p>
       {{ end }}
@@ -26,40 +28,48 @@
   </header>
 
   <div class="wrap lesson-layout">
-    <aside class="course-nav" aria-label="Course outline">
+    <aside class="course-nav" aria-label="Topics in {{ $c.short }}">
       <details class="cn-box" open>
-        <summary>Course {{ $c.n }}: {{ $c.short }} <span class="cn-prog" data-learn-slugs="{{ range $mine }}{{ .page.File.ContentBaseName }} {{ end }}"><b data-learn-count>0</b>/{{ len $mine }}</span></summary>
-        {{ range $pi, $p := $c.parts }}
+        <summary>{{ $c.short }} <span class="cn-prog" data-learn-slugs="{{ range $mine }}{{ .page.File.ContentBaseName }} {{ end }}"><b data-learn-count>0</b>/{{ len $mine }}</span></summary>
+        {{ range $c.parts }}{{ $p := . }}
         <div class="cn-track tone-{{ $c.tone }}{{ if eq $p.id $cur.part.id }} is-cur{{ end }}">
-          <p class="cn-th"><span>{{ add $pi 1 }}</span>{{ $p.title }}</p>
-          <ol>
+          <p class="cn-th">{{ $p.title }}</p>
+          <ul>
             {{ range $mine }}{{ if eq .part.id $p.id }}
             {{- $pg := .page }}
-            <li><a href="{{ $pg.RelPermalink }}" data-learn-slug="{{ $pg.File.ContentBaseName }}"{{ if eq $pg.RelPermalink $me.RelPermalink }} aria-current="page"{{ end }}><span class="cn-n">{{ .num }}</span><span class="cn-t">{{ $pg.Title }}</span></a>
+            <li><a href="{{ $pg.RelPermalink }}" data-learn-slug="{{ $pg.File.ContentBaseName }}"{{ if eq $pg.RelPermalink $me.RelPermalink }} aria-current="page"{{ end }}><span class="cn-n" aria-hidden="true"></span><span class="cn-t">{{ $pg.Title }}</span></a>
               {{ if eq $pg.RelPermalink $me.RelPermalink }}{{ with $me.TableOfContents }}<div class="cn-toc">{{ . }}</div>{{ end }}{{ end }}
             </li>
             {{ end }}{{ end }}
-          </ol>
+          </ul>
         </div>
         {{ end }}
-        <p class="cn-all"><a href="{{ "learn/" | relURL }}">← All four courses</a></p>
+        <p class="cn-all"><a href="{{ "learn/" | relURL }}">← All subjects</a></p>
       </details>
     </aside>
 
     <div class="lesson-body prose">
       {{ .Content }}
       <div class="lesson-finish">
-        <button type="button" class="btn btn-primary" data-learn-mark="{{ .File.ContentBaseName }}">Mark this lesson complete</button>
+        <button type="button" class="btn btn-primary" data-learn-mark="{{ $slug }}">Mark this topic as read</button>
         <p class="muted">Progress is stored in this browser only.</p>
       </div>
     </div>
   </div>
 
   <div class="wrap">
-    <nav class="lesson-pager" aria-label="Lessons">
-      {{ if gt $idx 0 }}{{ with index $order (sub $idx 1) }}<a href="{{ .page.RelPermalink }}"><small>← {{ if ne .course.id $c.id }}Previous course · {{ end }}{{ .num }}</small><span>{{ .page.Title }}</span></a>{{ end }}{{ else }}<span></span>{{ end }}
-      {{ if lt (add $idx 1) (len $order) }}{{ with index $order (add $idx 1) }}<a class="next" href="{{ .page.RelPermalink }}"><small>{{ if ne .course.id $c.id }}Next course: {{ .course.title }} · {{ else }}Next · {{ end }}{{ .num }} →</small><span>{{ .page.Title }}</span></a>{{ end }}{{ else }}<a class="next" href="{{ "learn/" | relURL }}"><small>Finished →</small><span>Back to all courses</span></a>{{ end }}
-    </nav>
+    <section class="topic-next" aria-label="Where to go from here">
+      <h2>Where to go from here</h2>
+      <div class="tn-grid">
+        {{ with $leads }}
+        <div><h3>Topics that build on this one</h3><ul>{{ range . }}<li><a class="tone-{{ .course.tone }}" href="{{ .page.RelPermalink }}"><small>{{ .course.short }}</small><span>{{ .page.Title }}</span></a></li>{{ end }}</ul></div>
+        {{ end }}
+        {{ $sib := slice }}{{ range $mine }}{{ if and (eq .part.id $cur.part.id) (ne .page.RelPermalink $me.RelPermalink) }}{{ $sib = $sib | append . }}{{ end }}{{ end }}
+        {{ with $sib }}
+        <div><h3>More on {{ lower $cur.part.title }}</h3><ul>{{ range . }}<li><a class="tone-{{ .course.tone }}" href="{{ .page.RelPermalink }}"><small>{{ .course.short }}</small><span>{{ .page.Title }}</span></a></li>{{ end }}</ul></div>
+        {{ end }}
+      </div>
+    </section>
   </div>
 </article>
 {{ end }}

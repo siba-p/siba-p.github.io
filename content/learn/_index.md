@@ -1,6 +1,6 @@
 ---
-title: "A library for computational science"
-lead: "Four volumes, written like textbooks and built to be played with: how computers and Linux work, machine learning from a single neuron, molecular science from Newton to statistical mechanics, and where the two meet in materials research."
+title: "Computational science and machine learning"
+lead: "Notes with derivations and interactive models on the mathematics, programming, statistical mechanics, molecular simulation and machine learning used in computational materials research. Each topic gives the theory, a model you can change in the browser, and the primary literature."
 description: "An interactive library for computational science: how computers and Linux work, Python and Fortran, neural networks from a single neuron, classical and quantum mechanics, statistical mechanics, molecular dynamics, and machine learning for materials."
 ---
 

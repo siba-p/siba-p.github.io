@@ -1,5 +1,5 @@
 ---
 course: science
-title: "Molecular science and simulation"
-description: "From Newton and phase space through quantum energy levels and statistical mechanics to molecular dynamics."
+title: "Physics and statistical mechanics"
+description: "Classical and quantum mechanics, then statistical mechanics: entropy, ensembles, free energy, fluctuations and phase transitions."
 ---
