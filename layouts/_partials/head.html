@@ -31,6 +31,6 @@
 </script>
 {{ if .IsHome }}
 <script type="application/ld+json">
-{{ dict "@context" "https://schema.org" "@type" "Person" "name" site.Params.author "jobTitle" site.Params.role "worksFor" (dict "@type" "Organization" "name" site.Params.affiliation) "alumniOf" (slice "Indian Institute of Technology Delhi" "Defence Institute of Advanced Technology, Pune") "url" site.BaseURL "sameAs" (slice (printf "https://github.com/%s" site.Params.github)) | jsonify | safeJS }}
+{{ dict "@context" "https://schema.org" "@type" "Person" "name" site.Params.author "jobTitle" site.Params.role "worksFor" (dict "@type" "Organization" "name" site.Params.affiliation) "alumniOf" (slice "Indian Institute of Technology Delhi" "Defence Institute of Advanced Technology, Pune") "url" site.BaseURL "sameAs" (slice (printf "https://github.com/%s" site.Params.github) site.Params.openreview) | jsonify | safeJS }}
 </script>
 {{ end }}

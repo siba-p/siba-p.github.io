@@ -1,6 +1,5 @@
 ---
 title: "About"
-eyebrow: "<b>About</b> · Sibasankar Panigrahy"
 lead: "Computational materials scientist working where statistical mechanics, molecular simulation and machine learning meet."
 description: "About Sibasankar Panigrahy, computational materials scientist at QpiAI and PhD from IIT Delhi."
 ---
