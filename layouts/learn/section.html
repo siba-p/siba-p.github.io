@@ -70,13 +70,28 @@
     <div class="wrap">
       <h1>{{ .Title }}</h1>
       {{ with .Params.lead }}<p class="lead">{{ . | markdownify }}</p>{{ end }}
-      <div class="lh-stats"><span><b>{{ len site.Data.learn }}</b> subjects</span><span><b>{{ len $order }}</b> chapters</span><span>Models computed client-side; references to primary sources</span>
-        <span class="lh-progress" data-learn-total hidden><b data-learn-count>0</b> read</span></div>
+      <p class="lh-stats"><span class="lh-progress" data-learn-total hidden><b data-learn-count>0</b> chapters marked as read in this browser</span></p>
     </div>
   </header>
 
+  <section class="section tight">
+    <div class="wrap lib-intro">
+      <div class="li-cover prose">
+        <h2>What these notes cover</h2>
+        {{ .Params.covers | markdownify }}
+      </div>
+      <aside class="li-author">
+        <h2>About the author</h2>
+        <p class="li-name">Sibasankar Panigrahy</p>
+        <p class="li-role">Computational Materials Scientist, QpiAI · PhD, IIT Delhi</p>
+        {{ .Params.author_note | markdownify }}
+      </aside>
+    </div>
+  </section>
+
   <section class="section tight lib-shelf-wrap">
     <div class="wrap">
+      <div class="section-head"><div><h2>Subjects</h2><p>Eight books, from the foundations to current research methods. Each opens as a single page with its own contents.</p></div></div>
       <div class="shelf">
         {{ range site.Data.learn }}{{ $c := . }}{{ $mine := where $order "course.id" $c.id }}
         <a class="volume tone-{{ $c.tone }}" href="{{ printf "learn/%s/" $c.slug | relURL }}" data-learn-slugs="{{ range $mine }}{{ .page.File.ContentBaseName }} {{ end }}">
@@ -85,7 +100,7 @@
             <b>{{ $c.title }}</b>
             <span class="vol-blurb">{{ $c.blurb }}</span>
             <span class="vol-parts">{{ range $c.parts }}{{ if where $mine "part.id" .id }}<span>{{ .title }}</span>{{ end }}{{ end }}</span>
-            <span class="vol-foot"><span>{{ len $mine }} chapters · {{ $c.level }}</span><span class="lp-bar"><i data-learn-bar></i></span></span>
+            <span class="vol-foot"><span>{{ $c.level }}</span><span class="lp-bar"><i data-learn-bar></i></span></span>
           </span>
         </a>
         {{ end }}
@@ -93,9 +108,65 @@
     </div>
   </section>
 
-  <section class="section alt">
+  <section class="section alt" id="how-to-read">
     <div class="wrap">
-      <div class="section-head"><div><h2>Dependency map</h2><p>Topics grouped by subject, with lines for prerequisites. Hover a topic to highlight everything it depends on; click to open it.</p></div></div>
+      <div class="section-head"><div><h2>How to read a chapter</h2><p>Every chapter is built from the same elements. The excerpt below is live: move the slider.</p></div></div>
+      <div class="peek-grid">
+        <div class="peek tone-gold" aria-label="Excerpt from the statistical mechanics book">
+          <nav class="pk-rail" aria-hidden="true">
+            <span class="pk-n">1</span>
+            <span class="pk-book">Physics and statistical mechanics</span>
+            <span>3&ensp;Entropy and temperature</span>
+            <span class="on">4&ensp;Boltzmann and Maxwell</span>
+            <span class="sub">4.1&ensp;A small system in a bath</span>
+            <span class="sub on">4.2&ensp;The Boltzmann distribution</span>
+            <span class="sub">4.3&ensp;Speeds in a gas</span>
+            <span>5&ensp;Ensembles and free energy</span>
+          </nav>
+          <div class="pk-body">
+            <div class="pk-step"><span class="pk-n">2</span>
+              <h3>4.2&ensp;The Boltzmann distribution</h3>
+              <p>A system in contact with a heat bath at temperature <i>T</i> is found in a state of energy <i>E<sub>n</sub></i> with a probability that falls exponentially with energy. Ludwig Boltzmann reached this result in 1877 by counting the number of ways the energy of a gas can be shared among its molecules.</p>
+            </div>
+            <div class="pk-step"><span class="pk-n">3</span>
+              <aside class="eqcard">
+                <p class="eq-title">The Boltzmann distribution</p>
+                {{ transform.ToMath "p_n = \\frac{e^{-\\textcolor{#e8792b}{E_n}/k_B\\textcolor{#12a594}{T}}}{Z}, \\qquad Z = \\sum_m e^{-E_m/k_BT}" (dict "displayMode" true) }}
+                <ul class="eq-read"><li>{{ transform.ToMath "\\textcolor{#e8792b}{E_n}" }}: energy of state <i>n</i></li><li>{{ transform.ToMath "\\textcolor{#12a594}{T}" }}: temperature of the bath</li><li>{{ transform.ToMath "Z" }}: the partition function, which normalises</li></ul>
+                <p class="eq-say">High-energy states are exponentially rare, and temperature sets how rare.</p>
+              </aside>
+            </div>
+            <div class="pk-step"><span class="pk-n">4</span>
+              <figure class="lw pk-fig" data-widget="peek"><div class="lw-body"><p class="lw-loading">Loading…</p></div>
+                <figcaption>Populations of six evenly spaced levels. At low temperature almost everything is in the ground state; as <i>k</i><sub>B</sub><i>T</i> grows past the spacing, the populations even out.</figcaption></figure>
+            </div>
+            <div class="pk-step pk-end"><span class="pk-n">5</span>
+              <span>Key points</span><span>Self-check questions</span><span>References</span>
+            </div>
+          </div>
+        </div>
+        <ol class="peek-notes">
+          <li><b>One page per subject.</b> Each book is a single scrolling page. The contents panel tracks your position and jumps to any chapter or section; on a phone it opens from the button at the top.</li>
+          <li><b>Text first.</b> Chapters are continuous prose with numbered sections. They begin with the question that motivated an idea and the people and papers that answered it, then develop the theory step by step.</li>
+          <li><b>Equation cards.</b> Key equations are set apart with every symbol explained and a one-line reading in words. Colours in the equation match the colours in the figures.</li>
+          <li><b>Interactive figures and code.</b> Figures compute their results as you change the parameters. Code cells run real Python with NumPy in the page; the first run downloads the interpreter, about 10 MB.</li>
+          <li><b>End matter.</b> Each chapter closes with its key points, a few questions that explain their answers, and the original papers and textbook chapters for further reading. Chapters can be marked as read; progress is stored only in your browser.</li>
+        </ol>
+      </div>
+
+      <h3 class="start-h">Where to start</h3>
+      <div class="start-grid">
+        <a class="card start" href="{{ "learn/python/" | relURL }}"><b>New to programming</b><span>Begin with Python for scientific computing, which starts from how the interpreter runs your code, and use the Mathematics book alongside it.</span></a>
+        <a class="card start" href="{{ "learn/machine-learning/" | relURL }}"><b>A scientist new to machine learning</b><span>Read Machine learning from the single neuron onwards, then continue to Machine learning for materials.</span></a>
+        <a class="card start" href="{{ "learn/molecular-simulation/" | relURL }}"><b>Already running simulations</b><span>Use Molecular simulation to check the foundations of what you run, then Enhanced sampling for free energies and rare events.</span></a>
+        <a class="card start" href="{{ "learn/ai-for-materials/#build-your-own-mlip" | relURL }}"><b>Building an interatomic potential</b><span>Read the foundations part of Machine learning for materials, then follow the tutorial that builds and trains a potential from scratch.</span></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head"><div><h2>Dependency map</h2><p>Every chapter, grouped by subject, with lines to its prerequisites. Hover a chapter to highlight what it builds on; click to open it.</p></div></div>
       {{- $nodes := slice -}}
       {{- range $order }}{{ $nodes = $nodes | append (dict "s" .page.File.ContentBaseName "t" .page.Title "n" "" "c" .course.id "u" (printf "%s#%s" (printf "learn/%s/" .course.slug | relURL) .page.File.ContentBaseName) "d" .page.Description "m" .page.Params.level "p" (.page.Params.prereqs | default slice)) }}{{ end -}}
       {{- $courses := slice -}}{{ range site.Data.learn }}{{ $courses = $courses | append (dict "id" .id "t" .title "tone" .tone "r" .mark) }}{{ end -}}
@@ -103,21 +174,20 @@
     </div>
   </section>
 
-  <section class="section">
+  <section class="section alt">
     <div class="wrap">
-      <div class="learn-how">
-        <div><span class="lhw-n">1</span><h3>Theory</h3><p>Each topic is written as a textbook chapter: definitions, derivations and worked numbers, with equations colour-matched to the figures.</p></div>
-        <div><span class="lhw-n">2</span><h3>Models</h3><p>Interactive models compute their results in the browser, and code cells run real Python with NumPy. Nothing is a pre-rendered animation.</p></div>
-        <div><span class="lhw-n">3</span><h3>Sources</h3><p>Every chapter cites the original papers and standard texts, and ends with questions that explain each answer.</p></div>
-      </div>
-      <div class="lq-grid" style="margin-top:48px">
+      <div class="section-head"><div><h2>Reference tools</h2><p>Practical pages for day-to-day work on a cluster.</p></div></div>
+      <div class="lq-grid">
         {{ with site.GetPage "/learn/linux-for-simulation" }}<a class="card lq" href="{{ .RelPermalink }}#reference"><h3>Linux command reference</h3><p>About 75 commands, searchable, with a command explainer.</p></a>{{ end }}
         {{ with site.GetPage "/learn/linux-for-simulation" }}<a class="card lq" href="{{ .RelPermalink }}#job-scripts"><h3>Slurm job-script builder</h3><p>Choose nodes, tasks, GPUs and time; get a commented script.</p></a>{{ end }}
         {{ with site.GetPage "/learn/fortran" }}<a class="card lq" href="{{ .RelPermalink }}#compiling-the-flags-that-matter"><h3>Compiling Fortran</h3><p>gfortran and Intel flags for debugging, speed, OpenMP and MPI.</p></a>{{ end }}
         {{ with site.GetPage "/learn/python-for-science" }}<a class="card lq" href="{{ .RelPermalink }}"><h3>Python in the browser</h3><p>Real Python with NumPy, running in the page.</p></a>{{ end }}
       </div>
-      <div class="prose learn-about">{{ .Content }}</div>
     </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap"><div class="prose learn-about">{{ .Content }}</div></div>
   </section>
 {{- end }}
 {{ end }}

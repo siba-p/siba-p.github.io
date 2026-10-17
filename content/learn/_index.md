@@ -1,18 +1,28 @@
 ---
-title: "Computational science and machine learning"
-lead: "Notes with derivations and interactive models on the mathematics, programming, statistical mechanics, molecular simulation and machine learning used in computational materials research. Each topic gives the theory, a model you can change in the browser, and the primary literature."
-description: "An interactive library for computational science: how computers and Linux work, Python and Fortran, neural networks from a single neuron, classical and quantum mechanics, statistical mechanics, molecular dynamics, and machine learning for materials."
+title: "Foundations of computational materials science"
+lead: "Long-form notes on the mathematics, programming, physics, simulation methods and machine learning that modern atomistic research is built on. Each subject is written as a single book: it starts from first principles, follows the ideas through the people and papers that introduced them, and works through them with models that run in the browser."
+description: "Long-form notes with interactive figures on mathematics, computing and Python, machine learning, statistical mechanics, molecular simulation, enhanced sampling and machine learning for materials, written from first principles with references to the original literature."
+covers: |
+  The notes run from the foundations to current research methods, in eight subjects.
+
+  **Mathematics, computing and Python** provide the working tools: calculus, linear algebra and probability; how a processor, the Linux shell and compiled code work; and Python from the interpreter and its object model up to NumPy and performance.
+
+  **Machine learning** and **physics and statistical mechanics** provide the two theories that everything else depends on. The first covers learning from data, from a single artificial neuron to deep networks. The second covers microstates and entropy, the Boltzmann distribution, ensembles, free energy, fluctuations, phase transitions and the structure of liquids.
+
+  **Molecular simulation** and **enhanced sampling** turn the physics into practice: molecular dynamics and Monte Carlo, thermostats and barostats, transport coefficients and trajectory analysis, then energy landscapes and rate theory, free-energy perturbation, umbrella sampling, metadynamics, OPES, replica exchange, path sampling and Markov state models.
+
+  **Machine learning for materials** brings the threads together: symmetry and descriptors, the history and theory of machine-learned interatomic potentials from Behler–Parrinello networks to MACE and the universal models, generative models for crystals and differentiable simulation. It includes a complete tutorial that builds, trains and validates an interatomic potential.
+author_note: |
+  I work on molecular simulation and machine learning for materials. My PhD at IIT Delhi, in the Computational Soft Matter Lab of Prof. Divya Nayar, combined molecular dynamics, free-energy calculations and machine learning to design functionalised nanoparticles.
+
+  Work of this kind draws on every subject here at once, yet the background is spread across textbooks, papers and software manuals written for different readers. These notes collect it in one place, in a consistent notation, in the order a researcher needs it.
+
+  Every code example has been run and every number on these pages is computed. The original papers and the standard textbooks remain the authority, and each chapter points to them. Corrections are welcome through the [about page](/about/).
 ---
 
-## About this library
+## Core textbooks
 
-**Who it is for.** Students and researchers in chemistry, physics, materials science and chemical engineering who want to *use* machine learning in their research and understand what it is doing. You need school-level calculus and some comfort with vectors and matrices. No prior programming is assumed: Volume I starts with what happens inside the processor. The volumes can be read in any order, and the map above shows which chapters each one builds on.
-
-**How it is built.** Each chapter follows the same arc: the scientific question, the idea, an interactive lab, the mathematics, how it is done in practice, common mistakes, and a short self-check. Equations are kept, because they are the shortest honest description of an idea, but each one is explained in words first. Every interactive figure computes its result live in your browser; none of them is an animation of a pre-recorded answer.
-
-**What it is not.** It is not a replacement for a textbook. Each chapter ends with the primary papers and the book chapters that go deeper, and they are worth reading.
-
-### Core textbooks for the whole library
+The books below are the main references across the subjects. Each chapter also lists the papers and book chapters specific to its topic.
 
 <div class="refs">
 

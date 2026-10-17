@@ -17,6 +17,52 @@
 .lh-stats { display: flex; flex-wrap: wrap; gap: .4rem 1.6rem; margin-top: 1.4rem; color: var(--ink-2); font-size: .92rem; }
 .lh-stats b { font: 600 1.05rem var(--f-display); color: var(--ink); margin-right: .25em; }
 .lh-progress b { color: var(--teal); }
+.lib-intro { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 28px 56px; align-items: start; }
+.lib-intro h2 { font-size: 1.35rem; margin: 0 0 .8rem; }
+.li-cover p { color: var(--ink-2); }
+.li-cover p:first-of-type { color: var(--ink); }
+.li-author { padding: 22px 24px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); }
+.li-author p { color: var(--ink-2); font-size: .94rem; margin: 0 0 .8em; }
+.li-author p:last-child { margin-bottom: 0; }
+.li-author .li-name { font: 600 1.08rem var(--f-display); color: var(--ink); margin: 0; }
+.li-author .li-role { font-size: .84rem; color: var(--ink-3); margin: .15rem 0 1rem; padding-bottom: .9rem; border-bottom: 1px solid var(--line); }
+.peek-grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 28px 44px; align-items: start; }
+.peek { display: grid; grid-template-columns: 210px minmax(0, 1fr); border: 1px solid var(--line); border-radius: 16px; background: var(--bg); overflow: hidden; box-shadow: 0 1px 0 var(--line), 0 18px 40px -28px rgba(12, 18, 34, .35); }
+.pk-rail { position: relative; display: flex; flex-direction: column; gap: 2px; padding: 18px 12px 18px 16px; border-right: 1px solid var(--line); background: var(--bg-2); font-size: .76rem; color: var(--ink-3); }
+.pk-rail > span:not(.pk-n) { padding: 4px 8px; border-radius: 7px; line-height: 1.3; }
+.pk-rail .pk-book { font: 600 .8rem var(--f-display); color: var(--ink); padding-bottom: 8px; padding-right: 30px !important; }
+.pk-rail .sub { padding-left: 20px; }
+.pk-rail .on { color: var(--ink); }
+.pk-rail .sub.on { background: color-mix(in oklab, var(--tone) 14%, transparent); color: var(--ink); font-weight: 600; }
+.pk-body { padding: 20px 24px 22px 54px; display: grid; gap: 14px; min-width: 0; }
+.pk-step { position: relative; min-width: 0; }
+.pk-step h3 { margin: 0 0 .5rem; font-size: 1.12rem; }
+.pk-step p { margin: 0; font-size: .92rem; color: var(--ink-2); }
+.pk-step .eqcard { margin: 0; }
+.pk-fig { margin: 0; }
+.pk-fig figcaption { font-size: .82rem; color: var(--ink-3); margin-top: .4rem; }
+.pk-end { display: flex; flex-wrap: wrap; gap: 8px; }
+.pk-end > span:not(.pk-n) { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); font-size: .8rem; color: var(--ink-2); background: var(--card); }
+.pk-n { position: absolute; left: -38px; top: 0; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: var(--bg); font: 600 .75rem var(--f-display); }
+.pk-rail .pk-n { left: auto; right: 10px; top: 14px; }
+.pk-end .pk-n { top: 4px; }
+.peek-notes { list-style: none; counter-reset: pk; margin: 0; padding: 0; display: grid; gap: 18px; }
+.peek-notes li { counter-increment: pk; position: relative; padding-left: 38px; color: var(--ink-2); font-size: .94rem; line-height: 1.55; }
+.peek-notes li::before { content: counter(pk); position: absolute; left: 0; top: 1px; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: var(--bg); font: 600 .75rem var(--f-display); }
+.peek-notes b { color: var(--ink); }
+.start-h { margin: 56px 0 16px; font-size: 1.2rem; }
+.start-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.card.start { display: flex; flex-direction: column; gap: .45rem; color: var(--ink); text-decoration: none; }
+.card.start b { font: 600 1rem var(--f-display); }
+.card.start span { color: var(--ink-2); font-size: .9rem; }
+@media (max-width: 1000px) { .lib-intro, .peek-grid { grid-template-columns: minmax(0, 1fr); } .start-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) {
+  .peek { grid-template-columns: minmax(0, 1fr); }
+  .pk-rail { border-right: 0; border-bottom: 1px solid var(--line); }
+  .pk-body { padding: 18px 16px 18px 50px; }
+  .pk-n { left: -36px; }
+  .start-grid { grid-template-columns: minmax(0, 1fr); }
+}
 .lh-cta { display: flex; gap: .7rem; flex-wrap: wrap; margin-top: 1.6rem; }
 .learn-how { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
 .learn-how > div { padding: 4px 0; }
@@ -334,7 +380,7 @@ table.cr .cr-ex:hover { border-color: var(--accent); }
 /* ---------- coloured equations and reading cards ---------- */
 .eqcard { margin: 1.8em 0; padding: 1.1rem 1.3rem 1rem; border-radius: 14px; border: 1px solid color-mix(in oklab, var(--tone, var(--accent)) 30%, var(--line)); background: linear-gradient(135deg, color-mix(in oklab, var(--tone, var(--accent)) 7%, var(--card)), var(--card) 70%); }
 .eqcard .eq-title { margin: 0 0 .2rem; font: 600 .8rem var(--f-body); color: var(--tone, var(--accent)); }
-.eqcard .katex-display { margin: .5em 0 .7em; font-size: 1.12em; }
+.eqcard .katex-display { margin: .5em 0 .7em; font-size: 1.12em; overflow-x: auto; overflow-y: hidden; }
 .eq-read { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 6px 18px; font-size: .9rem; color: var(--ink-2); }
 .eq-read li { display: block; margin: 0 !important; line-height: 1.5; }
 .eq-read li .katex { font-size: 1.05em; }
