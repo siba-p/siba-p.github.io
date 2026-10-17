@@ -12,6 +12,7 @@
   icon: curve
   level: "Foundations"
   blurb: "The mathematics used throughout simulation and machine learning, developed from first principles: functions and calculus, linear algebra and gradients, and probability."
+  tagline: "Calculus, linear algebra and probability"
   parts:
     - id: calc
       title: "Calculus"
@@ -32,6 +33,7 @@
   icon: chip
   level: "Foundations"
   blurb: "How a computer executes a program and stores numbers, how Linux and the shell work, and how compiled code is written for numerical work."
+  tagline: "Processors, Linux and compiled code"
   parts:
     - id: machine
       title: "Computer architecture"
@@ -52,6 +54,7 @@
   icon: code
   level: "Foundations"
   blurb: "Python from the interpreter up: how source code runs, the object model, data structures and classes, then NumPy, scientific data and performance."
+  tagline: "From the interpreter to NumPy"
   parts:
     - id: pycore
       title: "The language"
@@ -69,6 +72,7 @@
   icon: curve
   level: "Core"
   blurb: "Learning from data, from fitting a line to deep networks: optimisation, generalisation, kernels and Gaussian processes, neural networks and modern architectures."
+  tagline: "From one neuron to transformers"
   parts:
     - id: ml
       title: "Learning from data"
@@ -92,6 +96,7 @@
   icon: atoms
   level: "Core"
   blurb: "The mechanics of particles and the statistical mechanics built on it: entropy and temperature, the Boltzmann distribution, ensembles and free energy, fluctuations, phase transitions and liquids."
+  tagline: "From Newton to free energy"
   parts:
     - id: physics
       title: "Mechanics"
@@ -109,6 +114,7 @@
   icon: atoms
   level: "Core"
   blurb: "How molecular simulations are built and analysed: potential energy surfaces and force fields, Monte Carlo, molecular dynamics, thermostats and barostats, and transport properties."
+  tagline: "Molecular dynamics and Monte Carlo"
   parts:
     - id: models
       title: "Interaction models"
@@ -132,6 +138,7 @@
   icon: curve
   level: "Advanced"
   blurb: "Why important events are rare in simulations, and how to sample them anyway: energy landscapes and rates, free-energy methods, adaptive biasing, tempering, path sampling and machine-learned approaches."
+  tagline: "Free energies and rare events"
   parts:
     - id: rl-land
       title: "Landscapes and rates"
@@ -158,6 +165,7 @@
   icon: crystal
   level: "Advanced"
   blurb: "Machine learning for atomistic materials science: the history and theory of interatomic potentials, how to build and validate them, universal models, and generative and differentiable methods."
+  tagline: "Interatomic potentials and generative models"
   parts:
     - id: found
       title: "Foundations"

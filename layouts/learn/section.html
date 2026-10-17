@@ -10,7 +10,7 @@
   <div class="book tone-{{ $c.tone }}">
     <header class="book-head">
       <div class="wrap book-head-in">
-        <div class="vol-cover vol-{{ $c.id }}" aria-hidden="true"><span class="vol-rn">{{ $c.mark }}</span>{{ partial "learn-cover.html" $c.id }}</div>
+        <div class="vol-cover vol-{{ $c.id }}" aria-hidden="true"><canvas class="subj-art" data-art="{{ $c.id }}"></canvas></div>
         <div>
           <nav class="crumbs" aria-label="Breadcrumb"><a href="{{ "learn/" | relURL }}">Learn</a><span aria-hidden="true">/</span><span>{{ $c.short }}</span></nav>
           <h1>{{ $c.title }}</h1>
@@ -77,15 +77,20 @@
   <section class="section tight lib-shelf-wrap" id="subjects">
     <div class="wrap">
       <div class="section-head"><div><h2>Subjects</h2><p>Eight books, from the foundations to current research methods. Each opens as a single page with its own contents.</p></div></div>
-      <div class="shelf">
+      <div class="shelf subj-grid">
         {{ range site.Data.learn }}{{ $c := . }}{{ $mine := where $order "course.id" $c.id }}
-        <a class="volume tone-{{ $c.tone }}" href="{{ printf "learn/%s/" $c.slug | relURL }}" data-learn-slugs="{{ range $mine }}{{ .page.File.ContentBaseName }} {{ end }}">
-          <span class="vol-cover vol-{{ $c.id }}" aria-hidden="true"><span class="vol-rn">{{ $c.mark }}</span>{{ partial "learn-cover.html" $c.id }}</span>
-          <span class="vol-body">
-            <b>{{ $c.title }}</b>
-            <span class="vol-blurb">{{ $c.blurb }}</span>
-            <span class="vol-parts">{{ range $c.parts }}{{ if where $mine "part.id" .id }}<span>{{ .title }}</span>{{ end }}{{ end }}</span>
-            <span class="vol-foot"><span>{{ $c.level }}</span><span class="lp-bar"><i data-learn-bar></i></span></span>
+        <a class="subj tone-{{ $c.tone }}" href="{{ printf "learn/%s/" $c.slug | relURL }}" data-learn-slugs="{{ range $mine }}{{ .page.File.ContentBaseName }} {{ end }}">
+          <span class="subj-in">
+            <span class="subj-face subj-front">
+              <canvas class="subj-art" data-art="{{ $c.id }}" aria-hidden="true"></canvas>
+              <span class="subj-cap"><b>{{ $c.title }}</b><span>{{ $c.tagline }}</span></span>
+              <span class="subj-bar" aria-hidden="true"><i data-learn-bar></i></span>
+            </span>
+            <span class="subj-face subj-back" aria-hidden="true">
+              <b>{{ $c.title }}</b>
+              <span class="subj-chs">{{ range $mine }}<span>{{ .page.Title }}</span>{{ end }}</span>
+              <span class="subj-open">Open the book →</span>
+            </span>
           </span>
         </a>
         {{ end }}
