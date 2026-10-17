@@ -13,7 +13,11 @@ covers: |
 
   **Machine learning for materials** brings the threads together: symmetry and descriptors, the history and theory of machine-learned interatomic potentials from Behler–Parrinello networks to MACE and the universal models, generative models for crystals and differentiable simulation. It includes a complete tutorial that builds, trains and validates an interatomic potential.
 author_note: |
-  I am a computational materials scientist at QpiAI, working on molecular simulation and machine learning for materials. During my PhD at IIT Delhi I learned these methods piece by piece, from textbooks, papers and software manuals written for different readers, and I wanted one place that connects the theory to working simulations. I built these notes to be that place: each subject starts from first principles, follows the original papers, and ends in models you can run, with every code example executed and every number computed. They are written for students entering computational science and for researchers who want to understand the methods they use; corrections are welcome through the [about page](/about/).
+  These chapters began as my own working notes. Moving from materials engineering into molecular simulation and then machine learning, I kept rebuilding the same foundations, the statistical mechanics behind a free-energy calculation, the integrator behind an MD run, the symmetry behind an interatomic potential, from sources that each assumed something different.
+
+  Here they are written down once, in one notation and in the order I wish I had learned them, for students starting in computational science and early-career researchers who want to see inside the methods they run.
+
+  Each chapter starts from first principles and the original papers. Every figure is a small simulation rather than an animation: molecular dynamics, Monte Carlo, metadynamics and neural networks written in JavaScript and run in your browser, with Python cells executed by Pyodide. Code examples were run with NumPy, PyTorch, ASE and MACE before publication, and the numbers in the text come from those runs. Corrections are welcome through the [about page](/about/).
 ---
 
 ## Core textbooks
