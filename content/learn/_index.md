@@ -13,7 +13,7 @@ covers: |
 
   **Machine learning for materials** brings the threads together: symmetry and descriptors, the history and theory of machine-learned interatomic potentials from Behler–Parrinello networks to MACE and the universal models, generative models for crystals and differentiable simulation. It includes a complete tutorial that builds, trains and validates an interatomic potential.
 author_note: |
-  I work on molecular simulation and machine learning for materials. These notes collect the background that work draws on, in one consistent notation, with every code example run and every number computed. Corrections are welcome through the [about page](/about/).
+  I am a computational materials scientist at QpiAI, working on molecular simulation and machine learning for materials. During my PhD at IIT Delhi I learned these methods piece by piece, from textbooks, papers and software manuals written for different readers, and I wanted one place that connects the theory to working simulations. I built these notes to be that place: each subject starts from first principles, follows the original papers, and ends in models you can run, with every code example executed and every number computed. They are written for students entering computational science and for researchers who want to understand the methods they use; corrections are welcome through the [about page](/about/).
 ---
 
 ## Core textbooks
