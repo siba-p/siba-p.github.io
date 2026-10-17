@@ -98,6 +98,19 @@
     </div>
   </section>
 
+  <section class="section" id="about-these-notes">
+    <div class="wrap lib-intro">
+      <div class="li-cover prose">
+        <h2>What these notes cover</h2>
+        {{ .Params.covers | markdownify }}
+      </div>
+      <aside class="li-author">
+        <h2>How I prepared these notes</h2>
+        {{ .Params.author_note | markdownify }}
+      </aside>
+    </div>
+  </section>
+
   <section class="section alt" id="how-to-read">
     <div class="wrap">
       <div class="section-head"><div><h2>How to read a chapter</h2><p>Every chapter is built from the same elements. The excerpt below is live: move the slider.</p></div></div>
@@ -154,18 +167,6 @@
     </div>
   </section>
 
-  <section class="section">
-    <div class="wrap lib-intro">
-      <div class="li-cover prose">
-        <h2>What these notes cover</h2>
-        {{ .Params.covers | markdownify }}
-      </div>
-      <aside class="li-author">
-        <h2>Why and how I made these notes</h2>
-        {{ .Params.author_note | markdownify }}
-      </aside>
-    </div>
-  </section>
 
   <section class="section alt">
     <div class="wrap">

@@ -13,11 +13,11 @@ covers: |
 
   **Machine learning for materials** brings the threads together: symmetry and descriptors, the history and theory of machine-learned interatomic potentials from Behler–Parrinello networks to MACE and the universal models, generative models for crystals and differentiable simulation. It includes a complete tutorial that builds, trains and validates an interatomic potential.
 author_note: |
-  These chapters began as my own working notes. Moving from materials engineering into molecular simulation and then machine learning, I kept rebuilding the same foundations, the statistical mechanics behind a free-energy calculation, the integrator behind an MD run, the symmetry behind an interatomic potential, from sources that each assumed something different.
+  I came to molecular simulation from materials engineering, and to machine learning through my PhD research. Almost every method here I first learned the hard way: from textbooks written for physicists, papers that skipped the steps I needed, and software manuals that assumed I already knew why a setting mattered.
 
-  Here they are written down once, in one notation and in the order I wish I had learned them, for students starting in computational science and early-career researchers who want to see inside the methods they run.
+  Preparing these chapters meant going back to the original papers, re-deriving the equations line by line, and rebuilding each method from scratch until it behaved. It was slow, and much of it failed first: descriptors too coarse to learn copper forces, free energies that refused to converge, a machine-learned potential that passed its test set and still got the lattice constant wrong. Those failures are in the chapters, because they teach as much as the successes. Every figure is a small simulation written from scratch, and every number in the text comes from code I ran.
 
-  Each chapter starts from first principles and the original papers. Every figure is a small simulation rather than an animation: molecular dynamics, Monte Carlo, metadynamics and neural networks written in JavaScript and run in your browser, with Python cells executed by Pyodide. Code examples were run with NumPy, PyTorch, ASE and MACE before publication, and the numbers in the text come from those runs. Corrections are welcome through the [about page](/about/).
+  The notes are for students and early-career scientists who want to understand the methods they use, not only run them. If you find a mistake, an unclear passage or a missing topic, please write to me at [sibasankarpanigrahy08@gmail.com](mailto:sibasankarpanigrahy08@gmail.com).
 ---
 
 ## Core textbooks

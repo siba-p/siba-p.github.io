@@ -747,3 +747,8 @@ table.cr .cr-ex:hover { border-color: var(--accent); }
 .subj-front .subj-cap { padding-top: 22px; background: linear-gradient(180deg, transparent, rgb(6 10 24 / .35) 40%, rgb(6 10 24 / .55)); }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .subj-front, :root:not([data-theme="light"]) .vol-cover { background: linear-gradient(160deg, color-mix(in oklab, var(--tone) 62%, #000), color-mix(in oklab, var(--tone) 32%, #070b18)); } }
 :root[data-theme="dark"] .subj-front, :root[data-theme="dark"] .vol-cover { background: linear-gradient(160deg, color-mix(in oklab, var(--tone) 62%, #000), color-mix(in oklab, var(--tone) 32%, #070b18)); }
+.lib-intro { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
+.li-author { order: -1; padding: 0; border: 0; background: none; }
+.li-author p { font-size: 1.02rem; line-height: 1.7; color: var(--ink-2); margin: 0 0 1em; }
+.li-author p:first-of-type { color: var(--ink); }
+.li-cover p { font-size: .94rem; }
