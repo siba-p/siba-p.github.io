@@ -13,6 +13,10 @@
   <g fill="none" stroke="currentColor" stroke-width="1.4" opacity=".35"><rect x="30" y="40" width="140" height="140"/><rect x="0" y="40" width="30" height="140"/><rect x="170" y="40" width="30" height="140"/></g>
   <g fill="currentColor">{{ range $i := seq 0 13 }}<circle cx="{{ add 42 (mod (mul $i 37) 120) }}" cy="{{ add 54 (mod (mul $i 53) 112) }}" r="7" opacity=".8"/>{{ end }}</g>
   <path d="M10 225c20-18 40 10 60-6s40 12 60-4 40 8 60-6" fill="none" stroke="currentColor" stroke-width="2" opacity=".7"/>
+{{- else if eq $id "rare" }}
+  <path d="M0 190 C 30 120, 55 120, 75 175 S 115 60, 135 70 S 170 200, 200 140" fill="none" stroke="currentColor" stroke-width="2.6" opacity=".9"/>
+  <g fill="currentColor" opacity=".35">{{ range $i := seq 0 9 }}<circle cx="{{ add 40 (mul $i 14) }}" cy="{{ sub 150 (mul (mod (mul $i 7) 5) 9) }}" r="9"/>{{ end }}</g>
+  <circle cx="105" cy="95" r="7" fill="currentColor"/>
 {{- else if eq $id "computing" }}
   <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity=".55">
     <rect x="62" y="96" width="76" height="76" rx="8"/><rect x="82" y="116" width="36" height="36" rx="4"/>

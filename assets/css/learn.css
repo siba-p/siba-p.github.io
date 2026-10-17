@@ -1,7 +1,7 @@
 /* ================= Learn: hub, lessons and interactive labs ================= */
-:root { --violet: #6d4fe0; --rose: #d6336c; --sky: #1971c2; --orange: #d9480f; --lw-radius: 14px; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --violet: #a993ff; --rose: #ff7aa5; --sky: #4dabf7; --orange: #ff9f5a; } }
-:root[data-theme="dark"] { --violet: #a993ff; --rose: #ff7aa5; --sky: #4dabf7; --orange: #ff9f5a; }
+:root { --violet: #6d4fe0; --rose: #d6336c; --sky: #1971c2; --orange: #d9480f; --green: #2b8a3e; --lw-radius: 14px; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --violet: #a993ff; --rose: #ff7aa5; --sky: #4dabf7; --orange: #ff9f5a; --green: #69db7c; } }
+:root[data-theme="dark"] { --violet: #a993ff; --rose: #ff7aa5; --sky: #4dabf7; --orange: #ff9f5a; --green: #69db7c; }
 .tone-teal { --tone: var(--teal); }
 .tone-indigo { --tone: var(--accent); }
 .tone-gold { --tone: var(--gold); }
@@ -9,6 +9,7 @@
 .tone-rose { --tone: var(--rose); }
 .tone-sky { --tone: var(--sky); }
 .tone-orange { --tone: var(--orange); }
+.tone-green { --tone: var(--green); }
 .muted { color: var(--ink-3); }
 
 /* ---------- hub ---------- */
@@ -104,7 +105,9 @@
 .lesson-body h2 { scroll-margin-top: 84px; }
 .lesson-body h2:first-child { margin-top: 0; }
 .lesson-body .katex { font-size: 1.06em; }
-.lesson-body .katex-display { margin: 1.2em 0; }
+.lesson-body .katex-display, .chapter .katex-display { margin: 1.2em 0; overflow-x: auto; overflow-y: hidden; max-width: 100%; position: relative; padding: .2em 0; }
+.lesson-body .katex { position: relative; }
+.lesson-body .refs { overflow-wrap: anywhere; }
 .lesson-body ol.refs, .lesson-body .refs ol { font-size: .9rem; color: var(--ink-2); padding-left: 1.4rem; }
 .lesson-body ol.refs li, .lesson-body .refs li { margin: .45em 0; }
 .lesson-finish { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-top: 3rem; padding-top: 1.6rem; border-top: 1px solid var(--line); }
@@ -648,3 +651,11 @@ table.cr .cr-ex:hover { border-color: var(--accent); }
   .book-nav.open .bn-in { display: block; }
   .book-body { padding-top: 24px; }
 }
+.zoo { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 8px; max-height: 560px; overflow-y: auto; padding-right: 4px; }
+.zoo li { --c: var(--accent); display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 10px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); border-left: 3px solid var(--c); background: var(--card); cursor: pointer; }
+.zoo li.on { background: color-mix(in oklab, var(--c) 8%, var(--card)); }
+.zoo-y { font: 600 .9rem var(--f-mono); color: var(--c); }
+.zoo b { font: 600 .98rem var(--f-display); color: var(--ink); }
+.zoo-f { font-size: .72rem; color: var(--c); font-weight: 600; margin-left: .4em; }
+.zoo p { margin: .25rem 0; font-size: .86rem; color: var(--ink-2); line-height: 1.5; }
+.zoo small { font-size: .74rem; color: var(--ink-3); }

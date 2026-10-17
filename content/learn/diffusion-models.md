@@ -2,7 +2,7 @@
 title: "Generative models and diffusion"
 description: "From predicting properties to proposing materials: the generative modelling problem, VAEs and autoregressive models in brief, then diffusion models in depth (forward noising, score matching, the reverse process, guidance) and how MatterGen-style models generate crystals."
 track: ai4mat
-weight: 4
+weight: 1
 level: Advanced
 minutes: 65
 lab: "Noise a crystal motif away and generate it back"
@@ -91,6 +91,10 @@ A crystal is not a cloud of points in a plane, and each part of it needs its own
 - **Fractional coordinates** live on a torus (they wrap around at 0 and 1), so the noise is a **wrapped Gaussian** and the score is computed on the periodic domain.
 - **The lattice** (three vectors) is diffused separately and must be generated consistently with the atoms.
 - **The denoising network** must be equivariant to rotations, invariant to permutations and to the choice of unit cell, which is where the periodic equivariant graph networks of the [graph-network](../graph-neural-networks/) and [crystal-graph](../materials-representations/) lessons come in.
+
+The figure below runs a reverse diffusion process for six two-dimensional periodic cells at once. Every cell starts as pure noise: random fractional coordinates for four atoms, element labels halfway between A and B, and a random lattice. At each step, a denoiser predicts the clean crystal from the noisy one, and the sample moves part of the way towards that prediction while fresh, smaller noise is added; coordinates wrap around the cell, and the lattice and the element labels are denoised alongside the positions. Here the denoiser is the exact one for a small training set of five 2D crystals (square, checkerboard, triangular, honeycomb and striped arrangements), handling the permutation and translation symmetry by searching over atom assignments; a trained network learns an approximation to exactly this function for millions of crystals. Watch structure emerge from noise in each cell, ending in different crystals, and condition on composition to restrict what can be generated, the two-dimensional analogue of MatterGen's property conditioning.
+
+{{< widget name="crystaldiff" title="Crystals emerging from noise" caption="Six independent samples of a reverse diffusion process over fractional coordinates, element types (blue A, orange B) and lattice parameters, with periodic images shown faintly. The bar shows the noise level. Generate several times, try the composition condition, and run the forward process to see a crystal dissolve into noise." >}}
 
 **DiffCSP** (Jiao et al., 2023) jointly diffuses lattices and fractional coordinates for crystal structure prediction. **MatterGen** (Zeni et al., 2025) diffuses atom types, coordinates and lattice together, then fine-tunes with adapter modules so that generation can be steered towards target chemistry, symmetry, magnetic density or bulk modulus. In both cases generated candidates are relaxed with an MLIP or DFT, checked for stability against the convex hull ([the lesson on crystal graphs](../materials-representations/)), screened for novelty against known databases, and only then proposed for synthesis. The generative model narrows the search; it does not replace the physics.
 

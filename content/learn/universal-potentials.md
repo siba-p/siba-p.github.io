@@ -1,0 +1,116 @@
+---
+title: "Universal potentials and foundation models"
+description: "Interatomic potentials that cover most of the periodic table: the data sets that made them possible (Materials Project trajectories, Alexandria, OMat24, SPICE), the main models from M3GNet and CHGNet to MACE-MP-0, GNoME, MatterSim, SevenNet, ORB and EquiformerV2, how they are benchmarked, their systematic errors such as potential-energy-surface softening, and how to use and fine-tune them in practice."
+track: practice
+weight: 2
+level: Advanced
+prereqs: ["message-passing-potentials", "mlip"]
+lab: "Run a universal potential on copper and compare with a reference"
+---
+
+## From one material to the periodic table
+
+Until about 2021, every machine-learned potential was a specialist. A potential for silicon knew nothing about oxygen; a potential for water could not describe a salt solution unless salt had been in its training set. Building one took months of DFT calculations, training and validation, and the result applied to one chemical system. This made MLIPs powerful tools for groups studying a particular material in depth, but useless for the broad questions of materials discovery: which of ten thousand candidate compounds are stable, which conduct lithium ions quickly, which might catalyse a reaction.
+
+Two developments changed this. High-throughput DFT projects had accumulated enormous numbers of calculations across inorganic chemistry, most importantly the **Materials Project**, which since 2011 has computed the structures and energies of well over a hundred thousand compounds with consistent settings. And message-passing networks with learned element embeddings ([the previous topics](../message-passing-potentials/)) scale gracefully to many elements, because adding an element adds one embedding vector rather than a new set of descriptors and a new network. Training such a network on a large fraction of the Materials Project's data produced the first **universal interatomic potentials**: models that give reasonable energies and forces for almost any inorganic material out of the box. Their role is often compared to that of foundation models in language processing: a large model pre-trained on broad data, used directly for many tasks or adapted to a specific one with little additional data.
+
+## The data sets
+
+A universal potential is only as broad as its training data, and the history of these models is in large part a history of data sets.
+
+The **MPtrj** data set, assembled by the authors of CHGNet in 2023, collected the intermediate structures of the Materials Project's geometry relaxations: about 1.6 million structures from about 146 000 materials, with energies, forces, stresses and magnetic moments, mostly computed with the PBE and PBE+U functionals. Because relaxation trajectories start from reasonable guesses and move towards equilibrium, MPtrj is dominated by near-equilibrium structures. Most universal potentials up to 2024 were trained on it.
+
+Larger and more diverse data followed. The **Alexandria** database (Schmidt, Marques and colleagues) provides millions of additional DFT calculations of hypothetical crystals. Google DeepMind's GNoME project generated DFT data for hundreds of thousands of newly predicted stable crystals and their relaxations. Meta's **OMat24** data set (2024) contains about 110 million DFT calculations, deliberately including structures far from equilibrium, rattled, strained and sampled from high-temperature molecular dynamics, precisely to cover the configurations that relaxation trajectories miss. The Open Catalyst data sets **OC20** and **OC22** cover adsorbates on catalytic surfaces. For organic and biomolecular chemistry, the **SPICE** data set provides about a million calculations at a higher level of DFT on drug-like molecules, peptides and their complexes.
+
+Mixing these data sets is not trivial. They use different functionals (PBE, PBE+U, r²SCAN, ωB97M-D3), different pseudopotentials and different settings, so their energies are not directly comparable. Training on several at once requires either restricting to compatible subsets, learning separate output "heads" for each level of theory, or careful correction schemes.
+
+## The models
+
+**M3GNet** (Chi Chen and Shyue Ping Ong, 2022) was one of the first universal potentials: a graph network with explicit three-body interactions inside its message passing, trained on Materials Project relaxation data across 89 elements. It showed that a single model could relax structures and run dynamics across inorganic chemistry. **CHGNet** (Bowen Deng, Gerbrand Ceder and colleagues, 2023) was trained on MPtrj and also predicts magnetic moments, which act as a proxy for the charge states of transition-metal ions, important in battery materials where the oxidation state of a metal changes during cycling.
+
+**GNoME** (Amil Merchant, Ekin Dogus Cubuk and colleagues at Google DeepMind, 2023) used graph networks in an active-learning loop: candidate structures were generated by substitution and random search, filtered by the network, computed with DFT, and added to the training data, over several rounds. The process proposed about 2.2 million structures predicted to lie on or near the convex hull of stability, of which roughly 380 000 were stable relative to all known materials, and the networks trained along the way became universal potentials themselves. The claim of novelty and stability for so many structures prompted discussion about how many are genuinely new and synthesisable, a useful reminder that computational stability is a necessary but not a sufficient condition for a real material.
+
+**MACE-MP-0** (Ilyes Batatia, Gábor Csányi and a large collaboration, 2023) is a MACE model ([message-passing potentials](../message-passing-potentials/)) trained on MPtrj. Its paper demonstrated stable molecular dynamics, out of the box, across a remarkable range of systems, from water and ice to catalysis, batteries, metal–organic frameworks and high-entropy alloys. It is distributed in several sizes as an ASE calculator, and has become a common starting point for fine-tuning.
+
+Several further models appeared in 2024. **MatterSim** (Han Yang and colleagues at Microsoft Research) was trained on structures sampled across elements, temperatures up to 5000 K and pressures up to 1000 GPa, aiming at finite-temperature and high-pressure properties. **SevenNet** is a NequIP-based universal model with a parallel algorithm for large-scale dynamics. **ORB** (Orbital Materials) is a fast model that is not built to be exactly equivariant but learns rotational symmetry approximately from rotated training data. **EquiformerV2** models trained on OMat24 (the eqV2 models of Meta's fairchem project) reached the top of the stability-prediction benchmarks at the time of their release. For organic molecules, **MACE-OFF** (trained on SPICE), **AIMNet2** and the **ANI** family play the same role. The field moves quickly, and newer models appear every few months; the principles below matter more than any ranking.
+
+## How universal potentials are benchmarked
+
+A natural test of a universal potential is whether it can do the job materials discovery needs: predict which hypothetical crystals are thermodynamically stable. **Matbench Discovery** (Janosh Riebesell, Rhys Goodall, Alpha Lee and colleagues) frames exactly this. Models are given about 250 000 unrelaxed hypothetical crystal structures from the WBM data set, generated by element substitution; they must relax each structure and predict its energy relative to the convex hull of known phases, and are scored on how well they classify structures as stable or unstable, with metrics such as the F1 score and the **discovery acceleration factor** (how much more often a model's predicted-stable structures are truly stable than random picks would be). Later versions added a test of thermal conductivity, which depends on third derivatives of the energy (anharmonic phonons) and probes the shape of the potential energy surface far more severely than energies do.
+
+These benchmarks were valuable because they compared models on the same task with the same data, and they showed universal potentials outperforming one-shot property predictors at screening. But a good leaderboard score does not guarantee accurate dynamics for a particular system: the benchmark rewards energies near equilibrium for typical crystals, while a simulation of a liquid, an interface or a defect may depend on regions of the energy surface that the benchmark never tests. The validation principles of [the topic on training and validation](../mlip/) still apply.
+
+## Systematic errors
+
+Universal potentials have characteristic errors that every user should know. The most widespread is **softening of the potential energy surface**. Models trained largely on near-equilibrium data, such as relaxation trajectories, systematically underestimate the curvature of the energy surface: predicted forces are too small, phonon frequencies too low, elastic constants and bulk moduli too small, and surface and defect energies often too low. Deng and colleagues showed in 2024 that this softening appears consistently across universal models and can be largely corrected by fine-tuning with a modest number of structures sampled away from equilibrium. Data sets such as OMat24, which deliberately include rattled and high-temperature structures, were built partly to address it.
+
+Universal potentials also inherit the errors of their reference. A model trained on PBE overestimates lattice constants slightly and misses most dispersion, unless a dispersion correction is added (MACE-MP-0 can be combined with the D3 correction); PBE+U data mix two Hamiltonians, so energies of compounds of the same elements computed with and without $U$ must be reconciled. And coverage is uneven: chemistries, structures and conditions that are rare in the training data, such as molecular crystals, liquids, surfaces with adsorbates, very high pressures or radiation damage, may be described much less well than common oxides and intermetallics.
+
+## Using and fine-tuning a universal potential
+
+Most universal potentials are distributed as Python packages with an ASE calculator, so they slot into any ASE-based workflow: relaxation, molecular dynamics, nudged elastic band calculations, phonons. The following example relaxes face-centred cubic copper with MACE-MP-0 (it was run while writing this topic; the first call downloads the model):
+
+```python
+from ase.build import bulk
+from ase.filters import FrechetCellFilter
+from ase.optimize import BFGS
+from mace.calculators import mace_mp           # pip install mace-torch
+
+calc = mace_mp(model="medium", default_dtype="float64", device="cpu")
+atoms = bulk("Cu", "fcc", a=3.7, cubic=True)
+atoms.calc = calc
+BFGS(FrechetCellFilter(atoms), logfile=None).run(fmax=1e-3)   # relax positions and cell
+print(atoms.cell[0, 0])                                       # 3.626 Å; experiment 3.615 Å
+```
+
+The predicted lattice constant of 3.626 Å is close to the PBE value for copper, about 0.3 % above experiment, exactly as expected for a model that reproduces PBE. The same `calc` object can drive molecular dynamics with ASE's integrators, or be used from LAMMPS through the MACE interface for larger systems.
+
+For production work on a specific system, the recommended route is usually **fine-tuning**: start from the pre-trained universal model and continue training on a few hundred to a few thousand DFT calculations of the system of interest, computed with settings compatible with the foundation model's training data. The pre-trained model supplies a good description of chemistry in general, and the fine-tuning data correct its systematic errors for the configurations that matter. To avoid "catastrophic forgetting", in which fine-tuning degrades the model elsewhere, MACE offers a multi-head scheme that keeps training on a sample of the original data alongside the new data. Fine-tuned foundation models often match or exceed potentials trained from scratch on the same system with far less data.
+
+A sensible workflow for a new project is therefore: screen and explore with a universal potential; validate it on a handful of DFT calculations of configurations that matter; if the errors are too large, fine-tune on system-specific data, possibly selected by active learning; and validate the fine-tuned model with the property-based tests of the previous topic before trusting long simulations.
+
+{{< note type="key" >}}
+- Universal potentials, trained on hundreds of thousands to millions of DFT structures, describe most inorganic materials out of the box; message-passing models with learned element embeddings made them possible.
+- Key data sets: MPtrj (Materials Project relaxations), Alexandria, GNoME, OMat24 (110 million, including far-from-equilibrium structures), OC20/OC22, SPICE for molecules; mixing levels of theory requires care.
+- Key models: M3GNet, CHGNet, MACE-MP-0, GNoME, MatterSim, SevenNet, ORB, EquiformerV2 (eqV2), MACE-OFF, AIMNet2.
+- Matbench Discovery tests stability prediction for hypothetical crystals; good scores do not guarantee accurate dynamics.
+- Universal models soften the energy surface and inherit reference errors; fine-tuning on a few hundred system-specific calculations corrects much of this.
+{{< /note >}}
+
+{{< quiz >}}
+- q: "Why did message-passing networks make universal potentials practical?"
+  options: ["They are faster than all other models", "Adding an element adds one learned embedding instead of new descriptors and networks, so they scale to many elements", "They do not need training data"]
+  answer: 1
+  why: "Descriptor-based models grow combinatorially with the number of elements."
+- q: "Universal potentials trained on relaxation trajectories tend to predict phonon frequencies that are…"
+  options: ["too high", "too low, because the training data are mostly near equilibrium and the learned surface is too soft", "exact"]
+  answer: 1
+  why: "Softening is a systematic error, reduced by far-from-equilibrium data or fine-tuning."
+- q: "A universal potential trained on PBE predicts a lattice constant 1 % larger than experiment for a metal. Most likely…"
+  options: ["The model is broken", "It is reproducing the PBE functional's known tendency to overestimate lattice constants", "The temperature is wrong"]
+  answer: 1
+  why: "A universal MLIP inherits the systematic errors of its reference."
+- q: "What is the main purpose of fine-tuning a foundation model?"
+  options: ["To make it run faster", "To correct its errors for a specific system using a small amount of compatible DFT data", "To add new elements without data"]
+  answer: 1
+  why: "The pre-trained model supplies general chemistry; the fine-tuning data supply system-specific accuracy."
+{{< /quiz >}}
+
+## References and further reading
+
+<div class="refs">
+
+1. A. Jain et al., "Commentary: The Materials Project: a materials genome approach to accelerating materials innovation", *APL Materials* **1**, 011002 (2013).
+2. C. Chen and S. P. Ong, "A universal graph deep learning interatomic potential for the periodic table", *Nature Computational Science* **2**, 718–728 (2022).
+3. B. Deng et al., "CHGNet as a pretrained universal neural network potential for charge-informed atomistic modelling", *Nature Machine Intelligence* **5**, 1031–1041 (2023).
+4. A. Merchant, S. Batzner, S. S. Schoenholz, M. Aykol, G. Cheon and E. D. Cubuk, "Scaling deep learning for materials discovery", *Nature* **624**, 80–85 (2023).
+5. I. Batatia et al., "A foundation model for atomistic materials chemistry", arXiv:2401.00096 (2023).
+6. H. Yang et al., "MatterSim: a deep learning atomistic model across elements, temperatures and pressures", arXiv:2405.04967 (2024).
+7. L. Barroso-Luque et al., "Open Materials 2024 (OMat24) inorganic materials dataset and models", arXiv:2410.12771 (2024).
+8. L. Chanussot et al., "Open Catalyst 2020 (OC20) dataset and community challenges", *ACS Catalysis* **11**, 6059–6072 (2021).
+9. P. Eastman et al., "SPICE, a dataset of drug-like molecules and peptides for training machine learning potentials", *Scientific Data* **10**, 11 (2023).
+10. J. Riebesell et al., "Matbench Discovery – a framework to evaluate machine learning crystal stability predictions", arXiv:2308.14920 (2023).
+11. B. Deng et al., "Overcoming systematic softening in universal machine learning interatomic potentials by fine-tuning", arXiv:2405.07105 (2024).
+12. D. P. Kovács et al., "MACE-OFF: short-range transferable machine learning force fields for organic molecules", arXiv:2312.15211 (2023).
+
+</div>

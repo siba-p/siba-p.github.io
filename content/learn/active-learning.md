@@ -1,8 +1,8 @@
 ---
 title: "Active learning and Bayesian optimisation"
 description: "Closing the loop between model and experiment: choosing the next calculation or measurement with a surrogate model and an acquisition function, exploration against exploitation, batches, many objectives, and self-driving laboratories."
-track: ai4mat
-weight: 5
+track: practice
+weight: 4
 level: Advanced
 minutes: 50
 lab: "Find the best composition in a dozen experiments"

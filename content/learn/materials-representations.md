@@ -1,8 +1,8 @@
 ---
 title: "Representing materials: compositions and crystal graphs"
 description: "How a periodic crystal becomes model input: lattices and unit cells, composition-only models, crystal graphs with periodic images, the property databases models are trained on, and what stability on the convex hull really means."
-track: ai4mat
-weight: 1
+track: found
+weight: 4
 level: Advanced
 minutes: 50
 lab: "Build a periodic crystal graph"

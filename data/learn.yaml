@@ -122,8 +122,34 @@
     - id: analysis
       title: "Analysis"
       blurb: "Structure, transport coefficients and statistical error from trajectories."
-- id: ai4mat
+- id: rare
   n: 7
+  slug: enhanced-sampling
+  title: "Rare events, free energies and enhanced sampling"
+  short: "Enhanced sampling"
+  mark: "Sampling"
+  tone: green
+  icon: curve
+  level: "Advanced"
+  blurb: "Energy landscapes, transition states and reaction paths; rate theory; free-energy perturbation, thermodynamic integration and non-equilibrium work; umbrella sampling, metadynamics, OPES, ABF and replica exchange; path sampling and Markov state models; and machine-learned collective variables and generative samplers."
+  parts:
+    - id: rl-land
+      title: "Landscapes and rates"
+      blurb: "Minima, saddles and minimum energy paths; why rare events are rare; transition-state theory and Kramers; collective variables."
+    - id: rl-free
+      title: "Free-energy calculations"
+      blurb: "Perturbation, thermodynamic integration, BAR and MBAR, Jarzynski and Crooks, umbrella sampling and WHAM."
+    - id: rl-bias
+      title: "Adaptive biasing and tempering"
+      blurb: "Metadynamics and its well-tempered form, OPES, variationally enhanced sampling, adaptive biasing force, replica exchange and accelerated MD."
+    - id: rl-path
+      title: "Paths and kinetics"
+      blurb: "String methods, transition path sampling, interface and forward-flux sampling, milestoning, weighted ensemble and Markov state models."
+    - id: rl-ml
+      title: "Machine learning for sampling"
+      blurb: "Learned collective variables (autoencoders, Deep-LDA, Deep-TICA, VAMPnets, SPIB) and generative samplers (Boltzmann generators, normalizing flows, diffusion models)."
+- id: ai4mat
+  n: 8
   slug: ai-for-materials
   title: "Machine learning for materials"
   short: "AI for materials"
@@ -133,6 +159,15 @@
   level: "Advanced"
   blurb: "Descriptors and symmetry, crystal graphs, machine-learned interatomic potentials, differentiable simulation, generative models and closed-loop discovery."
   parts:
+    - id: found
+      title: "Foundations"
+      blurb: "Where interatomic potentials came from, what a machine-learned potential must learn, and how atomic environments are described."
+    - id: mlmodels
+      title: "Machine-learned interatomic potentials"
+      blurb: "Kernel and linear models, atomic neural networks, message passing and equivariant networks."
+    - id: practice
+      title: "Training and using MLIPs"
+      blurb: "Data, losses and validation; universal foundation models; building your own potential; active learning."
     - id: ai4mat
-      title: "Machine learning for materials"
-      blurb: "Methods that combine the machine-learning and simulation subjects."
+      title: "Generative and differentiable methods"
+      blurb: "Crystal representations, generative models and differentiable simulation."

@@ -59,7 +59,7 @@
       LW.dot(ctx, B.sx(r), B.sy(T.F(r, p)), 5, C.card, C.orange, 2.5);
       ctx.restore();
       // the two atoms
-      const ax = A.sx(r0) + 4, bx = A.sx(r), cy = strip.y + strip.h / 2, rad = Math.min(22, (A.sx(rm) - A.sx(r0)) * 0.42 + 6);
+      const ax = A.sx(r0) + 4, bx = A.sx(r), cy = strip.y + strip.h / 2, rad = LW.clamp((A.sx(rm) - A.sx(r0)) * 0.42 + 6, 5, 22);
       const F = T.F(r, p), fl = LW.clamp(F / fr, -1, 1) * 60;
       ctx.strokeStyle = C.line2; ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.moveTo(ax, cy); ctx.lineTo(bx, cy); ctx.stroke(); ctx.setLineDash([]);
       LW.dot(ctx, ax, cy, rad, C.atomA, null); LW.dot(ctx, bx, cy, rad, C.atomB, null);

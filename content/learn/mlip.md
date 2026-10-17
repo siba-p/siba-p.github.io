@@ -1,218 +1,102 @@
 ---
-title: "Machine-learned interatomic potentials"
-description: "Learning the potential energy surface from quantum-mechanical data: the energy decomposition, forces and stresses by automatic differentiation, four generations of architectures, training on energies and forces, building data sets, validation beyond RMSE, uncertainty, and universal foundation potentials."
-track: ai4mat
-weight: 2
+title: "Training data, validation and uncertainty"
+description: "The practice that decides whether an MLIP works: designing and sampling the training set, consistent reference calculations, the loss and its weights, learning curves and data efficiency, ensemble and Gaussian-process uncertainty, validation by physical properties and stable dynamics rather than test errors alone, and the common ways potentials fail."
+track: practice
+weight: 1
 level: Advanced
-minutes: 70
-lab: "Fit a potential, then ask it to extrapolate"
-prereqs: ["potential-energy-surfaces", "molecular-dynamics", "graph-neural-networks"]
+prereqs: ["mlip-foundations", "neural-network-potentials", "generalisation"]
+lab: "Fit an ensemble of networks to a bond curve, with and without forces, and watch it extrapolate"
 ---
 
-## The trade-off they break
+## The training set is the model
 
-Every atomistic simulation chooses a model of the potential energy surface ([the lesson on potential energy surfaces](../potential-energy-surfaces/)). Density functional theory is accurate and general, but its cost grows roughly as $N^3$ in the number of electrons, limiting it to hundreds of atoms for picoseconds. Classical force fields are fast and scale linearly, but their fixed functional forms cannot describe bond breaking, changing coordination or chemistry they were not parameterised for. A **machine-learned interatomic potential** (MLIP) is a flexible function, fitted to DFT energies and forces, that reproduces the DFT surface closely while keeping the linear scaling and speed of a force field. With MLIPs, near-DFT-quality molecular dynamics of millions of atoms for nanoseconds has become routine.
+An MLIP knows only what its training data show it. Within the region of configuration space covered by the data it interpolates, and its errors are typically a few meV per atom; outside that region it extrapolates, and its predictions can be wrong by electronvolts. The architecture decides how efficiently the model learns from data, but the data decide **what** it can describe. Most of the effort in building a reliable potential, and most of the expertise, goes into the training set.
 
-## The anatomy of an MLIP
+A good training set covers every kind of configuration the intended simulations will visit, and some margin beyond. For a material, this usually means the relevant crystal phases at their equilibrium volumes and under compression and tension; distorted cells with randomly displaced ("rattled") atoms; snapshots of molecular dynamics at and above the target temperatures, including the liquid; point defects, surfaces and, where relevant, grain boundaries and interfaces; and configurations with atoms closer together than they ever are at equilibrium, which teach the model the repulsive wall. For chemistry in solution or at interfaces, it includes the molecules, the solvent, and configurations along the reaction paths of interest. The GAP-18 silicon potential, for example, was trained on a database assembled by hand from 18 kinds of structures, from crystal phases and vacancies to surfaces, liquid and amorphous silicon.
 
-Almost every MLIP shares the same skeleton.
+Molecular dynamics snapshots are the commonest source of configurations, but consecutive frames are almost identical and add little information, as [the topic on generalisation](../generalisation/) explains. Data are therefore **selected for diversity**: frames are compared in descriptor space and chosen by farthest-point sampling or by CUR decomposition, so that each new structure differs as much as possible from those already chosen. Random structure searching, normal-mode sampling for molecules, and high-temperature or biased sampling extend coverage to configurations that equilibrium dynamics rarely visits.
 
-1. **Locality.** The energy is a sum of atomic energies, each a function of the atom's neighbourhood within a cut-off $r_c$ (typically 5–6 Å):
-   $$ E(\mathbf R) = \sum_{i=1}^{N} \varepsilon_{Z_i}\big(\{\mathbf r_{ij}, Z_j\}_{r_{ij} < r_c}\big). $$
-2. **Symmetry.** $\varepsilon$ is invariant to rotation, translation and permutation of like neighbours, through invariant descriptors ([the lesson on symmetry and descriptors](../symmetry-descriptors/)) or an equivariant network ([the lesson on graph neural networks](../graph-neural-networks/)).
-3. **Conservative forces and stress by differentiation.** Forces and the stress tensor are derivatives of the single predicted energy, computed by automatic differentiation:
-   $$ \mathbf F_i = -\frac{\partial E}{\partial\mathbf r_i}, \qquad \sigma_{\alpha\beta} = \frac{1}{V}\frac{\partial E}{\partial \epsilon_{\alpha\beta}}, $$
-   where $\epsilon$ is a homogeneous strain of the cell (sign conventions for stress vary between codes). Because the forces are an exact gradient, energy is conserved in MD ([the molecular dynamics lesson](../molecular-dynamics/)). Models that predict forces directly, without an energy, are faster but not conservative, and can drift or heat up in long simulations.
+## Consistent reference calculations
 
-## Four generations of architectures
+Every label in the training set must come from the same electronic-structure method with the same settings: the same functional and dispersion correction, pseudopotentials or projector-augmented-wave data sets, plane-wave cutoff, density of k-points, smearing and spin treatment. Differences that seem minor, such as a k-point mesh that is converged for one cell size but not another, introduce noise of several meV per atom that no model can fit. Total energies from DFT also contain an arbitrary constant that depends on the pseudopotentials; MLIPs handle it by subtracting a reference energy for each element, either the energy of an isolated atom computed with the same settings or a per-element average fitted by linear regression, and learning only the remaining interaction energy.
 
-- **Descriptor + neural network.** Behler and Parrinello (2007): atom-centred symmetry functions fed to element-specific networks. ANI applied the idea to organic molecules; DeePMD learns a local-frame descriptor and is widely used for large-scale materials simulation.
-- **Kernel methods.** Gaussian approximation potentials (GAP; Bartók et al., 2010) use SOAP kernels with sparse Gaussian-process regression, which provides a built-in variance ([the lesson on Gaussian processes](../uncertainty-gaussian-processes/)).
-- **Linear models in complete bases.** Moment tensor potentials (MTP) and the atomic cluster expansion (ACE) are linear in their parameters over a systematically improvable many-body basis. They are fast, data-efficient and easy to fit.
-- **Message-passing and equivariant networks.** SchNet, NequIP, Allegro and MACE learn the representation end to end. Equivariant models in particular reach a given accuracy with far less data, which matters when each training point is an expensive DFT calculation. Most new work uses this family.
+Data are stored in formats that keep positions, cell, energy, forces and stress together. The extended XYZ format, read and written by ASE, is the common choice: one block per structure, with the energy and stress in the comment line and the forces as extra columns.
 
-## Training on energies and forces
+## The loss and how it is weighted
 
-A training set is a list of configurations (positions, species, cell) labelled with DFT energies, forces and, for periodic systems, stresses. The loss combines all three:
+As [the topic on what an MLIP must learn](../mlip-foundations/) set out, the loss combines squared errors in energies per atom, forces and stresses, each with a weight. The weights decide the balance between them, and the right balance depends on the application: molecular dynamics depends on forces, phase stability on energy differences, and constant-pressure simulations on stresses. Typical schemes weight forces heavily at first, so that the overall shape of the surface is learned quickly from the abundant force labels, and increase the energy weight towards the end of training, so that energy differences between structures are accurate. Training uses mini-batches of structures, the Adam optimiser with a decaying learning rate, and early stopping on the validation error; many codes also keep an exponential moving average of the weights, which gives smoother and slightly more accurate final models.
 
-$$
-\mathcal L = \sum_{\text{configs } c}\left[ w_E\left(\frac{E_c - E_c^{\text{DFT}}}{N_c}\right)^2 + \frac{w_F}{3N_c}\sum_{i=1}^{N_c}\big\lVert\mathbf F_{i,c} - \mathbf F_{i,c}^{\text{DFT}}\big\rVert^2 + w_\sigma\big\lVert\boldsymbol\sigma_c - \boldsymbol\sigma_c^{\text{DFT}}\big\rVert^2\right].
-$$
+The figure below shows why forces matter so much, on the smallest possible example: an ensemble of five small networks fitted to the energy of a diatomic molecule as a function of bond length.
 
-Forces matter enormously. One DFT calculation on a 100-atom cell yields one energy but 300 force components, each a direct measurement of the *slope* of the surface. Training on forces therefore pins down the shape of the energy surface between and around the training points. Training a force loss requires differentiating the force (itself a derivative) with respect to the parameters, a second-order derivative that autodiff frameworks handle with `create_graph=True`.
+{{< widget name="mlip" title="An ensemble of networks fitted to a bond curve" caption="The shaded band is the training range; outside it the networks extrapolate. Compare training on energies only with energies plus forces at a handful of points, then move the sampled range so that the repulsive wall or the long-range tail is missing, and watch the spread of the ensemble." >}}
 
-{{< widget name="mlip" title="Five networks fitted to a dimer curve" caption="The shaded band is the training range; outside it the networks are extrapolating. Compare energies only with energies plus forces at three or four training points; then move the sampled range so that the repulsive wall or the long-range tail is missing, and watch the ensemble spread warn you." >}}
+With four training points and energies only, the networks agree at the four points and disagree everywhere else. Adding the forces at the same four points, the slopes of the curve, pins the shape down between them. Remove the short distances from the training range and the repulsive wall vanishes from all five models: a real simulation with such a potential would let atoms fall onto each other, the commonest catastrophic failure of a new MLIP.
 
-The lab makes four points that hold for real potentials.
+## Learning curves and data efficiency
 
-1. **Forces are worth many energies.** With four training points and energies only, the networks interpolate wildly; with forces the same four points constrain the curve tightly.
-2. **Inside the training range, errors are small; outside, anything can happen.** Remove short distances from the training set and the repulsive wall disappears: a real MD simulation with such a potential lets atoms collapse onto each other, the most common failure of a new MLIP.
-3. **The ensemble knows when it is guessing.** Where the five networks agree, they are usually right; where they disagree, they are usually wrong. That spread is the trigger for active learning ([the active-learning lesson](../active-learning/)).
-4. **Fine structure needs data.** The small bump near 2.4 Å is invisible to the model unless points are sampled there.
+The most informative single diagnostic of a model and a data set is the **learning curve**: the test error plotted against the number of training structures on log–log axes. For a well-behaved model it is a straight line, the error falling as a power of the data, $\epsilon \propto N^{-\beta}$, until it levels off at the noise floor of the reference data or the limit of the model's expressiveness. Comparing learning curves rather than single numbers separates two questions: how good a model can eventually become, and how much data it needs to get there. Equivariant message-passing models, as [the topic on message passing](../message-passing-potentials/) describes, have steeper learning curves than invariant ones, which is the precise meaning of their data efficiency. Learning curves also tell you whether more data would help: a curve still falling steeply means the model is data-limited.
 
-## Building a training set
+## Uncertainty
 
-The data set matters more than the architecture. Good practice:
+A potential that knew when it was wrong would be far safer to use, and several methods provide an estimate of uncertainty. The simplest and most widely used is an **ensemble** (or committee): train several models that differ in their random initialisation or in the subset of data they see, and use the spread of their predictions as an uncertainty. Where the models agree they are usually right, and where they disagree they are usually wrong, as the figure shows outside the training range. Gaussian-process potentials such as GAP provide a predictive variance directly ([kernel and linear potentials](../kernel-and-linear-potentials/)), linear models provide extrapolation grades, and cheaper approximations exist for neural networks, such as estimating the variance from only the last layer.
 
-- **Cover the configurations the simulation will visit**: MD snapshots at and above the target temperature, strained and rattled cells, surfaces, defects, and the short-distance repulsive region.
-- **Remove near-duplicates.** Consecutive MD frames add almost nothing ([the lesson on generalisation](../generalisation/)). Select diverse frames, for example by farthest-point sampling in descriptor space.
-- **Use consistent DFT settings** for every label: the same functional, pseudopotentials, plane-wave cut-off, k-point density and smearing. Mixed settings inject noise the model cannot fit.
-- **Grow the set iteratively**: train, run MD, find configurations where an ensemble disagrees or where the simulation fails, compute them with DFT, add, retrain. Tools such as FLARE (on-the-fly learning during MD) and DP-GEN (for DeePMD potentials) automate this loop.
+Uncertainty estimates are rarely perfectly **calibrated**: an ensemble spread of 50 meV/Å does not mean that the error is 50 meV/Å, only that it is likely to be larger than where the spread is 10. They are best used as a ranking: to flag configurations in a simulation that need checking, and to choose which new structures to compute in [active learning](../active-learning/). Most modern training pipelines, such as DP-GEN, FLARE and the active-learning modes of MTP and ACE codes, are built around exactly this loop: simulate, detect uncertain configurations, compute them with DFT, add them, retrain.
 
-## Validation beyond the test RMSE
+## Validation beyond the test error
 
-Low test errors (a few meV/atom in energy, tens of meV/Å in force) are necessary but not sufficient. A potential can have excellent average errors and still fail in simulation, because MD visits rare configurations that a random test set does not contain. Validate the *physics*:
+A low test error, a few meV per atom in energy and a few tens of meV/Å in force, is necessary but not sufficient. A random test set is drawn from the same distribution as the training set, so it says little about configurations that a long simulation will eventually reach and that the training set missed. A potential can have excellent average errors and still produce nonsense in dynamics. Fu and colleagues (2023) showed, across many models and systems, that force accuracy is only loosely correlated with simulation stability and with the accuracy of derived properties. Validation must therefore test **physics**, as Morrow, Gardner and Deringer (2023) set out:
 
-- energy conservation in NVE and stability over long runs at the highest temperature of interest;
-- lattice constants, elastic constants and phonon dispersions against DFT;
-- radial distribution functions, densities and diffusion coefficients against reference simulations or experiment;
-- energies along the processes you care about: vacancy migration, surface energies, reaction barriers.
+**Stability and conservation.** Run long molecular dynamics at the highest temperature of interest, in the NVE ensemble to check energy conservation and in the thermostatted ensemble to check that structures do not collapse, explode or drift into unphysical states. A "hole" in the potential, a region where the predicted energy is spuriously low, is often found only this way.
 
-Fu et al. (2023) showed across many models that force accuracy and simulation stability are only loosely correlated, which is why simulation-based tests are now standard.
+**Static properties.** Compare equilibrium lattice constants, the energy–volume curve and bulk modulus, elastic constants, phonon dispersions, vacancy and interstitial formation energies, surface energies and stacking-fault energies with DFT. Phonons are a sensitive test of the second derivatives of the surface, which the training never fits directly.
 
-## Long-range physics
+**Dynamic and thermodynamic properties.** Compare radial distribution functions, densities and diffusion coefficients with ab initio molecular dynamics, and, where possible, with experiment for the target quantity: a melting point, a thermal expansion coefficient, a phase transition pressure.
 
-A cut-off of 5 Å cannot describe electrostatics or dispersion between distant atoms. For ionic systems, interfaces and charged defects, modern potentials add explicit long-range terms: learned atomic charges with Ewald summation (as in fourth-generation neural network potentials), or empirical dispersion corrections such as Grimme's D3 added on top of the short-range model.
+**Processes of interest.** Compute energies along the processes the potential will be used for: migration barriers of vacancies and ions, reaction paths, the energy of a dislocation core. These are often outside the bulk of the training data and are where extrapolation errors hide.
 
-## Universal potentials
+The tutorial in [the topic on building an MLIP](../build-your-own-mlip/) applies the first three kinds of test to a small copper potential.
 
-Since 2022, MLIPs have been trained on hundreds of thousands of diverse structures spanning most of the periodic table, mainly DFT relaxation trajectories from the Materials Project and larger data sets that followed. M3GNet, CHGNet, MACE-MP-0 and their successors run out of the box on almost any inorganic material. They are excellent starting points and for screening, but have systematic errors (often a softening of the energy surface inherited from PBE and from under-sampling of high-energy configurations), so for quantitative work they are **fine-tuned** on a smaller set of system-specific DFT calculations.
+## Common failure modes
 
-## In practice
+A handful of problems account for most failures. **Missing short-range data** produces holes in the repulsive wall and atoms collapsing onto each other; it is fixed by adding compressed structures, dimers and close contacts, or a physical repulsive baseline. **Extrapolation** to unseen environments, such as a surface when only bulk was trained, or a new temperature range, gives silent errors; it is detected by uncertainty estimates and fixed by active learning. **An inadequate reference** method, such as PBE for dispersion-bound layered materials, gives a potential that is faithful to the wrong answer. **Missing long-range physics** affects ionic materials, polar interfaces and charged defects, and requires the long-range extensions of [neural-network potentials](../neural-network-potentials/). **Electronic degrees of freedom** that the model does not see, such as magnetic order, spin states or the charge state of a defect, make the same atomic configuration correspond to several different energies, which no function of positions alone can fit. And **data leakage**, testing on frames from the same trajectory as the training frames, makes errors look smaller than they are; test sets should come from independent simulations.
 
-A minimal Behler–Parrinello potential in PyTorch, trained on energies and forces of random Lennard-Jones clusters, with forces obtained by automatic differentiation:
-
-```python
-import torch
-
-torch.manual_seed(0)
-RC = 3.0
-CENTRES = torch.linspace(0.8, RC, 16)
-
-def lj(pos):                                      # reference "DFT": Lennard-Jones, eps = sigma = 1
-    r = torch.cdist(pos, pos)
-    iu = torch.triu_indices(len(pos), len(pos), 1)
-    r = r[iu[0], iu[1]]
-    return torch.sum(4 * (r ** -12 - r ** -6))
-
-def features(pos):                                # per-atom radial symmetry functions G2
-    d = pos[:, None] - pos[None]
-    r = torch.sqrt((d ** 2).sum(-1) + torch.eye(len(pos)))   # +eye avoids sqrt(0) on the diagonal
-    fc = torch.where(r < RC, 0.5 * (torch.cos(torch.pi * r / RC) + 1), torch.zeros_like(r))
-    fc = fc * (1 - torch.eye(len(pos)))                      # no self-interaction
-    return (torch.exp(-4.0 * (r[..., None] - CENTRES) ** 2) * fc[..., None]).sum(1)
-
-class Potential(torch.nn.Module):                 # E = sum_i NN(G_i): Behler-Parrinello form
-    def __init__(self):
-        super().__init__()
-        self.nn = torch.nn.Sequential(torch.nn.Linear(16, 32), torch.nn.SiLU(),
-                                      torch.nn.Linear(32, 32), torch.nn.SiLU(), torch.nn.Linear(32, 1))
-    def forward(self, pos):
-        return self.nn(features(pos)).sum()
-
-def sample():                                     # random 5-atom clusters without close contacts
-    while True:
-        pos = torch.rand(5, 3) * 2.2
-        if torch.pdist(pos).min() > 0.95:
-            return pos
-
-def label(pos):                                   # reference energy and forces = -dE/dr
-    pos = pos.clone().requires_grad_(True)
-    e = lj(pos)
-    return e.detach(), -torch.autograd.grad(e, pos)[0]
-
-data = [(p, *label(p)) for p in (sample() for _ in range(300))]
-train, test = data[:250], data[250:]
-model = Potential()
-opt = torch.optim.Adam(model.parameters(), lr=3e-3)
-
-def predict(pos):
-    pos = pos.clone().requires_grad_(True)
-    e = model(pos)
-    f = -torch.autograd.grad(e, pos, create_graph=True)[0]   # forces by autodiff, differentiable
-    return e, f
-
-for epoch in range(60):
-    for pos, e_ref, f_ref in train:
-        e, f = predict(pos)
-        loss = (e - e_ref) ** 2 + 10.0 * ((f - f_ref) ** 2).mean()   # energy + weighted force loss
-        opt.zero_grad(); loss.backward(); opt.step()
-
-e_err, f_err = [], []
-for pos, e_ref, f_ref in test:
-    e, f = predict(pos)
-    e_err.append((e.detach() - e_ref).abs() / 5); f_err.append((f.detach() - f_ref).abs().mean())
-f_scale = torch.stack([f.abs().mean() for _, _, f in test]).mean()
-print(f"test MAE: energy {torch.stack(e_err).mean():.3f} eps/atom, force {torch.stack(f_err).mean():.3f} eps/sigma")
-print(f"for scale, the mean |force component| in the test set is {f_scale:.2f} eps/sigma")
-```
-
-```text
-test MAE: energy 0.053 eps/atom, force 1.221 eps/sigma
-for scale, the mean |force component| in the test set is 4.71 eps/sigma
-```
-
-The force error, about a quarter of a typical force, is honest for a toy: 250 configurations, a few minutes of training, and a target with an extremely steep repulsive wall. Production potentials use thousands of configurations and train for hours on a GPU. With the MACE package, training and using a potential looks like this (not run here; it needs the package and a GPU for realistic sizes):
-
-```bash
-# train.xyz: extended-XYZ frames with DFT energy, forces and stress
-mace_run_train --name="my_mace" --train_file="train.xyz" --valid_fraction=0.05 \
-    --test_file="test.xyz" --E0s="average" --model="MACE" --r_max=5.0 \
-    --energy_key="REF_energy" --forces_key="REF_forces" \
-    --batch_size=10 --max_num_epochs=300 --ema --device=cuda
-```
-
-```python
-from mace.calculators import mace_mp           # a universal foundation model
-from ase.build import bulk
-atoms = bulk("Si", "diamond", a=5.43)
-atoms.calc = mace_mp(model="medium", device="cpu")
-print(atoms.get_potential_energy(), atoms.get_stress())
-```
-
-{{< note type="warn" title="The failure modes to watch for" >}}
-- **Holes in the repulsive wall**: atoms fuse or the simulation explodes. Always include short-distance configurations.
-- **Silent extrapolation**: the simulation looks stable but visits configurations unlike the training set. Monitor ensemble disagreement or another uncertainty measure during production runs.
-- **Mismatch between label and target physics**: an MLIP reproduces its DFT functional, including its errors. It cannot be more accurate than its training data.
+{{< note type="key" >}}
+- The training set defines the domain of validity: cover phases, strains, rattled and high-temperature structures, defects, surfaces, liquids and short-range contacts, selected for diversity.
+- All labels must come from consistent reference calculations; per-element reference energies remove arbitrary offsets.
+- Forces dominate the information content; weight energies, forces and stresses for the intended use; learning curves reveal data efficiency.
+- Ensembles and GP variances flag uncertain configurations and drive active learning, though they are rarely perfectly calibrated.
+- Validate with physics, not just test RMSE: stable dynamics, energy conservation, elastic constants, phonons, defect energies, structure and transport, and barriers of the processes of interest.
 {{< /note >}}
 
 {{< quiz >}}
-- q: "Why are MLIP forces usually computed as the derivative of a predicted energy rather than predicted directly?"
-  options: ["It is faster", "It guarantees conservative forces, so energy is conserved in molecular dynamics", "Direct prediction is impossible for neural networks"]
+- q: "A potential trained on bulk copper is used to simulate a copper surface. What is the main risk?"
+  options: ["None, copper is copper", "Surface environments lie outside the training data, so predictions are extrapolations and may be badly wrong", "The simulation will be slower"]
   answer: 1
-  why: "Forces that are an exact gradient of a scalar energy are conservative by construction. Directly predicted forces can contain a non-conservative part that pumps energy into an NVE simulation."
-- q: "A DFT calculation of a 64-atom cell gives how many force labels, compared with energy labels?"
-  options: ["One energy and one force", "One energy and 192 force components", "64 energies and 64 forces"]
+  why: "MLIPs interpolate within their training data; include surfaces or use uncertainty to detect the problem."
+- q: "Why are consecutive MD frames a poor training set?"
+  options: ["They are too expensive", "They are nearly identical, so they add little new information; diverse selection is far more efficient", "They have no forces"]
   answer: 1
-  why: "Each of the 64 atoms has a 3-component force, 192 numbers in total, alongside a single total energy (and 6 independent stress components for a periodic cell)."
-- q: "Your new potential has a force RMSE of 30 meV/Å on the test set, but MD at 1200 K explodes after 20 ps. What is the most likely cause?"
-  options: ["The test set error is too high", "The simulation reached configurations, such as close contacts, that were absent from the training data", "The time step is too small"]
+  why: "Farthest-point or CUR selection in descriptor space picks informative structures."
+- q: "An ensemble of five potentials disagrees strongly on one configuration in a simulation. What does this suggest?"
+  options: ["The configuration is in equilibrium", "It lies outside the training data; it is a good candidate for a new DFT calculation", "The thermostat is wrong"]
   answer: 1
-  why: "Average test errors measure performance on configurations like the training data. High-temperature MD finds rare, high-energy regions; if they were not sampled, the potential can have holes there."
-- q: "What is the main role of the disagreement between members of an ensemble of potentials?"
-  options: ["To average out the DFT noise", "To flag configurations where the model is extrapolating, so they can be computed with DFT and added to the training set", "To speed up the simulation"]
+  why: "Disagreement signals extrapolation; this is the trigger used in active learning."
+- q: "A potential has a force RMSE of 30 meV/Å on a random test set but crashes after 50 ps of MD at high temperature. What does this show?"
+  options: ["The RMSE is miscalculated", "Test errors do not guarantee stability; the simulation reached configurations missing from the data", "MD always crashes"]
   answer: 1
-  why: "Ensemble spread is a practical estimate of epistemic uncertainty and drives active-learning loops."
+  why: "Validate with long simulations as well as test sets."
 {{< /quiz >}}
 
 ## References and further reading
 
 <div class="refs">
 
-1. J. Behler, “Four generations of high-dimensional neural network potentials,” *Chemical Reviews* **121**, 10037–10072 (2021).
-2. O. T. Unke, S. Chmiela, H. E. Sauceda, M. Gastegger, I. Poltavsky, K. T. Schütt, A. Tkatchenko and K.-R. Müller, “Machine learning force fields,” *Chemical Reviews* **121**, 10142–10186 (2021).
-3. V. L. Deringer, M. A. Caro and G. Csányi, “Machine learning interatomic potentials as emerging tools for materials science,” *Advanced Materials* **31**, 1902765 (2019).
-4. J. Behler and M. Parrinello, “Generalized neural-network representation of high-dimensional potential-energy surfaces,” *Physical Review Letters* **98**, 146401 (2007).
-5. A. P. Bartók, M. C. Payne, R. Kondor and G. Csányi, “Gaussian approximation potentials: the accuracy of quantum mechanics, without the electrons,” *Physical Review Letters* **104**, 136403 (2010).
-6. J. S. Smith, O. Isayev and A. E. Roitberg, “ANI-1: an extensible neural network potential with DFT accuracy at force field computational cost,” *Chemical Science* **8**, 3192–3203 (2017).
-7. L. Zhang, J. Han, H. Wang, R. Car and W. E, “Deep potential molecular dynamics: a scalable model with the accuracy of quantum mechanics,” *Physical Review Letters* **120**, 143001 (2018).
-8. A. V. Shapeev, “Moment tensor potentials: a class of systematically improvable interatomic potentials,” *Multiscale Modeling & Simulation* **14**, 1153–1173 (2016).
-9. S. Batzner et al., “E(3)-equivariant graph neural networks for data-efficient and accurate interatomic potentials,” *Nature Communications* **13**, 2453 (2022).
-10. A. Musaelian, S. Batzner, A. Johansson, L. Sun, C. J. Owen, M. Kornbluth and B. Kozinsky, “Learning local equivariant representations for large-scale atomistic dynamics,” *Nature Communications* **14**, 579 (2023) (Allegro).
-11. I. Batatia, D. P. Kovács, G. N. C. Simm, C. Ortner and G. Csányi, “MACE: higher order equivariant message passing neural networks for fast and accurate force fields,” *Advances in Neural Information Processing Systems* **35** (2022).
-12. B. Deng, P. Zhong, K. Jun, J. Riebesell, K. Han, C. J. Bartel and G. Ceder, “CHGNet as a pretrained universal neural network potential for charge-informed atomistic modelling,” *Nature Machine Intelligence* **5**, 1031–1041 (2023).
-13. I. Batatia et al., “A foundation model for atomistic materials chemistry,” arXiv:2401.00096 (2023) (MACE-MP-0).
-14. X. Fu, Z. Wu, W. Wang, T. Xie, S. Keten, R. Gomez-Bombarelli and T. Jaakkola, “Forces are not enough: benchmark and critical evaluation for machine learning force fields with molecular simulations,” *Transactions on Machine Learning Research* (2023).
-15. T. W. Ko, J. A. Finkler, S. Goedecker and J. Behler, “A fourth-generation high-dimensional neural network potential with accurate electrostatics including non-local charge transfer,” *Nature Communications* **12**, 398 (2021).
+1. J. D. Morrow, J. L. A. Gardner and V. L. Deringer, "How to validate machine-learned interatomic potentials", *Journal of Chemical Physics* **158**, 121501 (2023).
+2. X. Fu et al., "Forces are not enough: benchmark and critical evaluation for machine learning force fields with molecular simulations", *Transactions on Machine Learning Research* (2023).
+3. A. P. Bartók, J. Kermode, N. Bernstein and G. Csányi, "Machine learning a general-purpose interatomic potential for silicon", *Physical Review X* **8**, 041048 (2018).
+4. J. Vandermause et al., "On-the-fly active learning of interpretable Bayesian force fields for atomistic rare events", *npj Computational Materials* **6**, 20 (2020).
+5. Y. Zhang et al., "DP-GEN: a concurrent learning platform for the generation of reliable deep learning based potential energy models", *Computer Physics Communications* **253**, 107206 (2020).
+6. A. R. Tan, S. Urata, S. Goldman, J. C. B. Dietschreit and R. Gómez-Bombarelli, "Single-model uncertainty quantification in neural network potentials does not consistently outperform model ensembles", *npj Computational Materials* **9**, 225 (2023).
+7. V. L. Deringer, M. A. Caro and G. Csányi, "Machine learning interatomic potentials as emerging tools for materials science", *Advanced Materials* **31**, 1902765 (2019).
 
 </div>

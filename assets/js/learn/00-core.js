@@ -202,7 +202,7 @@
     for (let i = xs.length - 1; i >= 0; i--) ctx.lineTo(A.sx(xs[i]), A.sy(lo[i]));
     ctx.closePath(); ctx.fill(); ctx.restore();
   };
-  LW.dot = function (ctx, x, y, r, fill, stroke, lw = 1.5) { ctx.beginPath(); ctx.arc(x, y, r, 0, 2 * Math.PI); if (fill) { ctx.fillStyle = fill; ctx.fill(); } if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lw; ctx.stroke(); } };
+  LW.dot = function (ctx, x, y, r, fill, stroke, lw = 1.5) { ctx.beginPath(); ctx.arc(x, y, Math.max(0, r), 0, 2 * Math.PI); if (fill) { ctx.fillStyle = fill; ctx.fill(); } if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lw; ctx.stroke(); } };
   LW.arrow = function (ctx, x0, y0, x1, y1, color, w = 1.6, head = 6) {
     const a = Math.atan2(y1 - y0, x1 - x0), L = Math.hypot(x1 - x0, y1 - y0); if (L < 0.5) return;
     const hh = Math.min(head, L * 0.6);

@@ -1,8 +1,8 @@
 ---
 title: "Symmetry and atomic descriptors"
 description: "Why a model of atoms must respect translation, rotation, reflection and permutation; invariance against equivariance; locality; and the descriptors (Coulomb matrices, symmetry functions, SOAP, ACE) that build these symmetries in."
-track: ai4mat
-weight: 0
+track: found
+weight: 3
 level: Core
 minutes: 45
 lab: "Rotate, renumber and mirror a cluster"

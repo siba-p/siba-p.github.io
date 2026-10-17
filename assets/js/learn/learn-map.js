@@ -3,8 +3,8 @@
    everything a chapter depends on; click to open it. */
 (function () {
   "use strict";
-  const TONE = { teal: "--teal", indigo: "--accent", gold: "--gold", violet: "--violet", rose: "--rose", sky: "--sky", orange: "--orange" };
-  const CENTRES = { math: [0.5, 0.15], computing: [0.13, 0.3], python: [0.16, 0.76], ml: [0.42, 0.62], science: [0.82, 0.25], sim: [0.75, 0.68], ai4mat: [0.5, 0.86] };
+  const TONE = { teal: "--teal", indigo: "--accent", gold: "--gold", violet: "--violet", rose: "--rose", sky: "--sky", orange: "--orange", green: "--green" };
+  const CENTRES = { math: [0.5, 0.11], computing: [0.13, 0.27], python: [0.14, 0.68], ml: [0.38, 0.5], science: [0.86, 0.2], sim: [0.64, 0.42], rare: [0.86, 0.68], ai4mat: [0.5, 0.88] };
   LW.register("learnmap", function (root, opts) {
     const nodes = opts.nodes || [], courses = opts.courses || [], bySlug = {};
     nodes.forEach(n => { bySlug[n.s] = n; });
@@ -14,12 +14,12 @@
     nodes.forEach(n => (n.p || []).forEach(p => { if (bySlug[p] && !edges.some(e => e[0] === p && e[1] === n.s)) edges.push([p, n.s, "pre"]); }));
     const parents = {}; edges.forEach(([a, b]) => { (parents[b] = parents[b] || []).push(a); });
     const ancestors = s => { const out = new Set(), st = [s]; while (st.length) { const x = st.pop(); (parents[x] || []).forEach(p => { if (!out.has(p)) { out.add(p); st.push(p); } }); } return out; };
-    const P = LW.canvas(root, { height: w => (w < 700 ? 1820 : Math.min(980, w * 0.82)) });
+    const P = LW.canvas(root, { height: w => (w < 700 ? 2080 : Math.min(1080, w * 0.9)) });
     const tip = LW.h("div", { class: "lm-tip", hidden: true }); root.append(tip);
     root.style.position = "relative";
     let hover = null, pos = {};
     function layout(W, H) {
-      const narrow = W < 700, cen = narrow ? { math: [0.5, 0.065], computing: [0.5, 0.205], python: [0.5, 0.345], ml: [0.5, 0.49], science: [0.5, 0.635], sim: [0.5, 0.78], ai4mat: [0.5, 0.925] } : CENTRES;
+      const narrow = W < 700, cen = narrow ? { math: [0.5, 0.055], computing: [0.5, 0.18], python: [0.5, 0.305], ml: [0.5, 0.43], science: [0.5, 0.555], sim: [0.5, 0.68], rare: [0.5, 0.805], ai4mat: [0.5, 0.93] } : CENTRES;
       courses.forEach(c => {
         const list = nodes.filter(n => n.c === c.id), k = list.length, [cx, cy] = cen[c.id] || [0.5, 0.5];
         const rx = narrow ? W * 0.36 : Math.min(W * 0.12, 58 + k * 7), ry = narrow ? 74 : Math.min(H * 0.14, 46 + k * 5);

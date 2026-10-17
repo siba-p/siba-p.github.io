@@ -402,7 +402,7 @@
     const loop = LW.loop(root, () => { throwN(Math.max(5, Math.round(total * 0.02))); draw(); if (total > 2e6) { loop.stop(); runB.textContent = "Throw continuously"; } });
     function draw() {
       const C = LW.colors(), { ctx, W, H } = P; ctx.clearRect(0, 0, W, H);
-      const narrow = W < 640, s = narrow ? Math.min(W - 40, 300) : Math.min(H - 30, W * 0.42), ox = narrow ? (W - s) / 2 : 20, oy = 12;
+      const narrow = W < 640, s = Math.max(1, narrow ? Math.min(W - 40, 300) : Math.min(H - 30, W * 0.42)), ox = narrow ? (W - s) / 2 : 20, oy = 12;
       ctx.fillStyle = C.bg2; ctx.fillRect(ox, oy, s, s); ctx.strokeStyle = C.line2; ctx.strokeRect(ox + 0.5, oy + 0.5, s, s);
       ctx.fillStyle = rgba(GOLD, 0.1); ctx.beginPath(); ctx.moveTo(ox, oy + s); ctx.arc(ox, oy + s, s, -Math.PI / 2, 0); ctx.closePath(); ctx.fill(); ctx.strokeStyle = GOLD; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(ox, oy + s, s, -Math.PI / 2, 0); ctx.stroke();
       pts.forEach(p => { ctx.fillStyle = p[2] ? TEAL : ROSE; ctx.fillRect(ox + p[0] * s - 1, oy + (1 - p[1]) * s - 1, 2, 2); });

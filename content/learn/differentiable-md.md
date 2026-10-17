@@ -2,7 +2,7 @@
 title: "Differentiable molecular dynamics"
 description: "Treating a whole simulation as a differentiable function: forward- and reverse-mode automatic differentiation through a trajectory, fitting force-field parameters to observables, the adjoint method, reweighting, and why chaos limits it all."
 track: ai4mat
-weight: 3
+weight: 2
 level: Advanced
 minutes: 55
 lab: "Differentiate a trajectory and fit σ"
