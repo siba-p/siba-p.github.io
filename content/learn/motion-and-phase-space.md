@@ -1,5 +1,5 @@
 ---
-title: "Motion: position, momentum, force and energy"
+title: "Classical mechanics and phase space"
 description: "The classical mechanics every simulation rests on: velocity and momentum, Newton's second law, forces as slopes of a potential, conservation of energy, and phase space, the map in which a whole motion becomes a single curve. Hamilton's equations included."
 track: physics
 weight: 1

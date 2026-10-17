@@ -1,5 +1,5 @@
 ---
-title: "Functions, scope, the call stack and modules"
+title: "Functions and modules"
 description: "Writing and calling functions; positional, keyword, default and variable arguments and the mutable-default trap; local, enclosing, global and built-in scope; frames, the call stack, recursion and tracebacks; functions as values, lambdas, closures and decorators; and organising code into modules and packages, with environments and the standard library."
 track: pycore
 weight: 4
@@ -23,7 +23,7 @@ def lennard_jones(r, epsilon=1.0, sigma=1.0):
 
 The header names the function and its **parameters**; the indented body runs each time the function is **called**; `return` hands a value back to the caller and ends the call. A function that reaches the end of its body without `return` returns `None`. The string in triple quotes on the first line of the body is the **docstring**: it documents what the function does, and `help(lennard_jones)` displays it. Good docstrings state the meaning and units of each argument and of the result, which in scientific code are the things most often misunderstood.
 
-As [the topic on how Python runs](../how-python-runs/) showed, `def` is an executable statement. The body is compiled once, together with the rest of the module, into a code object; when the `def` line is executed, `MAKE_FUNCTION` wraps that code object in a function object and binds the name to it. A function is therefore an ordinary object, like an integer or a list: it can be bound to another name, stored in a list or passed to another function, possibilities used later in this topic.
+As [the chapter on how Python runs](../how-python-runs/) showed, `def` is an executable statement. The body is compiled once, together with the rest of the module, into a code object; when the `def` line is executed, `MAKE_FUNCTION` wraps that code object in a function object and binds the name to it. A function is therefore an ordinary object, like an integer or a list: it can be bound to another name, stored in a list or passed to another function, possibilities used later in this topic.
 
 ## Arguments
 
@@ -120,7 +120,7 @@ if __name__ == "__main__":
 
 at the bottom of a file therefore runs `main()` only when the file is executed directly, so the same file can serve both as a script and as a library of functions for other scripts and for tests.
 
-Python's **standard library** is large, and knowing what is in it saves writing code. Among the modules most used in scientific work are `math` and `cmath`, `random`, `statistics`, `itertools` (combinations, permutations and other iteration tools), `collections` (`Counter`, `defaultdict`, `deque`), `pathlib` (file paths), `json` and `csv`, `time` and `datetime`, `subprocess` (running other programs, such as a simulation engine), `argparse` (command-line options) and `multiprocessing`. Third-party packages, above all NumPy, SciPy, Matplotlib, pandas, ASE and PyTorch, are installed with `pip install` or `conda install` into an **environment**: an isolated directory with its own interpreter and packages, created with `python -m venv` or `conda create`. Keeping one environment per project, with the package versions recorded in a `requirements.txt` or `environment.yml` file, is what makes a computational result reproducible on another machine or a cluster ([the topic on Linux for simulation](../linux-for-simulation/) covers the cluster side).
+Python's **standard library** is large, and knowing what is in it saves writing code. Among the modules most used in scientific work are `math` and `cmath`, `random`, `statistics`, `itertools` (combinations, permutations and other iteration tools), `collections` (`Counter`, `defaultdict`, `deque`), `pathlib` (file paths), `json` and `csv`, `time` and `datetime`, `subprocess` (running other programs, such as a simulation engine), `argparse` (command-line options) and `multiprocessing`. Third-party packages, above all NumPy, SciPy, Matplotlib, pandas, ASE and PyTorch, are installed with `pip install` or `conda install` into an **environment**: an isolated directory with its own interpreter and packages, created with `python -m venv` or `conda create`. Keeping one environment per project, with the package versions recorded in a `requirements.txt` or `environment.yml` file, is what makes a computational result reproducible on another machine or a cluster ([the chapter on Linux for simulation](../linux-for-simulation/) covers the cluster side).
 
 ## Writing good scientific functions
 

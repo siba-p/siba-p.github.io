@@ -1,5 +1,5 @@
 ---
-title: "Counting microstates: entropy and temperature"
+title: "Entropy and temperature"
 description: "Statistical mechanics from scratch: microstates and macrostates, counting them in an Einstein solid, why energy flows from hot to cold, entropy as S = k ln Ω, and temperature defined as the rate at which entropy grows with energy."
 track: statmech
 weight: 1

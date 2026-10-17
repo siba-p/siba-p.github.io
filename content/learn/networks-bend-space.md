@@ -1,5 +1,5 @@
 ---
-title: "Layers: how networks bend space"
+title: "Layers and representations"
 description: "Why stacking neurons into layers creates power that one neuron lacks: each layer is a linear transformation followed by a bend, a network untangles data until a straight line can separate it, and topology sets the limits of how narrow a layer can be."
 track: neuron
 weight: 3

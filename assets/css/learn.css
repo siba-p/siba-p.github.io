@@ -653,7 +653,9 @@ table.cr .cr-ex:hover { border-color: var(--accent); }
 .book-nav { position: sticky; top: 76px; max-height: calc(100vh - 92px); overflow-y: auto; scrollbar-width: thin; font-size: .86rem; padding-right: 6px; }
 .bn-toggle { display: none; }
 .bn-title { margin: 0 0 .8rem; font: 600 .95rem var(--f-display); color: var(--ink); }
-.bn-part { margin: 1.1rem 0 .35rem; font: 600 .74rem var(--f-body); color: var(--tone); letter-spacing: .02em; }
+.bn-in { counter-reset: bnp; }
+.bn-part { margin: 1.1rem 0 .35rem; font: 600 .74rem var(--f-body); color: var(--tone); letter-spacing: .02em; counter-increment: bnp; }
+.bn-part::before { content: "Part " counter(bnp, upper-roman) "\2002\00b7\2002"; }
 .bn-chs, .bn-secs { list-style: none; margin: 0; padding: 0; }
 .bn-chs > li > a { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 6px; padding: .34em .5em; border-radius: 7px; color: var(--ink-2); line-height: 1.35; text-decoration: none; }
 .bn-chs > li > a:hover { background: var(--bg-2); color: var(--ink); }
@@ -667,8 +669,9 @@ table.cr .cr-ex:hover { border-color: var(--accent); }
 .bn-secs a:hover { color: var(--ink); }
 .bn-secs a.on { color: var(--tone); border-left-color: var(--tone); font-weight: 500; }
 .bn-all { margin: 1.4rem 0 0; font-size: .82rem; }
-.book-body { min-width: 0; counter-reset: chap; }
-.book-part { scroll-margin-top: 80px; }
+.book-body { min-width: 0; counter-reset: chap part; }
+.book-part { scroll-margin-top: 80px; counter-increment: part; }
+.bp-title::before { content: "Part " counter(part, upper-roman) "\2002"; color: var(--tone); }
 .bp-title { margin: 0 0 .3rem; font: 400 clamp(2rem, 3.6vw, 2.7rem)/1.1 "Instrument Serif", Georgia, serif; letter-spacing: 0; padding-top: 2.2rem; border-top: 3px solid var(--tone); }
 .book-part:first-child .bp-title { padding-top: .4rem; border-top: 0; }
 .bp-blurb { margin: 0 0 1.6rem; color: var(--ink-2); max-width: 70ch; }
@@ -677,14 +680,17 @@ table.cr .cr-ex:hover { border-color: var(--accent); }
 .ch-head { margin-bottom: 1.6rem; max-width: 76ch; }
 .ch-title { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .55em; align-items: baseline; margin: 0 0 .6rem; font-size: clamp(1.6rem, 2.8vw, 2.15rem); line-height: 1.15; text-wrap: balance; }
 .ch-n { font: 400 1.25em/1 "Instrument Serif", Georgia, serif; color: var(--tone); }
-.ch-desc { margin: 0 0 .7rem; color: var(--ink-2); font-size: 1.02rem; line-height: 1.6; }
+.ch-desc { display: none; }
 .ch-meta { display: flex; flex-wrap: wrap; gap: .4rem 1rem; align-items: center; margin: 0; font-size: .86rem; color: var(--ink-3); }
 .ch-foot { margin-top: 2rem; }
 .ch-body > h3 { scroll-margin-top: 76px; font-size: 1.42rem; margin: 2.4em 0 .7em; }
 .ch-body > h3:not([id$="references-and-further-reading"]) { counter-increment: sec; display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: .6em; align-items: baseline; padding-top: .8em; border-top: 1px solid var(--line); }
 .ch-body > h3:not([id$="references-and-further-reading"])::before { content: counter(chap) "." counter(sec); font: 400 1.15em/1 "Instrument Serif", Georgia, serif; color: var(--tone); }
 .ch-body > h3:first-child { margin-top: 0; }
-.ch-body > h4 { font-size: 1.12rem; scroll-margin-top: 76px; }
+.ch-body > h3 { counter-reset: sub; }
+.ch-body > h4 { font-size: 1.12rem; scroll-margin-top: 76px; margin: 1.9em 0 .55em; counter-increment: sub; display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: .55em; align-items: baseline; }
+.ch-body > h4::before { content: counter(chap) "." counter(sec) "." counter(sub); font: 500 .86em var(--f-mono, monospace); color: var(--ink-3); }
+.ch-body > h3 + h4 { margin-top: .9em; }
 .ch-body figure.lw { counter-increment: fig; }
 .ch-body figure.lw .lw-tag::before { content: "Figure " counter(chap) "." counter(fig); }
 .learn-forward { padding-block: 80px; text-align: center; color: var(--ink-2); }
@@ -705,3 +711,5 @@ table.cr .cr-ex:hover { border-color: var(--accent); }
 .zoo-f { font-size: .72rem; color: var(--c); font-weight: 600; margin-left: .4em; }
 .zoo p { margin: .25rem 0; font-size: .86rem; color: var(--ink-2); line-height: 1.5; }
 .zoo small { font-size: .74rem; color: var(--ink-3); }
+
+.vol-rn { display: none; }

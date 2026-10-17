@@ -1,5 +1,5 @@
 ---
-title: "Linux, layer by layer"
+title: "The Linux system"
 description: "What an operating system is for, how Linux is built from hardware up to your programs, what a process, a system call, virtual memory and a file really are, and how the directory tree is organised."
 track: toolbox
 weight: 1

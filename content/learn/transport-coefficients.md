@@ -1,5 +1,5 @@
 ---
-title: "Transport coefficients: diffusion, viscosity and conductivity"
+title: "Transport coefficients"
 description: "Computing how matter, momentum and charge move from equilibrium molecular dynamics: Brownian motion and Einstein's relation, the mean-squared displacement, time-correlation functions and the velocity autocorrelation, the Green–Kubo relations for diffusion, viscosity, thermal and electrical conductivity, the cage effect and long-time tails, finite-size corrections, and practical error estimation."
 track: analysis
 weight: 2
@@ -10,7 +10,7 @@ lab: "Measure the diffusion coefficient of a Lennard-Jones fluid two ways, from 
 
 ## From fluctuations to transport
 
-Transport coefficients describe how a system responds to gradients: the diffusion coefficient relates a flux of particles to a concentration gradient (Fick's law), the shear viscosity relates a momentum flux to a velocity gradient, the thermal conductivity relates a heat flux to a temperature gradient, and the electrical conductivity relates a current to an electric field. They can be measured in simulations by imposing a gradient and measuring the flux, but [the fluctuation–dissipation theorem](../fluctuations-and-response/) offers a more elegant route: in equilibrium, the spontaneous fluctuations of the fluxes already contain the transport coefficients. This topic shows how, starting with the oldest example, diffusion.
+Transport coefficients describe how a system responds to gradients: the diffusion coefficient relates a flux of particles to a concentration gradient (Fick's law), the shear viscosity relates a momentum flux to a velocity gradient, the thermal conductivity relates a heat flux to a temperature gradient, and the electrical conductivity relates a current to an electric field. They can be measured in simulations by imposing a gradient and measuring the flux, but [the fluctuation–dissipation theorem](../fluctuations-and-response/) offers a more elegant route: in equilibrium, the spontaneous fluctuations of the fluxes already contain the transport coefficients. This chapter shows how, starting with the oldest example, diffusion.
 
 ## Brownian motion and the mean-squared displacement
 
@@ -59,7 +59,7 @@ The same hydrodynamic interactions cause a systematic **finite-size effect** in 
 
 ## Practical transport calculations
 
-Several practical points determine whether a transport calculation is reliable. Use thermostats that do not disturb the dynamics, or measure in NVE after equilibration, as [the topic on thermostats](../thermostats-and-barostats/) explains; strong Langevin friction lowers diffusion coefficients directly. Unwrap trajectories and remove any drift of the centre of mass. Average over many time origins, but remember that overlapping windows are correlated, so estimate errors by splitting the trajectory into independent blocks or running independent replicas. For collective properties such as viscosity and conductivity, which involve a single flux for the whole system rather than one per particle, statistics are much poorer than for self-diffusion, and long runs, several independent simulations or the Einstein–Helfand (integrated) forms of the Green–Kubo relations are needed. Non-equilibrium methods, such as imposing shear flow (Lees–Edwards boundaries, or the reverse non-equilibrium method of Florian Müller-Plathe, 1999), are often more efficient for viscosity and thermal conductivity.
+Several practical points determine whether a transport calculation is reliable. Use thermostats that do not disturb the dynamics, or measure in NVE after equilibration, as [the chapter on thermostats](../thermostats-and-barostats/) explains; strong Langevin friction lowers diffusion coefficients directly. Unwrap trajectories and remove any drift of the centre of mass. Average over many time origins, but remember that overlapping windows are correlated, so estimate errors by splitting the trajectory into independent blocks or running independent replicas. For collective properties such as viscosity and conductivity, which involve a single flux for the whole system rather than one per particle, statistics are much poorer than for self-diffusion, and long runs, several independent simulations or the Einstein–Helfand (integrated) forms of the Green–Kubo relations are needed. Non-equilibrium methods, such as imposing shear flow (Lees–Edwards boundaries, or the reverse non-equilibrium method of Florian Müller-Plathe, 1999), are often more efficient for viscosity and thermal conductivity.
 
 {{< note type="key" >}}
 - Einstein: $\text{MSD}(t) \to 2dDt$ at long times (unwrapped positions, averaged over particles and time origins); ballistic at short times, caged in dense liquids.

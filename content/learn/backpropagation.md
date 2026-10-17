@@ -1,5 +1,5 @@
 ---
-title: "Backpropagation, step by step"
+title: "Backpropagation"
 description: "How a network learns which of its weights to blame: computational graphs, the chain rule as a relay of local derivatives, a full forward and backward pass with numbers, why reverse mode costs the same as one extra forward pass, and the history of the idea."
 track: neuron
 weight: 4

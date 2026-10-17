@@ -1,5 +1,5 @@
 ---
-title: "Differentiable molecular dynamics"
+title: "Differentiable simulation"
 description: "Treating a whole simulation as a differentiable function: forward- and reverse-mode automatic differentiation through a trajectory, fitting force-field parameters to observables, the adjoint method, reweighting, and why chaos limits it all."
 track: ai4mat
 weight: 2

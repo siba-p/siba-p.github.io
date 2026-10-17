@@ -44,7 +44,7 @@ $$ \textcolor{#f08c2e}{y} = \textcolor{#845ef7}{m}\,\textcolor{#4c6ef5}{x} + \te
 
 The slope is the defining property of a straight line: between any two points $(x_1, y_1)$ and $(x_2, y_2)$ on it, the ratio $(y_2 - y_1)/(x_2 - x_1)$ is the same number $m$. "Rise over run" is the usual mnemonic. A positive slope means $y$ grows with $x$, a negative slope means it shrinks, and a zero slope gives a horizontal line. The slope has units, output units per input unit, and it often has a physical meaning of its own: in a graph of position against time the slope is a velocity, in a graph of charge against voltage it is a capacitance.
 
-When $c = 0$ the line passes through the origin and $y$ is **proportional** to $x$, written $y \propto x$: doubling $x$ doubles $y$. Many laws of physics take this form near equilibrium. Hooke's law says the restoring force of a spring is proportional to its extension, $F = -kx$. Ohm's law says the current through a resistor is proportional to the voltage across it. Linear behaviour is so common because almost any smooth function looks like a straight line if you only look at a small enough piece of it, an idea that becomes the derivative in [the next topic](../derivatives/).
+When $c = 0$ the line passes through the origin and $y$ is **proportional** to $x$, written $y \propto x$: doubling $x$ doubles $y$. Many laws of physics take this form near equilibrium. Hooke's law says the restoring force of a spring is proportional to its extension, $F = -kx$. Ohm's law says the current through a resistor is proportional to the voltage across it. Linear behaviour is so common because almost any smooth function looks like a straight line if you only look at a small enough piece of it, an idea that becomes the derivative in [the next chapter](../derivatives/).
 
 Linear functions are also the workhorse of data analysis. Plotting data so that a law appears as a straight line, and then measuring the slope and intercept, is one of the oldest and most reliable ways of extracting physical constants from experiment. The next sections show how to do this even when the underlying law is not linear at all.
 
@@ -71,7 +71,7 @@ $$ \textcolor{#f08c2e}{y} = \textcolor{#845ef7}{A}\,e^{\textcolor{#845ef7}{k}\te
 
 The defining feature of an exponential is that adding a fixed amount to the input multiplies the output by a fixed factor. For a straight line, each step of one unit in $x$ *adds* $m$ to $y$; for an exponential, each step *multiplies* $y$ by $e^k$. As a result, an exponential always has a fixed **doubling time** (for growth) or **half-life** (for decay), equal to $\ln 2/|k|$. Carbon-14 has a half-life of about 5730 years: after 5730 years half of the original nuclei remain, after 11 460 years a quarter, after 17 190 years an eighth, and so on, regardless of how much you started with. The golden dots in the figure above mark these successive halvings when you select the exponential family.
 
-Why the strange base $e$? Any base could be used, since $2^x$, $10^x$ and $e^x$ are all exponentials and each can be converted into the others. The number $e$ is chosen because it makes the mathematics of change simplest: the slope of $e^x$ at any point equals its height. This is proved in [the topic on derivatives](../derivatives/), and it is why nature's exponentials, which arise from rates proportional to amounts, appear with base $e$.
+Why the strange base $e$? Any base could be used, since $2^x$, $10^x$ and $e^x$ are all exponentials and each can be converted into the others. The number $e$ is chosen because it makes the mathematics of change simplest: the slope of $e^x$ at any point equals its height. This is proved in [the chapter on derivatives](../derivatives/), and it is why nature's exponentials, which arise from rates proportional to amounts, appear with base $e$.
 
 Exponentials are the most important functions in statistical mechanics. The probability that a molecule has energy $E$ at temperature $T$ is proportional to the **Boltzmann factor** $e^{-E/k_BT}$, and the rate of a chemical reaction with activation energy $E_a$ follows the **Arrhenius law** $k = A\,e^{-E_a/k_BT}$. Both are decaying exponentials of energy: each additional $k_BT$ of energy makes a state $e \approx 2.7$ times less likely. These ideas are developed in [the Boltzmann distribution](../boltzmann-and-maxwell/).
 
@@ -104,7 +104,7 @@ The figure below contains real data on the orbits of the eight planets: the size
 
 {{< widget name="loglog" title="Straight lines hiding in curved data" caption="The dashed line is a least-squares straight-line fit in the axes currently shown; it turns teal when the data really are straight (R² above 0.995). Find the axes that straighten each data set, and read the law from the slope." >}}
 
-This technique is routine in research. The decay of a correlation function is plotted on semi-log axes to extract a relaxation time; the mean-squared displacement of a diffusing particle is plotted on log–log axes to check that it grows linearly with time; the error of a numerical method is plotted against its step size on log–log axes to measure its order of accuracy, as you will see in [the topic on derivatives](../derivatives/).
+This technique is routine in research. The decay of a correlation function is plotted on semi-log axes to extract a relaxation time; the mean-squared displacement of a diffusing particle is plotted on log–log axes to check that it grows linearly with time; the error of a numerical method is plotted against its step size on log–log axes to measure its order of accuracy, as you will see in [the chapter on derivatives](../derivatives/).
 
 ## Periodic functions
 
@@ -121,11 +121,11 @@ $$ \textcolor{#f08c2e}{y} = \textcolor{#845ef7}{A}\sin(\textcolor{#845ef7}{\omeg
 
 Angles in science are measured in **radians**, defined so that an angle of $\theta$ radians cuts off an arc of length $\theta$ on a circle of radius 1. A full turn is $2\pi$ radians. Radians are not an arbitrary convention: as with the base $e$ for exponentials, they are the unit for which the derivative of $\sin\theta$ is exactly $\cos\theta$, with no awkward conversion factor.
 
-Sinusoids describe any system that is pulled back towards equilibrium with a force proportional to its displacement, such as a mass on a spring or an atom vibrating in a molecule, as [the topic on motion](../motion-and-phase-space/) shows. A remarkable theorem of Fourier says that essentially any periodic signal, however jagged, can be written as a sum of sines and cosines of different frequencies, which is why vibrational spectra, X-ray diffraction and much of signal processing are analysed in terms of sinusoids.
+Sinusoids describe any system that is pulled back towards equilibrium with a force proportional to its displacement, such as a mass on a spring or an atom vibrating in a molecule, as [the chapter on motion](../motion-and-phase-space/) shows. A remarkable theorem of Fourier says that essentially any periodic signal, however jagged, can be written as a sum of sines and cosines of different frequencies, which is why vibrational spectra, X-ray diffraction and much of signal processing are analysed in terms of sinusoids.
 
 ## The Gaussian
 
-The last family in this topic is the bell-shaped **Gaussian**,
+The last family in this chapter is the bell-shaped **Gaussian**,
 
 {{< eq title="The Gaussian function" say="A peak at μ whose width is set by σ, falling off faster than any exponential." >}}
 $$ \textcolor{#f08c2e}{y} = \textcolor{#845ef7}{A}\exp\!\left(-\frac{(\textcolor{#4c6ef5}{x} - \textcolor{#845ef7}{\mu})^2}{2\textcolor{#845ef7}{\sigma}^2}\right) $$
@@ -134,7 +134,7 @@ $$ \textcolor{#f08c2e}{y} = \textcolor{#845ef7}{A}\exp\!\left(-\frac{(\textcolor
 - the area under the curve is $A\sigma\sqrt{2\pi}$
 {{< /eq >}}
 
-Choose the bell curve in the families figure: the shaded band covers $\mu \pm \sigma$ and the teal bar marks the full width at half maximum. The Gaussian is an exponential of a negative square, so it falls to zero much faster than an ordinary exponential. It is the shape of the distribution of velocities of molecules in a gas, of the spread of random measurement errors, of a spectral line broadened by thermal motion, and of the smearing functions used to turn atomic positions into smooth densities in machine-learning descriptors. [The topic on probability](../probability/) explains why it is so common: the sum of many small independent random effects always tends to a Gaussian.
+Choose the bell curve in the families figure: the shaded band covers $\mu \pm \sigma$ and the teal bar marks the full width at half maximum. The Gaussian is an exponential of a negative square, so it falls to zero much faster than an ordinary exponential. It is the shape of the distribution of velocities of molecules in a gas, of the spread of random measurement errors, of a spectral line broadened by thermal motion, and of the smearing functions used to turn atomic positions into smooth densities in machine-learning descriptors. [The chapter on probability](../probability/) explains why it is so common: the sum of many small independent random effects always tends to a Gaussian.
 
 ## Combining functions
 
@@ -142,7 +142,7 @@ New functions are built from old ones in a few standard ways. They can be added,
 
 A function that undoes another is its **inverse**, written $f^{-1}$. The logarithm is the inverse of the exponential, and the square root (on non-negative numbers) is the inverse of squaring. The graph of an inverse is the mirror image of the original graph in the diagonal line $y = x$, since inverting a function simply swaps the roles of input and output. A function only has an inverse if it never gives the same output for two different inputs.
 
-Finally, many quantities depend on more than one input. The potential energy of a molecule depends on the positions of all its atoms, and the loss of a neural network on millions of weights. A function of two variables, $f(x, y)$, can be drawn as a surface or as a contour map, and most of the mathematics of this topic carries over. [The topic on gradients](../gradients/) develops these functions of many variables.
+Finally, many quantities depend on more than one input. The potential energy of a molecule depends on the positions of all its atoms, and the loss of a neural network on millions of weights. A function of two variables, $f(x, y)$, can be drawn as a surface or as a contour map, and most of the mathematics of this chapter carries over. [The chapter on gradients](../gradients/) develops these functions of many variables.
 
 {{< note type="key" >}}
 - A function assigns exactly one output to each input in its domain. A graph is the set of all input–output pairs.

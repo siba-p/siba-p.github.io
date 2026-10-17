@@ -1,5 +1,5 @@
 ---
-title: "One artificial neuron"
+title: "The artificial neuron"
 description: "The smallest piece of every neural network: inputs, weights, a bias and an activation function. What a neuron computes, what it looks like geometrically, where the idea came from, and what one neuron alone can and cannot do."
 track: neuron
 weight: 1

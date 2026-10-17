@@ -1,5 +1,5 @@
 ---
-title: "The structure of liquids: g(r), the structure factor and the potential of mean force"
+title: "The structure of liquids"
 description: "How disordered matter is described statistically: the radial distribution function and what its peaks mean, coordination numbers, energy, pressure and compressibility from g(r), the potential of mean force and why it differs from the pair potential, the structure factor measured by X-ray and neutron scattering, the hard-sphere picture of liquids, and how g(r) is computed correctly from simulations."
 track: statmech
 weight: 6
@@ -42,7 +42,7 @@ For particles interacting through a pair potential $u(r)$, $g(r)$ determines the
 $$ \frac{U}{N} = \frac{\rho}{2}\int_0^\infty u(r)\,g(r)\,4\pi r^2\,\mathrm dr, \qquad \frac{P}{\rho k_BT} = 1 - \frac{\rho}{6k_BT}\int_0^\infty r\,u'(r)\,g(r)\,4\pi r^2\,\mathrm dr $$
 {{< /eq >}}
 
-and the isothermal compressibility follows from the **compressibility route**, $\rho k_BT\kappa_T = 1 + \rho\int_0^\infty [g(r) - 1]\,4\pi r^2\,\mathrm dr$, which links $g(r)$ to the density fluctuations of [the topic on fluctuations](../fluctuations-and-response/). Because these routes are exact only for the exact $g(r)$, comparing them is a sensitive test of approximate theories such as the Percus–Yevick and hypernetted-chain integral equations.
+and the isothermal compressibility follows from the **compressibility route**, $\rho k_BT\kappa_T = 1 + \rho\int_0^\infty [g(r) - 1]\,4\pi r^2\,\mathrm dr$, which links $g(r)$ to the density fluctuations of [the chapter on fluctuations](../fluctuations-and-response/). Because these routes are exact only for the exact $g(r)$, comparing them is a sensitive test of approximate theories such as the Percus–Yevick and hypernetted-chain integral equations.
 
 ## The potential of mean force
 
@@ -54,7 +54,7 @@ $$ w(r) = -k_BT\ln g(r), \qquad -\frac{\mathrm dw}{\mathrm dr} = \Big\langle F_{
 - at low density $w(r) \to u(r)$; at liquid density it differs, because the surrounding particles push and pull
 {{< /eq >}}
 
-Switch the figure to the potential of mean force. At low density the orange curve follows the blue pair potential. At liquid density it develops extra minima at the second and third neighbour distances and a barrier between the first two: there is no direct interaction at those distances, but the surrounding particles make some separations more probable than others. This is the same idea as the free-energy profiles of [the topic on ensembles](../ensembles-and-free-energy/), applied to a distance. It is important in practice: the potential of mean force between two ions in water shows a contact minimum and a solvent-separated minimum, with a barrier between them corresponding to a water molecule entering or leaving the gap, and its depth determines ion pairing and the stability of colloids and nanoparticles in solution. Coarse-grained models are often built by matching potentials of mean force, by iterative Boltzmann inversion for example.
+Switch the figure to the potential of mean force. At low density the orange curve follows the blue pair potential. At liquid density it develops extra minima at the second and third neighbour distances and a barrier between the first two: there is no direct interaction at those distances, but the surrounding particles make some separations more probable than others. This is the same idea as the free-energy profiles of [the chapter on ensembles](../ensembles-and-free-energy/), applied to a distance. It is important in practice: the potential of mean force between two ions in water shows a contact minimum and a solvent-separated minimum, with a barrier between them corresponding to a water molecule entering or leaving the gap, and its depth determines ion pairing and the stability of colloids and nanoparticles in solution. Coarse-grained models are often built by matching potentials of mean force, by iterative Boltzmann inversion for example.
 
 ## Scattering and the structure factor
 
@@ -74,7 +74,7 @@ The structure of simple dense liquids is dominated by repulsion. Simulations of 
 
 ## Computing g(r) in a simulation
 
-The recipe is simple, and the figure follows it: for every pair of particles compute the distance, applying the minimum-image convention in a periodic box; histogram the distances into bins of width $\Delta r$; average over many frames; and normalise each bin by the number of pairs an ideal gas would have in that shell, $\tfrac12 N\rho\cdot 4\pi r^2\Delta r$ (counting each pair once) or $N\rho\cdot 4\pi r^2\Delta r$ (counting both orders). Distances beyond half the box length are unreliable, because shells there are cut off by the periodic boundary. Bins must be fine enough to resolve the first peak but coarse enough to collect statistics, and the result should be averaged over frames separated by more than the correlation time. Analysis libraries such as MDAnalysis, MDTraj and OVITO compute $g(r)$, coordination numbers and structure factors directly from trajectories, as [the topic on trajectory analysis](../trajectory-analysis/) describes.
+The recipe is simple, and the figure follows it: for every pair of particles compute the distance, applying the minimum-image convention in a periodic box; histogram the distances into bins of width $\Delta r$; average over many frames; and normalise each bin by the number of pairs an ideal gas would have in that shell, $\tfrac12 N\rho\cdot 4\pi r^2\Delta r$ (counting each pair once) or $N\rho\cdot 4\pi r^2\Delta r$ (counting both orders). Distances beyond half the box length are unreliable, because shells there are cut off by the periodic boundary. Bins must be fine enough to resolve the first peak but coarse enough to collect statistics, and the result should be averaged over frames separated by more than the correlation time. Analysis libraries such as MDAnalysis, MDTraj and OVITO compute $g(r)$, coordination numbers and structure factors directly from trajectories, as [the chapter on trajectory analysis](../trajectory-analysis/) describes.
 
 {{< note type="key" >}}
 - $g(r)$ is the local density at distance $r$ from a particle relative to the average: zero in the core, peaks at neighbour shells, 1 at large $r$.

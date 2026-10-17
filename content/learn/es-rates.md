@@ -1,5 +1,5 @@
 ---
-title: "Rare events and reaction rates: from Arrhenius to Kramers"
+title: "Reaction rates"
 description: "How fast transitions happen: first-order kinetics and waiting times, the Arrhenius and Eyring equations and their history, transition-state theory derived from the flux through a dividing surface, harmonic TST and the Vineyard prefactor, recrossing and the transmission coefficient, variational TST, Kramers' theory of friction-controlled rates, and how rates are measured in simulations and used in kinetic Monte Carlo."
 track: rl-land
 weight: 2
@@ -18,7 +18,7 @@ $$ \frac{\mathrm d P_A}{\mathrm d t} = -\textcolor{#e64980}{k}_{AB}\,P_A + k_{BA
 - valid when the time between events is much longer than the time to relax within a basin: a separation of timescales
 {{< /eq >}}
 
-The rate constant is what experiments measure and what simulations must predict. Because events are rare, it is usually far too small to measure by watching a simulation, and the theories in this topic estimate it from properties of the barrier instead.
+The rate constant is what experiments measure and what simulations must predict. Because events are rare, it is usually far too small to measure by watching a simulation, and the theories in this chapter estimate it from properties of the barrier instead.
 
 ## Arrhenius and Eyring
 
@@ -61,7 +61,7 @@ $$ k_{\text{hTST}} = \frac{\prod_{i=1}^{3N} \nu_i^{\text{min}}}{\prod_{j=1}^{3N-
 - typical prefactors in solids are $10^{12}$–$10^{13}$ s⁻¹
 {{< /eq >}}
 
-The vacancy hop in copper computed with NEB in [the previous topic](../es-landscapes/) has a barrier of 0.78 eV with the EMT potential. With a prefactor of $5 \times 10^{12}$ s⁻¹, harmonic TST predicts about 0.4 hops per second at 300 K, $1.4 \times 10^6$ at 600 K and $2 \times 10^8$ at 900 K: from essentially frozen to rapid diffusion over a few hundred kelvin, the hallmark of an activated process. No direct MD simulation could see the room-temperature hops, but a single NEB calculation predicts their rate.
+The vacancy hop in copper computed with NEB in [the previous chapter](../es-landscapes/) has a barrier of 0.78 eV with the EMT potential. With a prefactor of $5 \times 10^{12}$ s⁻¹, harmonic TST predicts about 0.4 hops per second at 300 K, $1.4 \times 10^6$ at 600 K and $2 \times 10^8$ at 900 K: from essentially frozen to rapid diffusion over a few hundred kelvin, the hallmark of an activated process. No direct MD simulation could see the room-temperature hops, but a single NEB calculation predicts their rate.
 
 ## Recrossing and the transmission coefficient
 
@@ -71,7 +71,7 @@ Because TST is an upper bound, the dividing surface can be moved to minimise the
 
 ## Kramers' theory: the role of friction
 
-In 1940 Hendrik Kramers asked how a particle escapes from a well when it is coupled to a heat bath through friction $\gamma$ and random forces, the Langevin dynamics described in [the topic on thermostats](../thermostats-and-barostats/). His answer shows that the rate depends on friction in a non-monotonic way. At very **low friction**, the particle exchanges energy with the bath too slowly to reach the barrier energy, and the rate is limited by energy diffusion, increasing with friction. At **high friction**, the particle reaches the barrier easily but its motion across the barrier top becomes diffusive, and it recrosses many times; the rate falls as $1/\gamma$. In between, the rate peaks near the TST value: the **Kramers turnover**. In the moderate-to-high friction regime the rate is
+In 1940 Hendrik Kramers asked how a particle escapes from a well when it is coupled to a heat bath through friction $\gamma$ and random forces, the Langevin dynamics described in [the chapter on thermostats](../thermostats-and-barostats/). His answer shows that the rate depends on friction in a non-monotonic way. At very **low friction**, the particle exchanges energy with the bath too slowly to reach the barrier energy, and the rate is limited by energy diffusion, increasing with friction. At **high friction**, the particle reaches the barrier easily but its motion across the barrier top becomes diffusive, and it recrosses many times; the rate falls as $1/\gamma$. In between, the rate peaks near the TST value: the **Kramers turnover**. In the moderate-to-high friction regime the rate is
 
 {{< eq title="Kramers' rate (moderate to high friction)" say="Friction reduces the TST rate by a factor that compares the friction with the curvature of the barrier top." >}}
 $$ k_{\text{Kr}} = \frac{\omega_a}{2\pi\,\omega_b}\left(\sqrt{\frac{\gamma^2}{4} + \omega_b^2} - \frac{\gamma}{2}\right) e^{-\Delta U/k_BT} \;\xrightarrow{\;\gamma \gg \omega_b\;}\; \frac{\omega_a\,\omega_b}{2\pi\gamma}\,e^{-\Delta U/k_BT} $$
@@ -87,7 +87,7 @@ The straight lines on the Arrhenius plot have a slope equal to the barrier heigh
 
 ## Rates from simulation in practice
 
-When barriers are low enough that transitions occur within simulation time, rates can be counted directly, as in the figure, or computed from **mean first-passage times**. When they are not, the strategies of the following topics apply. A free-energy profile along a good collective variable gives the TST rate, and short trajectories from the barrier top give $\kappa$. Path-sampling methods ([the topic on paths](../es-path-sampling/)) sample the rare reactive trajectories themselves and compute rates without a dividing surface. Markov state models ([their own topic](../es-msm/)) build rates from many short simulations. And for crystals, where transitions are hops between well-defined sites, harmonic TST with NEB barriers feeds **kinetic Monte Carlo**, which advances a lattice of sites event by event, choosing each event with probability proportional to its rate and advancing the clock by an exponentially distributed waiting time. This is how diffusion, ordering and growth in materials are simulated over seconds to hours.
+When barriers are low enough that transitions occur within simulation time, rates can be counted directly, as in the figure, or computed from **mean first-passage times**. When they are not, the strategies of the following chapters apply. A free-energy profile along a good collective variable gives the TST rate, and short trajectories from the barrier top give $\kappa$. Path-sampling methods ([the chapter on paths](../es-path-sampling/)) sample the rare reactive trajectories themselves and compute rates without a dividing surface. Markov state models ([their own chapter](../es-msm/)) build rates from many short simulations. And for crystals, where transitions are hops between well-defined sites, harmonic TST with NEB barriers feeds **kinetic Monte Carlo**, which advances a lattice of sites event by event, choosing each event with probability proportional to its rate and advancing the clock by an exponentially distributed waiting time. This is how diffusion, ordering and growth in materials are simulated over seconds to hours.
 
 The quantity that connects all these approaches is the **committor** $p_B(\mathbf x)$: the probability that a trajectory started at configuration $\mathbf x$, with random velocities, reaches B before A. It is 0 in A, 1 in B, and $\tfrac12$ on the true transition state ensemble. The committor is the ideal reaction coordinate, and much of modern rare-event theory, from transition path theory to machine-learned collective variables, can be seen as attempts to approximate it.
 

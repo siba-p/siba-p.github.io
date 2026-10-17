@@ -1,5 +1,5 @@
 ---
-title: "Classes, objects and special methods"
+title: "Classes"
 description: "Defining your own types: the class statement, instances, attributes and the self parameter; how attribute lookup works; class versus instance attributes; special methods for operators, printing, comparison and iteration; inheritance, polymorphism and composition illustrated with interatomic potentials; data classes and properties; and a small object-oriented simulation."
 track: pycore
 weight: 6
@@ -46,7 +46,7 @@ The figure shows instances in memory. Each instance is a separate object with it
 
 When you write `obj.name`, Python searches in a definite order. It looks first in the instance's own attribute dictionary (`obj.__dict__`), then in the class, then in the class's base classes. The first match wins. This rule explains several behaviours at once. Methods are found on the class because instances do not normally store them. Data stored on the class rather than on `self`, a **class attribute**, is shared by all instances: in the second example of the figure, every `Atom` sees `unit = 'amu'` through its class. Assigning `o.unit = 'g/mol'` does not change the class attribute; it creates a new attribute on the instance `o` that **shadows** the class one, so only `o` sees the new value.
 
-The same rule produces a trap analogous to the mutable default argument of [the topic on functions](../python-functions/). A mutable class attribute, such as `atoms = []` written in the class body, is a single list shared by every instance; appending to it through one instance appends for all. Per-instance containers must be created in `__init__`, as the `Molecule` class in the third example does with `self.atoms = []`.
+The same rule produces a trap analogous to the mutable default argument of [the chapter on functions](../python-functions/). A mutable class attribute, such as `atoms = []` written in the class body, is a single list shared by every instance; appending to it through one instance appends for all. Per-instance containers must be created in `__init__`, as the `Molecule` class in the third example does with `self.atoms = []`.
 
 ## Special methods
 
@@ -172,7 +172,7 @@ for n in range(1, 10001):
         print(f"t = {n * 0.05:6.1f}  x = {osc.x:+.4f}  energy drift = {osc.energy() - E0:+.2e}")
 {{< /py >}}
 
-After 10 000 steps, about 80 oscillation periods, the energy still agrees with its initial value to about one part in ten thousand, and the error oscillates rather than growing, a property of the Verlet algorithm explained in [the topic on integrators](../molecular-dynamics/). Swapping the spring for another potential, or the integrator for another scheme, would mean changing one method, while all the code that runs and analyses the simulation stays the same. That separation of concerns is the real benefit of classes. Production codes such as ASE are organised exactly this way: an `Atoms` object holds positions, a `Calculator` object computes energies and forces, and a `Dynamics` object advances time.
+After 10 000 steps, about 80 oscillation periods, the energy still agrees with its initial value to about one part in ten thousand, and the error oscillates rather than growing, a property of the Verlet algorithm explained in [the chapter on integrators](../molecular-dynamics/). Swapping the spring for another potential, or the integrator for another scheme, would mean changing one method, while all the code that runs and analyses the simulation stays the same. That separation of concerns is the real benefit of classes. Production codes such as ASE are organised exactly this way: an `Atoms` object holds positions, a `Calculator` object computes energies and forces, and a `Dynamics` object advances time.
 
 {{< note type="key" >}}
 - A class defines a new type; calling it creates an instance, and `__init__` initialises the instance's attributes on `self`.

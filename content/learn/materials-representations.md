@@ -1,5 +1,5 @@
 ---
-title: "Representing materials: compositions and crystal graphs"
+title: "Representing materials"
 description: "How a periodic crystal becomes model input: lattices and unit cells, composition-only models, crystal graphs with periodic images, the property databases models are trained on, and what stability on the convex hull really means."
 track: found
 weight: 4

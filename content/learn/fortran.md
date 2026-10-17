@@ -1,5 +1,5 @@
 ---
-title: "Fortran for scientific computing"
+title: "Fortran"
 description: "Modern Fortran from a first program to modules, array syntax, memory layout and performance, compiler flags for debugging and speed, Makefiles, OpenMP, MPI, LAPACK, and calling Fortran from Python. Every program here was compiled and run."
 track: code
 weight: 4

@@ -1,5 +1,5 @@
 ---
-title: "NumPy arrays: memory, vectorisation and broadcasting"
+title: "NumPy arrays"
 description: "Why NumPy exists and how it works: the ndarray as a typed, contiguous buffer described by a shape, a dtype and strides; views and copies; vectorised arithmetic that runs compiled loops; reductions along axes; indexing, slicing, fancy and Boolean indexing; broadcasting rules; fixed-width integer and float pitfalls; and vectorising a pairwise-distance calculation."
 track: pysci
 weight: 1
@@ -10,11 +10,11 @@ lab: "Explore an array's buffer and strides, test broadcasting rules, and time N
 
 ## Why NumPy exists
 
-The Python data model is flexible, and [the topics on the language](../python-objects-and-names/) showed what that flexibility costs. A list of a million numbers is a million separate float objects scattered across memory, each 24 bytes with its own type pointer and reference count, plus a million 8-byte pointers in the list. Adding two such lists element by element runs a million iterations of the interpreter loop, each checking types, dispatching an addition and allocating a new object. For numerical work, that is hopelessly slow and wasteful.
+The Python data model is flexible, and [the chapters on the language](../python-objects-and-names/) showed what that flexibility costs. A list of a million numbers is a million separate float objects scattered across memory, each 24 bytes with its own type pointer and reference count, plus a million 8-byte pointers in the list. Adding two such lists element by element runs a million iterations of the interpreter loop, each checking types, dispatching an addition and allocating a new object. For numerical work, that is hopelessly slow and wasteful.
 
 **NumPy** solves the problem with a single new type, the **n-dimensional array** or `ndarray`. An array stores numbers the way Fortran and C do: as raw binary values of one fixed type, packed side by side in one contiguous block of memory. Operations on arrays are implemented in compiled C loops that run over this block without ever creating Python objects for the individual numbers. A Python program that uses NumPy well pays the interpreter's overhead once per *operation* rather than once per *element*. Almost the entire scientific Python ecosystem, SciPy, pandas, Matplotlib, scikit-learn, ASE and MDAnalysis among many others, is built on NumPy arrays, and the array interface of PyTorch and JAX was designed to imitate it.
 
-The figure at the end of this topic measures the difference in your browser. Before that, this topic explains how an array is laid out in memory, because nearly every rule of NumPy, from which operations copy data to why some loops are faster than others, follows from it.
+The figure at the end of this chapter measures the difference in your browser. Before that, this chapter explains how an array is laid out in memory, because nearly every rule of NumPy, from which operations copy data to why some loops are faster than others, follows from it.
 
 ## An array is a buffer with a shape, a dtype and strides
 
@@ -50,7 +50,7 @@ print(picked, np.shares_memory(a, picked))
 
 Not every selection can be expressed with strides. Choosing the elements where a condition holds, `a[a % 3 == 0]` in the figure, picks an irregular set of positions, so NumPy must **copy** the selected values into a new buffer. The same is true of indexing with a list of positions, `a[[0, 2]]`, called **fancy indexing**. Knowing which operations give views and which give copies avoids two kinds of bug: modifying an array through a view without meaning to, and modifying a copy and expecting the original to change. When in doubt, `np.shares_memory(x, y)` answers the question, and `.copy()` forces an independent array.
 
-Memory layout also affects speed. Processors read memory in cache lines of 64 bytes, so a loop that walks through consecutive addresses uses every byte it fetches, while a loop that jumps by large strides wastes most of each fetch ([the topic on computer architecture](../inside-a-computer/) shows the memory hierarchy). Summing along the rows of a large C-ordered array is therefore faster than summing along its columns, and copying a transposed array before a long computation can pay for itself.
+Memory layout also affects speed. Processors read memory in cache lines of 64 bytes, so a loop that walks through consecutive addresses uses every byte it fetches, while a loop that jumps by large strides wastes most of each fetch ([the chapter on computer architecture](../inside-a-computer/) shows the memory hierarchy). Summing along the rows of a large C-ordered array is therefore faster than summing along its columns, and copying a transposed array before a long computation can pay for itself.
 
 ## Vectorised arithmetic
 
@@ -63,7 +63,7 @@ y = np.sin(x) * np.exp(-x / 3.0)          # 1000 values, no Python loop
 
 **Reductions** combine many elements into fewer: `a.sum()`, `a.mean()`, `a.std()`, `a.min()`, `a.max()`, `a.argmax()`. With the `axis` argument they reduce along one axis only. For a trajectory stored as an array of shape `(n_frames, n_atoms, 3)`, `positions.mean(axis=0)` gives the average position of each atom over time, with shape `(n_atoms, 3)`, while `positions.mean(axis=1)` gives the centre of each frame, with shape `(n_frames, 3)`. A useful way to remember it: the axis you name is the one that disappears.
 
-Linear algebra has its own operators. `a @ b` is matrix multiplication, which for large matrices calls an optimised BLAS library that uses vector instructions and multiple cores and can approach the processor's peak speed. `np.linalg` provides `solve`, `inv`, `eigh` (eigenvalues of symmetric matrices, as in [the topic on matrices](../vectors-and-matrices/)), `svd` and `norm`.
+Linear algebra has its own operators. `a @ b` is matrix multiplication, which for large matrices calls an optimised BLAS library that uses vector instructions and multiple cores and can approach the processor's peak speed. `np.linalg` provides `solve`, `inv`, `eigh` (eigenvalues of symmetric matrices, as in [the chapter on matrices](../vectors-and-matrices/)), `svd` and `norm`.
 
 ## Indexing and slicing
 
@@ -110,7 +110,7 @@ The figure below times four ways of computing $\sum_i x_i^2$ for up to a million
 
 On a laptop running native Python, the NumPy versions of this simple sum are about 15 to 100 times faster than the loop, and the advantage is larger for heavier arithmetic such as exponentials and square roots. In the browser, where NumPy runs as WebAssembly with fewer vector instructions, the gap is smaller, typically ten- to twenty-fold. Three effects add up. NumPy executes one interpreter-level operation instead of millions, so the per-bytecode overhead disappears. Its compiled loop reads raw doubles from consecutive addresses, which the processor's caches and prefetcher handle at full speed. And the compiled loops use **SIMD** (single instruction, multiple data) instructions that process two, four or eight numbers per machine instruction. The last line, the dot product, also avoids creating the temporary array `a * a`, which is why it is faster still.
 
-Vectorisation has two costs to keep in mind. Temporary arrays use memory: `np.exp(-(r / sigma)**2)` creates three intermediate arrays the size of `r`. For very large arrays this can exhaust memory, and in-place operations (`r /= sigma`, `np.exp(r, out=r)`) or chunking help. And some algorithms are inherently sequential, such as a time-stepping loop where each step needs the previous one; for those, the loop over *time* stays in Python (or moves to compiled code, as in [the topic on performance](../python-performance/)), while the work over *atoms* inside each step is vectorised.
+Vectorisation has two costs to keep in mind. Temporary arrays use memory: `np.exp(-(r / sigma)**2)` creates three intermediate arrays the size of `r`. For very large arrays this can exhaust memory, and in-place operations (`r /= sigma`, `np.exp(r, out=r)`) or chunking help. And some algorithms are inherently sequential, such as a time-stepping loop where each step needs the previous one; for those, the loop over *time* stays in Python (or moves to compiled code, as in [the chapter on performance](../python-performance/)), while the work over *atoms* inside each step is vectorised.
 
 ## A worked example: all pair distances
 
@@ -132,7 +132,7 @@ print(pairs.shape, "pairs; closest", pairs.min().round(3), "mean", pairs.mean().
 print("neighbours within 1.5:", (pairs < 1.5).sum())
 {{< /py >}}
 
-The line `d -= L * np.round(d / L)` applies the **minimum-image convention** of periodic boundary conditions, explained in [the topic on molecular simulation](../molecular-dynamics/), to all 250 000 pair vectors in one expression. The approach uses $O(N^2)$ memory, which is fine for a few thousand atoms; beyond that, the pairs are found with neighbour lists or with `scipy.spatial.cKDTree`, which only examine nearby atoms.
+The line `d -= L * np.round(d / L)` applies the **minimum-image convention** of periodic boundary conditions, explained in [the chapter on molecular simulation](../molecular-dynamics/), to all 250 000 pair vectors in one expression. The approach uses $O(N^2)$ memory, which is fine for a few thousand atoms; beyond that, the pairs are found with neighbour lists or with `scipy.spatial.cKDTree`, which only examine nearby atoms.
 
 {{< note type="key" >}}
 - An ndarray is a typed contiguous buffer plus a header giving dtype, shape and strides; the address of element $(i, j)$ is start $+ i s_0 + j s_1$.

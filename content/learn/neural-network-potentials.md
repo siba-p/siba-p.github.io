@@ -1,5 +1,5 @@
 ---
-title: "Atomic neural-network potentials: Behler–Parrinello, ANI and Deep Potential"
+title: "Atomic neural-network potentials"
 description: "The high-dimensional neural-network potential in full: atomic decomposition, atom-centred symmetry functions, element-specific networks, forces by the chain rule, training on energies and forces, many-element systems, the ANI family and transfer learning to coupled-cluster accuracy, the Deep Potential embedding and DP-GEN, and the four generations of network potentials that add electrostatics and charge transfer."
 track: mlmodels
 weight: 2
@@ -10,7 +10,7 @@ lab: "Trace the Behler–Parrinello architecture live, and train a small atomic 
 
 ## The high-dimensional neural network potential
 
-The neural-network potential of Jörg Behler and Michele Parrinello (2007) is the template from which most of the field grew, and it is worth understanding completely. Its three ingredients, introduced in [the history](../history-of-interatomic-potentials/) and justified in [the topic on what an MLIP must learn](../mlip-foundations/), are the atomic decomposition of the energy, a symmetric description of each atom's neighbourhood, and one feed-forward neural network per chemical element that maps that description to an atomic energy. Behler called it a **high-dimensional neural network potential** (HDNNP) because, unlike the networks of the 1990s, it describes systems with any number of atoms and therefore any number of dimensions.
+The neural-network potential of Jörg Behler and Michele Parrinello (2007) is the template from which most of the field grew, and it is worth understanding completely. Its three ingredients, introduced in [the history](../history-of-interatomic-potentials/) and justified in [the chapter on what an MLIP must learn](../mlip-foundations/), are the atomic decomposition of the energy, a symmetric description of each atom's neighbourhood, and one feed-forward neural network per chemical element that maps that description to an atomic energy. Behler called it a **high-dimensional neural network potential** (HDNNP) because, unlike the networks of the 1990s, it describes systems with any number of atoms and therefore any number of dimensions.
 
 The figure follows a configuration through the model. Each atom's neighbours within the cutoff are summarised in a descriptor vector; the same network turns every descriptor into an atomic energy; the atomic energies add up to the total.
 
@@ -27,7 +27,7 @@ $$ G^{2}_{i} = \sum_{j \ne i} e^{-\textcolor{#845ef7}{\eta}\,(r_{ij} - \textcolo
 - $f_c(r) = \tfrac12\left[\cos(\pi r / r_c) + 1\right]$ for $r < r_c$, and 0 beyond
 {{< /eq >}}
 
-A typical potential uses 30 to 100 symmetry functions per element. Their parameters are chosen so that the radial functions resolve the neighbour shells of the materials involved and the angular functions distinguish the relevant bond angles, and the inputs are standardised (shifted and scaled to zero mean and unit variance over the training set) before entering the network. Choosing them is partly an art, and a poor choice limits the accuracy of the whole potential; the tutorial in [the topic on building an MLIP](../build-your-own-mlip/) shows a set that is too smooth to resolve the neighbour shells of copper failing to fit forces, and a sharper set succeeding. [The topic on descriptors](../symmetry-descriptors/) compares ACSFs with SOAP and ACE.
+A typical potential uses 30 to 100 symmetry functions per element. Their parameters are chosen so that the radial functions resolve the neighbour shells of the materials involved and the angular functions distinguish the relevant bond angles, and the inputs are standardised (shifted and scaled to zero mean and unit variance over the training set) before entering the network. Choosing them is partly an art, and a poor choice limits the accuracy of the whole potential; the tutorial in [the chapter on building an MLIP](../build-your-own-mlip/) shows a set that is too smooth to resolve the neighbour shells of copper failing to fit forces, and a sharper set succeeding. [The chapter on descriptors](../symmetry-descriptors/) compares ACSFs with SOAP and ACE.
 
 ## The atomic network and the chain rule for forces
 
@@ -41,11 +41,11 @@ $$ \textcolor{#f08c2e}{\mathbf F_k} = -\frac{\partial E}{\partial \mathbf r_k} =
 - modern codes obtain the whole expression by automatic differentiation of the energy
 {{< /eq >}}
 
-The first factor comes from backpropagating through the network, exactly as in [the topic on backpropagation](../backpropagation/); the second is the derivative of the symmetry functions, which is analytic. Because forces are derived from a single energy function, they are conservative.
+The first factor comes from backpropagating through the network, exactly as in [the chapter on backpropagation](../backpropagation/); the second is the derivative of the symmetry functions, which is analytic. Because forces are derived from a single energy function, they are conservative.
 
 ## Training
 
-The network weights are fitted by minimising a loss combining energy and force errors, as in [the topic on what an MLIP must learn](../mlip-foundations/), with Adam or, in Behler's original work, a Kalman-filter optimiser. Including forces in the loss requires differentiating the force expression with respect to the weights, a second-order derivative that automatic-differentiation frameworks handle by keeping the computational graph of the first derivative (`create_graph=True` in PyTorch). The data are split into training, validation and test sets; the validation error decides when to stop training and which hyperparameters to keep, and the test error is reported.
+The network weights are fitted by minimising a loss combining energy and force errors, as in [the chapter on what an MLIP must learn](../mlip-foundations/), with Adam or, in Behler's original work, a Kalman-filter optimiser. Including forces in the loss requires differentiating the force expression with respect to the weights, a second-order derivative that automatic-differentiation frameworks handle by keeping the computational graph of the first derivative (`create_graph=True` in PyTorch). The data are split into training, validation and test sets; the validation error decides when to stop training and which hyperparameters to keep, and the test error is reported.
 
 The figure below trains a small atomic network in your browser. The system is a two-dimensional cluster of five atoms interacting through a smoothly truncated Lennard-Jones potential; each atom is described by eight radial symmetry functions; the network has two hidden layers. To keep the browser fast, it is trained on **energies only**. Watch the three panels: the learning curve, the parity plot of predicted against true energies for test structures, and the parity plot of the forces, computed exactly as the negative gradient of the trained network.
 

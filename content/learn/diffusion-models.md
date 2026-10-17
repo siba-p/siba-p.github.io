@@ -1,5 +1,5 @@
 ---
-title: "Generative models and diffusion"
+title: "Generative models for crystals and molecules"
 description: "From predicting properties to proposing materials: the generative modelling problem, VAEs and autoregressive models in brief, then diffusion models in depth (forward noising, score matching, the reverse process, guidance) and how MatterGen-style models generate crystals."
 track: ai4mat
 weight: 1

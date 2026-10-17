@@ -15,7 +15,7 @@
           <nav class="crumbs" aria-label="Breadcrumb"><a href="{{ "learn/" | relURL }}">Learn</a><span aria-hidden="true">/</span><span>{{ $c.short }}</span></nav>
           <h1>{{ $c.title }}</h1>
           <p class="lead">{{ $c.blurb }}</p>
-          <div class="lh-stats" data-learn-slugs="{{ delimit $slugs " " }}"><span><b>{{ len $mine }}</b> chapters</span><span>{{ $c.level }}</span><span class="lh-progress" data-learn-total hidden><b data-learn-count>0</b> of {{ len $mine }} read</span></div>
+          <div class="lh-stats" data-learn-slugs="{{ delimit $slugs " " }}"><span class="lh-progress" data-learn-total hidden><b data-learn-count>0</b> of {{ len $mine }} read</span></div>
         </div>
       </div>
     </header>
@@ -50,7 +50,7 @@
             <header class="ch-head">
               <h2 class="ch-title"><span class="ch-n">{{ $n }}</span><span>{{ $pg.Title }}</span></h2>
               {{ with $pg.Description }}<p class="ch-desc">{{ . }}</p>{{ end }}
-              <p class="ch-meta"><span class="lvl lvl-{{ lower $pg.Params.level }}">{{ $pg.Params.level }}</span>{{ with $pg.Params.prereqs }}<span>Builds on {{ range $j, $s := . }}{{ with site.GetPage (printf "/learn/%s" $s) }}{{ if $j }}, {{ end }}<a href="{{ .RelPermalink }}">{{ .Title }}</a>{{ end }}{{ end }}</span>{{ end }}</p>
+              <p class="ch-meta">{{ with $pg.Params.prereqs }}<span>Builds on {{ range $j, $s := . }}{{ with site.GetPage (printf "/learn/%s" $s) }}{{ if $j }}, {{ end }}<a href="{{ .RelPermalink }}">{{ .Title }}</a>{{ end }}{{ end }}</span>{{ end }}</p>
             </header>
             <div class="ch-body lesson-body prose">{{ $html | safeHTML }}</div>
             <div class="ch-foot"><button type="button" class="btn btn-ghost" data-learn-mark="{{ $slug }}">Mark this chapter as read</button></div>

@@ -1,5 +1,5 @@
 ---
-title: "Making Python fast: profiling, compiling and parallelism"
+title: "Performance"
 description: "A systematic approach to slow scientific Python: measure with timeit and cProfile, choose better algorithms, vectorise, cache, compile hot loops with Numba, Cython or Fortran, manage memory, and run in parallel with processes, MPI, threads and GPUs, with Amdahl's law and the global interpreter lock explained."
 track: pysci
 weight: 3
@@ -48,13 +48,13 @@ The report shows the number of calls to each function and the time spent inside 
 
 ## Better algorithms first
 
-The largest speed-ups come from doing less work, not from doing the same work faster. Reducing an $O(n^2)$ algorithm to $O(n \log n)$ or $O(n)$ beats any constant-factor improvement once $n$ is large ([the topic on collections](../python-collections/) introduced this notation). In simulation code the classic example is finding neighbours: checking every pair of $N$ atoms costs $O(N^2)$, but dividing the box into cells no smaller than the cut-off and only comparing atoms in neighbouring cells costs $O(N)$, a factor of a thousand for a million atoms. In Python, `scipy.spatial.cKDTree` provides fast neighbour searches of this kind.
+The largest speed-ups come from doing less work, not from doing the same work faster. Reducing an $O(n^2)$ algorithm to $O(n \log n)$ or $O(n)$ beats any constant-factor improvement once $n$ is large ([the chapter on collections](../python-collections/) introduced this notation). In simulation code the classic example is finding neighbours: checking every pair of $N$ atoms costs $O(N^2)$, but dividing the box into cells no smaller than the cut-off and only comparing atoms in neighbouring cells costs $O(N)$, a factor of a thousand for a million atoms. In Python, `scipy.spatial.cKDTree` provides fast neighbour searches of this kind.
 
 Smaller algorithmic changes matter too. Membership tests in a loop should use a set or dictionary, not a list. Repeated work can be cached: if an expensive function is called many times with the same arguments, decorating it with `@functools.lru_cache` stores previous results and returns them instantly. Quantities that do not change inside a loop should be computed once outside it. Sorted data can be searched in $O(\log n)$ with `bisect` or `np.searchsorted` instead of scanning.
 
 ## Vectorise
 
-The next step is to move the loops out of the interpreter. As [the topic on NumPy arrays](../numpy-arrays/) explained and measured, a vectorised NumPy expression runs a compiled, cache-friendly loop and is commonly tens to hundreds of times faster than the equivalent Python loop. The energy calculation above vectorises in a few lines:
+The next step is to move the loops out of the interpreter. As [the chapter on NumPy arrays](../numpy-arrays/) explained and measured, a vectorised NumPy expression runs a compiled, cache-friendly loop and is commonly tens to hundreds of times faster than the equivalent Python loop. The energy calculation above vectorises in a few lines:
 
 {{< py title="the same energy, vectorised" >}}
 import numpy as np, time, random
@@ -99,13 +99,13 @@ def total_energy(pos):
 
 The explicit triple loop, which would be very slow in plain Python, is now fast, and it uses no temporary arrays at all. Numba also offers `parallel=True` with `numba.prange` to spread a loop over cores, and it can compile for GPUs. Its limitation is that it supports only a subset of Python: numbers, NumPy arrays and simple data structures, not arbitrary objects or most libraries.
 
-**Cython** compiles a superset of Python with optional C type declarations into a C extension module; it is how much of SciPy and scikit-learn is written. **f2py**, part of NumPy, wraps Fortran subroutines so that they can be called from Python with NumPy arrays as arguments, which makes it easy to reuse existing Fortran kernels or to write new ones ([the topic on Fortran](../fortran/) shows how). For maximum control, extensions can be written in C, C++ (with pybind11) or Rust (with PyO3). All of these follow the same design principle: keep the high-level logic, input and output in Python, and put the few loops that dominate the run time in compiled code.
+**Cython** compiles a superset of Python with optional C type declarations into a C extension module; it is how much of SciPy and scikit-learn is written. **f2py**, part of NumPy, wraps Fortran subroutines so that they can be called from Python with NumPy arrays as arguments, which makes it easy to reuse existing Fortran kernels or to write new ones ([the chapter on Fortran](../fortran/) shows how). For maximum control, extensions can be written in C, C++ (with pybind11) or Rust (with PyO3). All of these follow the same design principle: keep the high-level logic, input and output in Python, and put the few loops that dominate the run time in compiled code.
 
-The interpreter itself is getting faster, too. CPython 3.11 introduced the specialising adaptive interpreter described in [the topic on how Python runs](../how-python-runs/), which made typical code around 25 % faster, and CPython 3.13 added an experimental just-in-time compiler. Alternative interpreters such as PyPy can run unmodified pure-Python loops several times faster, although they are less compatible with compiled extensions like NumPy.
+The interpreter itself is getting faster, too. CPython 3.11 introduced the specialising adaptive interpreter described in [the chapter on how Python runs](../how-python-runs/), which made typical code around 25 % faster, and CPython 3.13 added an experimental just-in-time compiler. Alternative interpreters such as PyPy can run unmodified pure-Python loops several times faster, although they are less compatible with compiled extensions like NumPy.
 
 ## Memory
 
-Speed and memory are linked, because moving data is often slower than computing with it. Choosing the smallest adequate dtype halves memory traffic when moving from `float64` to `float32`, which is why GPUs and machine-learning models often use single or even half precision, at the cost of the rounding issues discussed in [the topic on numbers](../numbers-in-a-computer/). In-place operations (`a *= 2`, `np.add(a, b, out=a)`) avoid allocating temporaries. Generators and chunked processing keep the working set small: a trajectory too large for memory can be processed one frame at a time, or opened as a **memory-mapped** array with `np.load("traj.npy", mmap_mode="r")`, which reads only the parts that are actually touched. Access patterns matter as well: walking through an array in its memory order uses the cache efficiently, while jumping across it with large strides does not.
+Speed and memory are linked, because moving data is often slower than computing with it. Choosing the smallest adequate dtype halves memory traffic when moving from `float64` to `float32`, which is why GPUs and machine-learning models often use single or even half precision, at the cost of the rounding issues discussed in [the chapter on numbers](../numbers-in-a-computer/). In-place operations (`a *= 2`, `np.add(a, b, out=a)`) avoid allocating temporaries. Generators and chunked processing keep the working set small: a trajectory too large for memory can be processed one frame at a time, or opened as a **memory-mapped** array with `np.load("traj.npy", mmap_mode="r")`, which reads only the parts that are actually touched. Access patterns matter as well: walking through an array in its memory order uses the cache efficiently, while jumping across it with large strides does not.
 
 ## Parallelism
 
@@ -137,7 +137,7 @@ if __name__ == "__main__":
         results = list(pool.map(analyse, trajectory_files))
 ```
 
-Many scientific workloads are **embarrassingly parallel** in exactly this way: independent simulations at different temperatures, analysis of separate trajectories, single-point calculations on thousands of structures. The best way to run them on a cluster is often not inside Python at all, but as many separate jobs submitted to the scheduler, for example as a Slurm job array ([the topic on Linux for simulation](../linux-for-simulation/)). For tightly coupled parallel programs that span many nodes, the standard is **MPI**, available in Python through `mpi4py`, where each process works on part of the problem and they exchange data by passing messages.
+Many scientific workloads are **embarrassingly parallel** in exactly this way: independent simulations at different temperatures, analysis of separate trajectories, single-point calculations on thousands of structures. The best way to run them on a cluster is often not inside Python at all, but as many separate jobs submitted to the scheduler, for example as a Slurm job array ([the chapter on Linux for simulation](../linux-for-simulation/)). For tightly coupled parallel programs that span many nodes, the standard is **MPI**, available in Python through `mpi4py`, where each process works on part of the problem and they exchange data by passing messages.
 
 Two practical points prevent common surprises. NumPy's linear algebra already uses several threads through its BLAS library; running eight such processes on an eight-core machine can oversubscribe it with 64 threads, which is slower than either alone. Setting `OMP_NUM_THREADS=1` (and the equivalents for OpenBLAS or MKL) in each worker avoids this. And **GPUs** offer another level of parallelism for array arithmetic: CuPy provides a NumPy-compatible array library on NVIDIA GPUs, and PyTorch and JAX run array computations and automatic differentiation on GPUs, which is how machine-learning potentials and [differentiable simulations](../differentiable-md/) reach their speed.
 

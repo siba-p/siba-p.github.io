@@ -1,5 +1,5 @@
 ---
-title: "Free-energy perturbation, thermodynamic integration and non-equilibrium work"
+title: "Free-energy perturbation and thermodynamic integration"
 description: "Computing free-energy differences between two states: Zwanzig's free-energy perturbation and why phase-space overlap matters, Kirkwood's thermodynamic integration, alchemical transformations and thermodynamic cycles, Bennett's acceptance ratio and MBAR as optimal estimators, and Jarzynski's equality and Crooks' theorem, which extract equilibrium free energies from irreversible pulling."
 track: rl-free
 weight: 1
@@ -59,7 +59,7 @@ $$ \sum_{i=1}^{n_A} \frac{1}{1 + e^{\beta(M + w_F^{(i)} - \Delta F)}} = \sum_{j=
 - solved numerically for $\Delta F$; uses both directions and weights most heavily the samples in the overlap region
 {{< /eq >}}
 
-In the figure, the BAR estimate (rose) converges fastest and most reliably, even when the one-sided estimates disagree. BAR is still limited by overlap, but it extracts the most information from whatever overlap there is. The **multistate Bennett acceptance ratio** (MBAR) of Michael Shirts and John Chodera (2008) generalises BAR to any number of states sampled at once, such as all the $\lambda$ windows of an alchemical calculation or the windows of umbrella sampling, and it reduces to the WHAM equations of [the next topic](../es-umbrella/) when the data are histogrammed. MBAR, available in the pymbar library and its successors, is the standard analysis tool for multi-state free-energy calculations.
+In the figure, the BAR estimate (rose) converges fastest and most reliably, even when the one-sided estimates disagree. BAR is still limited by overlap, but it extracts the most information from whatever overlap there is. The **multistate Bennett acceptance ratio** (MBAR) of Michael Shirts and John Chodera (2008) generalises BAR to any number of states sampled at once, such as all the $\lambda$ windows of an alchemical calculation or the windows of umbrella sampling, and it reduces to the WHAM equations of [the next chapter](../es-umbrella/) when the data are histogrammed. MBAR, available in the pymbar library and its successors, is the standard analysis tool for multi-state free-energy calculations.
 
 ## Non-equilibrium work: Jarzynski and Crooks
 

@@ -1,5 +1,5 @@
 ---
-title: "Active learning and Bayesian optimisation"
+title: "Active learning"
 description: "Closing the loop between model and experiment: choosing the next calculation or measurement with a surrogate model and an acquisition function, exploration against exploitation, batches, many objectives, and self-driving laboratories."
 track: practice
 weight: 4

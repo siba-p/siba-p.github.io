@@ -1,5 +1,5 @@
 ---
-title: "Vectors, matrices and eigenvectors"
+title: "Vectors and matrices"
 description: "Vectors as arrows and as lists of numbers, linear combinations and bases, length and the dot product, matrices as linear transformations of space, matrix multiplication as composition, the determinant as an area factor, linear systems, and eigenvectors and eigenvalues with their uses in vibrations, PCA and neural networks."
 track: linalg
 weight: 1
@@ -22,7 +22,7 @@ and in three dimensions a third component $v_z$ is added. Vectors are written in
 
 The two pictures, arrow and list, are equally important. The arrow is how we think about vectors geometrically; the list is how we compute with them, and how a computer stores them. The power of linear algebra comes from moving freely between the two.
 
-The list picture also frees vectors from the three dimensions of physical space. The positions of all $N$ atoms in a molecule form a single vector with $3N$ components, a point in a $3N$-dimensional configuration space. A material can be described by a vector of features: its composition, density, band gap and so on. An image of $28 \times 28$ pixels is a vector with 784 components. We cannot draw arrows in 784 dimensions, but every rule in this topic works in any number of dimensions, and the two-dimensional pictures are faithful guides to what happens there.
+The list picture also frees vectors from the three dimensions of physical space. The positions of all $N$ atoms in a molecule form a single vector with $3N$ components, a point in a $3N$-dimensional configuration space. A material can be described by a vector of features: its composition, density, band gap and so on. An image of $28 \times 28$ pixels is a vector with 784 components. We cannot draw arrows in 784 dimensions, but every rule in this chapter works in any number of dimensions, and the two-dimensional pictures are faithful guides to what happens there.
 
 ## Adding and scaling vectors
 
@@ -116,7 +116,7 @@ Tick "show eigenvectors" in the transformation figure. For the symmetric matrix 
 
 **Symmetric matrices**, those equal to their own transpose ($M_{ij} = M_{ji}$), are especially well behaved, and they are the ones that matter most in science. Their eigenvalues are always real, and their eigenvectors can always be chosen to be mutually perpendicular. Using the eigenvectors as a new basis, the matrix becomes diagonal: the transformation is just a stretch along each eigen-direction. This **spectral decomposition**, $\mathbf M = \mathbf Q\boldsymbol\Lambda\mathbf Q^{\mathsf T}$ with $\mathbf Q$ the matrix of eigenvectors and $\boldsymbol\Lambda$ the diagonal matrix of eigenvalues, appears across the sciences:
 
-The **normal modes** of a molecule are the eigenvectors of its Hessian, the matrix of second derivatives of the energy with respect to atomic positions (mass-weighted), and the eigenvalues give the squared vibrational frequencies. A negative eigenvalue signals a saddle point rather than a minimum, which is how transition states are recognised, as [the topic on gradients](../gradients/) shows.
+The **normal modes** of a molecule are the eigenvectors of its Hessian, the matrix of second derivatives of the energy with respect to atomic positions (mass-weighted), and the eigenvalues give the squared vibrational frequencies. A negative eigenvalue signals a saddle point rather than a minimum, which is how transition states are recognised, as [the chapter on gradients](../gradients/) shows.
 
 **Principal component analysis** finds the eigenvectors of the covariance matrix of a data set. The first eigenvector is the direction in which the data vary most, and projecting onto the first few eigenvectors gives the best low-dimensional summary of high-dimensional data, whether those are atomic trajectories or materials properties.
 
@@ -124,7 +124,7 @@ In **quantum mechanics** the allowed energies of a system are the eigenvalues of
 
 ## Matrices in machine learning and simulation
 
-A single layer of a neural network takes an input vector $\mathbf x$, multiplies it by a weight matrix $\mathbf W$, adds a bias vector and applies a nonlinear function to each component: $\mathbf h = \sigma(\mathbf W\mathbf x + \mathbf b)$. The matrix rotates, stretches and shears the input space; the nonlinearity bends it. Stacking such layers lets a network reshape space until classes that were tangled become separable, as [the topic on how networks bend space](../networks-bend-space/) shows with the same kind of grid picture used above. Training a network means adjusting the entries of these matrices, and running one means doing matrix multiplications, which is why graphics processors, built to multiply matrices quickly, became the engines of deep learning.
+A single layer of a neural network takes an input vector $\mathbf x$, multiplies it by a weight matrix $\mathbf W$, adds a bias vector and applies a nonlinear function to each component: $\mathbf h = \sigma(\mathbf W\mathbf x + \mathbf b)$. The matrix rotates, stretches and shears the input space; the nonlinearity bends it. Stacking such layers lets a network reshape space until classes that were tangled become separable, as [the chapter on how networks bend space](../networks-bend-space/) shows with the same kind of grid picture used above. Training a network means adjusting the entries of these matrices, and running one means doing matrix multiplications, which is why graphics processors, built to multiply matrices quickly, became the engines of deep learning.
 
 In molecular simulation, the simulation box is described by a $3 \times 3$ cell matrix whose columns are the box vectors; converting between Cartesian and fractional coordinates is multiplication by this matrix or its inverse, and the box volume is its determinant. Rotation matrices orient molecules, the stress and strain of a material are $3 \times 3$ symmetric matrices whose eigenvectors are the principal axes, and the moment of inertia tensor, diagonalised, gives a molecule's principal axes of rotation. In all of these the same few ideas recur: a matrix is a transformation, its columns are the images of the basis, its determinant scales volume, and its eigenvectors are the directions it leaves unturned.
 

@@ -2,7 +2,7 @@
 title: "The Linux shell"
 description: "The command line from zero: the file-system tree, paths, the anatomy of a command, wildcards, pipes and redirection, permissions and your first scripts, practised in a terminal that runs in this page."
 track: toolbox
-weight: 3
+weight: 2
 level: Foundation
 minutes: 50
 lab: "A practice terminal with ten missions"

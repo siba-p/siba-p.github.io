@@ -1,5 +1,5 @@
 ---
-title: "Metadynamics and well-tempered metadynamics"
+title: "Metadynamics"
 description: "History-dependent biasing that fills free-energy wells: the origins in local elevation and conformational flooding, the metadynamics algorithm of Laio and Parrinello, its parameters and convergence problems, well-tempered metadynamics and the bias factor, reweighting to unbiased averages, infrequent metadynamics for rates, multiple-walker, bias-exchange, parallel-bias and funnel variants, and a PLUMED input."
 track: rl-bias
 weight: 1
@@ -65,7 +65,7 @@ PRINT ARG=d1,metad.bias STRIDE=100 FILE=COLVAR
 
 ## When to use metadynamics
 
-Metadynamics is at its best when one or two good collective variables are known and the free-energy landscape along them is to be explored without prior knowledge of where the minima and barriers are. It discovers unexpected intermediate states, it is easy to set up, and its well-tempered form converges to a well-defined answer. Its weaknesses are those of every CV-based method: a poor collective variable leaves hidden barriers, and the cost grows steeply with the number of biased variables, since hills must fill a space of growing dimension. The next topic describes OPES, which reformulates the same goal in a way that converges faster, together with variationally enhanced sampling and the adaptive biasing force.
+Metadynamics is at its best when one or two good collective variables are known and the free-energy landscape along them is to be explored without prior knowledge of where the minima and barriers are. It discovers unexpected intermediate states, it is easy to set up, and its well-tempered form converges to a well-defined answer. Its weaknesses are those of every CV-based method: a poor collective variable leaves hidden barriers, and the cost grows steeply with the number of biased variables, since hills must fill a space of growing dimension. The next chapter describes OPES, which reformulates the same goal in a way that converges faster, together with variationally enhanced sampling and the adaptive biasing force.
 
 {{< note type="key" >}}
 - Metadynamics (Laio and Parrinello, 2002) deposits Gaussian hills at the current CV value; the accumulated bias tends to $-F(s)$, levelling the landscape.

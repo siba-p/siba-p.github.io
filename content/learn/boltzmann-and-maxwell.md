@@ -1,5 +1,5 @@
 ---
-title: "The Boltzmann distribution, molecular speeds and pressure"
+title: "The Boltzmann distribution"
 description: "From counting microstates to the most useful formula in statistical mechanics: the Boltzmann factor and the partition function, the Maxwell–Boltzmann distribution of speeds, equipartition of energy, and pressure from molecular collisions, all watched emerging in a simulated gas."
 track: statmech
 weight: 2

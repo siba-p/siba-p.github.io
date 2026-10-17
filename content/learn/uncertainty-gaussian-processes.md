@@ -1,8 +1,8 @@
 ---
-title: "Uncertainty and Gaussian processes"
+title: "Kernels and Gaussian processes"
 description: "A prediction without an error bar cannot guide an experiment. Gaussian processes give principled uncertainties: the prior over functions, the posterior in closed form, kernels, marginal likelihood, and how uncertainty is estimated for neural networks."
 track: ml
-weight: 5
+weight: 4
 level: Core
 minutes: 55
 lab: "Measure, update and sample a Gaussian process"

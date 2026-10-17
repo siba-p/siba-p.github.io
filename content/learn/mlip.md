@@ -1,5 +1,5 @@
 ---
-title: "Training data, validation and uncertainty"
+title: "Training data and validation"
 description: "The practice that decides whether an MLIP works: designing and sampling the training set, consistent reference calculations, the loss and its weights, learning curves and data efficiency, ensemble and Gaussian-process uncertainty, validation by physical properties and stable dynamics rather than test errors alone, and the common ways potentials fail."
 track: practice
 weight: 1
@@ -14,7 +14,7 @@ An MLIP knows only what its training data show it. Within the region of configur
 
 A good training set covers every kind of configuration the intended simulations will visit, and some margin beyond. For a material, this usually means the relevant crystal phases at their equilibrium volumes and under compression and tension; distorted cells with randomly displaced ("rattled") atoms; snapshots of molecular dynamics at and above the target temperatures, including the liquid; point defects, surfaces and, where relevant, grain boundaries and interfaces; and configurations with atoms closer together than they ever are at equilibrium, which teach the model the repulsive wall. For chemistry in solution or at interfaces, it includes the molecules, the solvent, and configurations along the reaction paths of interest. The GAP-18 silicon potential, for example, was trained on a database assembled by hand from 18 kinds of structures, from crystal phases and vacancies to surfaces, liquid and amorphous silicon.
 
-Molecular dynamics snapshots are the commonest source of configurations, but consecutive frames are almost identical and add little information, as [the topic on generalisation](../generalisation/) explains. Data are therefore **selected for diversity**: frames are compared in descriptor space and chosen by farthest-point sampling or by CUR decomposition, so that each new structure differs as much as possible from those already chosen. Random structure searching, normal-mode sampling for molecules, and high-temperature or biased sampling extend coverage to configurations that equilibrium dynamics rarely visits.
+Molecular dynamics snapshots are the commonest source of configurations, but consecutive frames are almost identical and add little information, as [the chapter on generalisation](../generalisation/) explains. Data are therefore **selected for diversity**: frames are compared in descriptor space and chosen by farthest-point sampling or by CUR decomposition, so that each new structure differs as much as possible from those already chosen. Random structure searching, normal-mode sampling for molecules, and high-temperature or biased sampling extend coverage to configurations that equilibrium dynamics rarely visits.
 
 ## Consistent reference calculations
 
@@ -24,7 +24,7 @@ Data are stored in formats that keep positions, cell, energy, forces and stress 
 
 ## The loss and how it is weighted
 
-As [the topic on what an MLIP must learn](../mlip-foundations/) set out, the loss combines squared errors in energies per atom, forces and stresses, each with a weight. The weights decide the balance between them, and the right balance depends on the application: molecular dynamics depends on forces, phase stability on energy differences, and constant-pressure simulations on stresses. Typical schemes weight forces heavily at first, so that the overall shape of the surface is learned quickly from the abundant force labels, and increase the energy weight towards the end of training, so that energy differences between structures are accurate. Training uses mini-batches of structures, the Adam optimiser with a decaying learning rate, and early stopping on the validation error; many codes also keep an exponential moving average of the weights, which gives smoother and slightly more accurate final models.
+As [the chapter on what an MLIP must learn](../mlip-foundations/) set out, the loss combines squared errors in energies per atom, forces and stresses, each with a weight. The weights decide the balance between them, and the right balance depends on the application: molecular dynamics depends on forces, phase stability on energy differences, and constant-pressure simulations on stresses. Typical schemes weight forces heavily at first, so that the overall shape of the surface is learned quickly from the abundant force labels, and increase the energy weight towards the end of training, so that energy differences between structures are accurate. Training uses mini-batches of structures, the Adam optimiser with a decaying learning rate, and early stopping on the validation error; many codes also keep an exponential moving average of the weights, which gives smoother and slightly more accurate final models.
 
 The figure below shows why forces matter so much, on the smallest possible example: an ensemble of five small networks fitted to the energy of a diatomic molecule as a function of bond length.
 
@@ -34,7 +34,7 @@ With four training points and energies only, the networks agree at the four poin
 
 ## Learning curves and data efficiency
 
-The most informative single diagnostic of a model and a data set is the **learning curve**: the test error plotted against the number of training structures on log–log axes. For a well-behaved model it is a straight line, the error falling as a power of the data, $\epsilon \propto N^{-\beta}$, until it levels off at the noise floor of the reference data or the limit of the model's expressiveness. Comparing learning curves rather than single numbers separates two questions: how good a model can eventually become, and how much data it needs to get there. Equivariant message-passing models, as [the topic on message passing](../message-passing-potentials/) describes, have steeper learning curves than invariant ones, which is the precise meaning of their data efficiency. Learning curves also tell you whether more data would help: a curve still falling steeply means the model is data-limited.
+The most informative single diagnostic of a model and a data set is the **learning curve**: the test error plotted against the number of training structures on log–log axes. For a well-behaved model it is a straight line, the error falling as a power of the data, $\epsilon \propto N^{-\beta}$, until it levels off at the noise floor of the reference data or the limit of the model's expressiveness. Comparing learning curves rather than single numbers separates two questions: how good a model can eventually become, and how much data it needs to get there. Equivariant message-passing models, as [the chapter on message passing](../message-passing-potentials/) describes, have steeper learning curves than invariant ones, which is the precise meaning of their data efficiency. Learning curves also tell you whether more data would help: a curve still falling steeply means the model is data-limited.
 
 ## Uncertainty
 
@@ -54,7 +54,7 @@ A low test error, a few meV per atom in energy and a few tens of meV/Å in force
 
 **Processes of interest.** Compute energies along the processes the potential will be used for: migration barriers of vacancies and ions, reaction paths, the energy of a dislocation core. These are often outside the bulk of the training data and are where extrapolation errors hide.
 
-The tutorial in [the topic on building an MLIP](../build-your-own-mlip/) applies the first three kinds of test to a small copper potential.
+The tutorial in [the chapter on building an MLIP](../build-your-own-mlip/) applies the first three kinds of test to a small copper potential.
 
 ## Common failure modes
 

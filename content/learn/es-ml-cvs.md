@@ -1,5 +1,5 @@
 ---
-title: "Machine-learned collective variables: from TICA to SPIB"
+title: "Machine-learned collective variables"
 description: "Learning the coordinates that matter from simulation data: unsupervised methods (PCA, diffusion maps, sketch-map, autoencoders), supervised discriminants (LDA, HLDA, Deep-LDA), dynamical methods (TICA, Deep-TICA, VAMPnets, state-free reversible VAMPnets), information-bottleneck methods (RAVE and the state predictive information bottleneck, SPIB), committor learning, and how learned variables are used to drive enhanced sampling iteratively with PLUMED and mlcolvar."
 track: rl-ml
 weight: 1
@@ -10,7 +10,7 @@ lab: "Compare the direction of largest variance with the slowest direction in a 
 
 ## Learning the coordinates
 
-Every collective-variable method depends on choosing the right variables, and [the topic on collective variables](../es-collective-variables/) showed how a poor choice hides barriers. For simple processes, physical intuition suffices: a distance, a dihedral, a coordination number. For complex ones, such as the folding of a protein, the nucleation of a crystal or a reaction in a disordered solvent, the relevant combination of hundreds of possible coordinates is not obvious. Since about 2010, a family of methods has learned collective variables from simulation data instead. They differ in what they ask the variable to capture: the largest fluctuations, the difference between known states, the slowest dynamics, or the ability to predict the future.
+Every collective-variable method depends on choosing the right variables, and [the chapter on collective variables](../es-collective-variables/) showed how a poor choice hides barriers. For simple processes, physical intuition suffices: a distance, a dihedral, a coordination number. For complex ones, such as the folding of a protein, the nucleation of a crystal or a reaction in a disordered solvent, the relevant combination of hundreds of possible coordinates is not obvious. Since about 2010, a family of methods has learned collective variables from simulation data instead. They differ in what they ask the variable to capture: the largest fluctuations, the difference between known states, the slowest dynamics, or the ability to predict the future.
 
 All of them share a practical pattern. Choose a large set of physically meaningful input **features**, such as distances, contacts, dihedral angles or symmetry functions; collect data, from unbiased simulations, from short simulations in each known state, or from a first round of enhanced sampling; train a model that maps features to a few collective variables; use those variables to bias a new simulation, which samples transitions and produces better data; and repeat until the results converge.
 

@@ -70,12 +70,12 @@
   level: "Core"
   blurb: "From a single artificial neuron to deep networks: regression and classification, optimisation, generalisation, unsupervised learning, kernels and Gaussian processes, and architectures for images, graphs and sequences."
   parts:
-    - id: neuron
-      title: "Neurons and networks"
-      blurb: "The artificial neuron, logistic regression, multilayer networks as maps of space, and backpropagation."
     - id: ml
       title: "Learning from data"
-      blurb: "Regression, loss functions and likelihood, optimisation, generalisation, practical training and uncertainty."
+      blurb: "Models, loss functions and likelihood, gradient descent, generalisation, and kernels and Gaussian processes."
+    - id: neuron
+      title: "Neurons and networks"
+      blurb: "The artificial neuron and logistic regression, multilayer networks as maps of space, backpropagation, and training deep networks in practice."
     - id: unsup
       title: "Structure without labels"
       blurb: "Dimensionality reduction and clustering."
@@ -113,12 +113,12 @@
     - id: models
       title: "Interaction models"
       blurb: "Potential energy surfaces and force fields; periodic boundaries, cut-offs, neighbour lists and long-range electrostatics."
+    - id: sampling
+      title: "Monte Carlo methods"
+      blurb: "Importance sampling, the Metropolis algorithm and Monte Carlo in other ensembles."
     - id: dyn
       title: "Dynamics"
       blurb: "Molecular dynamics, numerical integration of the equations of motion, thermostats and barostats."
-    - id: sampling
-      title: "Sampling and free energy"
-      blurb: "Metropolis Monte Carlo, rare events and free-energy methods."
     - id: analysis
       title: "Analysis"
       blurb: "Structure, transport coefficients and statistical error from trajectories."

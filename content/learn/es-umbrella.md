@@ -1,5 +1,5 @@
 ---
-title: "Umbrella sampling and WHAM"
+title: "Umbrella sampling"
 description: "Sampling a free-energy profile across a barrier by restraining the system in overlapping windows: the umbrella bias and why it works, unbiasing a single window, combining windows with the weighted histogram analysis method (WHAM) and MBAR, choosing windows and spring constants, checking overlap and convergence, and common pitfalls."
 track: rl-free
 weight: 2
@@ -47,15 +47,15 @@ The figure runs eleven windows across an asymmetric double-well profile in paral
 
 With enough windows and moderate springs, the histograms overlap, WHAM converges in a few hundred iterations, and the reconstruction matches the true profile within a fraction of $k_BT$ across the barrier. Remove windows or stiffen the springs and gaps open between histograms. WHAM then has no information to connect the pieces on either side of a gap: the reconstructed profile on one side can be shifted by any amount relative to the other, and the error grows. In the opposite direction, springs that are too soft cannot hold the windows on the steep parts of the profile, where the walkers slide down into the wells and the barrier region is undersampled. The spring constant must be large enough to overcome the local slope of $F(s)$, roughly $\kappa \gtrsim |\mathrm dF/\mathrm ds|/\Delta s$ for window spacing $\Delta s$, and small enough that neighbouring windows still overlap; a useful rule of thumb is that each window's distribution should have a width comparable to the window spacing.
 
-**MBAR**, introduced in [the previous topic](../es-fep-ti/), solves the same problem without histogramming: each sample is used individually, with no binning error, and the equations reduce to WHAM in the limit of fine bins. Modern analyses usually use MBAR, or WHAM implementations that provide bootstrap error estimates.
+**MBAR**, introduced in [the previous chapter](../es-fep-ti/), solves the same problem without histogramming: each sample is used individually, with no binning error, and the equations reduce to WHAM in the limit of fine bins. Modern analyses usually use MBAR, or WHAM implementations that provide bootstrap error estimates.
 
 ## Practical umbrella sampling
 
 A typical umbrella-sampling study proceeds as follows. Generate starting configurations along the collective variable, usually from a short steered-MD pull or from an interpolated path. Run each window long enough for its distribution to converge, discarding an initial equilibration period. Check the overlap of neighbouring histograms and add windows where it is poor. Combine with WHAM or MBAR, and estimate errors by bootstrapping or by block averaging over time ([trajectory analysis](../trajectory-analysis/)), remembering that consecutive samples are correlated. Finally, check convergence by comparing profiles from the first and second halves of the data.
 
-The most dangerous pitfall is not visible in the histograms: slow degrees of freedom orthogonal to the collective variable. If, at fixed $s$, the system has two configurations separated by a barrier the window never crosses, each window samples only one of them, every histogram looks fine, and the profile is wrong. This is the hidden-barrier problem of [the topic on collective variables](../es-collective-variables/). Running windows from different starting configurations, or combining umbrella sampling with replica exchange between windows, helps detect and reduce it.
+The most dangerous pitfall is not visible in the histograms: slow degrees of freedom orthogonal to the collective variable. If, at fixed $s$, the system has two configurations separated by a barrier the window never crosses, each window samples only one of them, every histogram looks fine, and the profile is wrong. This is the hidden-barrier problem of [the chapter on collective variables](../es-collective-variables/). Running windows from different starting configurations, or combining umbrella sampling with replica exchange between windows, helps detect and reduce it.
 
-Umbrella sampling remains among the most widely used free-energy methods, because it is simple, robust and easy to parallelise: every window is an independent simulation. Its limitations are that the collective variable and the window placement must be chosen in advance, and that the cost grows quickly with the number of collective variables. The adaptive methods of the next topics, metadynamics and its relatives, construct the bias on the fly instead.
+Umbrella sampling remains among the most widely used free-energy methods, because it is simple, robust and easy to parallelise: every window is an independent simulation. Its limitations are that the collective variable and the window placement must be chosen in advance, and that the cost grows quickly with the number of collective variables. The adaptive methods of the next chapters, metadynamics and its relatives, construct the bias on the fly instead.
 
 {{< note type="key" >}}
 - Umbrella sampling restrains the collective variable in windows with harmonic biases $\tfrac12\kappa(s - s_k)^2$, so that every region, including barrier tops, is sampled.

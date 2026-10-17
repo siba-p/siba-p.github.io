@@ -1,5 +1,5 @@
 ---
-title: "Control flow: conditions, loops and iteration"
+title: "Control flow"
 description: "How a Python program decides and repeats: blocks and indentation, comparisons and Boolean logic with short-circuit evaluation, if/elif/else, while loops for iterating to convergence, for loops and the iterator protocol, range, enumerate and zip, break, continue and the loop else clause, comprehensions and generators, and exceptions as a form of control flow."
 track: pycore
 weight: 3
@@ -19,15 +19,15 @@ if temperature > melting_point:
 print("done")                 # after the block: always runs
 ```
 
-Indentation is not decoration. As [the topic on how Python runs](../how-python-runs/) showed, the tokenizer turns increases and decreases of indentation into `INDENT` and `DEDENT` tokens, and the parser uses them exactly as C uses braces or Fortran uses `end if`. All lines of a block must be indented by the same amount; four spaces per level is the universal convention (PEP 8). Mixing tabs and spaces is a classic source of `IndentationError`, which is why editors are usually set to insert spaces when the tab key is pressed.
+Indentation is not decoration. As [the chapter on how Python runs](../how-python-runs/) showed, the tokenizer turns increases and decreases of indentation into `INDENT` and `DEDENT` tokens, and the parser uses them exactly as C uses braces or Fortran uses `end if`. All lines of a block must be indented by the same amount; four spaces per level is the universal convention (PEP 8). Mixing tabs and spaces is a classic source of `IndentationError`, which is why editors are usually set to insert spaces when the tab key is pressed.
 
-Underneath, every control structure in this topic compiles to the same two primitives seen in the virtual-machine figure of that topic: **conditional jumps**, which skip to another instruction if a value is false, and **unconditional jumps**, which go back to repeat a block. Everything else is convenience built on top.
+Underneath, every control structure in this chapter compiles to the same two primitives seen in the virtual-machine figure of that chapter: **conditional jumps**, which skip to another instruction if a value is false, and **unconditional jumps**, which go back to repeat a block. Everything else is convenience built on top.
 
 ## Conditions and Boolean logic
 
 A condition is any expression whose truth value can be tested. Most conditions are **comparisons**: `==` (equal), `!=` (not equal), `<`, `<=`, `>`, `>=`, together with `in` (membership, as in `"Fe" in elements`) and `is` (identity). Comparisons can be **chained** in the mathematical way: `0 <= x < L` means `0 <= x and x < L`, which is exactly how one checks that a coordinate lies inside a periodic box.
 
-Conditions are combined with `and`, `or` and `not`. The first two use **short-circuit evaluation**: in `a and b`, if `a` is false the result is already known and `b` is never evaluated; in `a or b`, if `a` is true, `b` is skipped. This is not merely an optimisation, it is relied upon for safety, as in `if n > 0 and total / n > threshold:`, where the division is attempted only when it is safe. (The same idea in the shell, `make && ./run`, is described in [the topic on bash](../how-bash-works/).) Strictly, `and` and `or` return one of their operands rather than `True` or `False`: `x or default` gives `x` if it is truthy and `default` otherwise, an idiom you will meet in other people's code.
+Conditions are combined with `and`, `or` and `not`. The first two use **short-circuit evaluation**: in `a and b`, if `a` is false the result is already known and `b` is never evaluated; in `a or b`, if `a` is true, `b` is skipped. This is not merely an optimisation, it is relied upon for safety, as in `if n > 0 and total / n > threshold:`, where the division is attempted only when it is safe. (The same idea in the shell, `make && ./run`, is described in [the chapter on bash](../how-bash-works/).) Strictly, `and` and `or` return one of their operands rather than `True` or `False`: `x or default` gives `x` if it is truthy and `default` otherwise, an idiom you will meet in other people's code.
 
 The `if` statement chooses between blocks:
 
@@ -46,7 +46,7 @@ The conditions are tested in order, and only the block of the first true one run
 
 ## Repeating while a condition holds
 
-A `while` loop repeats its block as long as its condition is true, testing the condition before each pass. It is the natural loop when the number of repetitions is not known in advance, which in numerical work usually means **iterating until convergence**. Newton's method for $\sqrt a$ improves a guess $x$ with the rule $x \leftarrow \tfrac12(x + a/x)$ ([the topic on derivatives](../derivatives/) derives it), and stops when $x^2$ is close enough to $a$:
+A `while` loop repeats its block as long as its condition is true, testing the condition before each pass. It is the natural loop when the number of repetitions is not known in advance, which in numerical work usually means **iterating until convergence**. Newton's method for $\sqrt a$ improves a guess $x$ with the rule $x \leftarrow \tfrac12(x + a/x)$ ([the chapter on derivatives](../derivatives/) derives it), and stops when $x^2$ is close enough to $a$:
 
 {{< py title="iterate to convergence" >}}
 a, x, n = 2.0, 1.0, 0
@@ -121,7 +121,7 @@ for line in open("data.txt"):
 
 The third is unusual: a loop may have an `else` clause, which runs if the loop finished normally, without a `break`. It reads awkwardly but expresses "searched everything and found nothing" exactly. In the prime-number example in the figure, the inner loop looks for a divisor of `n`; if it finds one it breaks, and if it finishes without breaking, the `else` block records `n` as prime. Step through it and notice how many times the inner loop runs for each `n`.
 
-Nested loops multiply their costs: a double loop over all pairs of $N$ atoms executes its body $N^2$ times, or $N(N - 1)/2$ if each pair is visited once with `for j in range(i + 1, N)`. In pure Python, where each pass costs many bytecode instructions, a double loop over 10 000 atoms (50 million pairs) takes tens of seconds; the same calculation done with NumPy arrays, or with a cell list that only visits nearby pairs ([the topic on neighbour lists](../molecular-dynamics/)), takes a fraction of a second.
+Nested loops multiply their costs: a double loop over all pairs of $N$ atoms executes its body $N^2$ times, or $N(N - 1)/2$ if each pair is visited once with `for j in range(i + 1, N)`. In pure Python, where each pass costs many bytecode instructions, a double loop over 10 000 atoms (50 million pairs) takes tens of seconds; the same calculation done with NumPy arrays, or with a cell list that only visits nearby pairs ([the chapter on neighbour lists](../molecular-dynamics/)), takes a fraction of a second.
 
 ## Comprehensions and generators
 
@@ -173,7 +173,7 @@ Catch the specific exception you expect, never a bare `except:`, which also swal
 
 ## A complete loop: a random walk
 
-The pieces of this topic combine into the inner loop of a stochastic simulation. A particle on a line takes a thousand steps, each one unit left or right at random; repeating the walk many times shows that the typical distance travelled grows as the square root of the number of steps, the signature of diffusion.
+The pieces of this chapter combine into the inner loop of a stochastic simulation. A particle on a line takes a thousand steps, each one unit left or right at random; repeating the walk many times shows that the typical distance travelled grows as the square root of the number of steps, the signature of diffusion.
 
 {{< py title="random walks" >}}
 import random

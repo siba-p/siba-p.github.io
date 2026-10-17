@@ -1,5 +1,5 @@
 ---
-title: "Derivatives, Taylor series and numerical differentiation"
+title: "Derivatives and Taylor series"
 description: "The derivative as the slope of a curve seen up close: its definition as a limit, the derivative as a new function, the rules of differentiation, forces as derivatives of energy, optimisation, Taylor series and the harmonic approximation, and how derivatives are computed with finite differences."
 track: calc
 weight: 2
@@ -52,7 +52,7 @@ Since the derivative can be computed at every point, it is itself a function, $f
 
 The derivative of the derivative is the **second derivative**, $f''(x) = \mathrm d^2 f/\mathrm dx^2$. It measures how the slope itself changes, which is the **curvature** of the graph. Where $f'' > 0$ the slope is increasing and the curve bends upwards like a cup; where $f'' < 0$ it bends downwards like a cap. This gives a test for stationary points: if $f'(x) = 0$ and $f''(x) > 0$, the point is a minimum; if $f''(x) < 0$, it is a maximum. In the figure, tick the box for the second derivative and check that it is positive at the minimum of $x^3 - 3x$ and negative at the maximum.
 
-When the variable is time, the derivatives have familiar names. The derivative of position $x(t)$ is the velocity $v = \mathrm dx/\mathrm dt$, and the derivative of velocity is the acceleration $a = \mathrm dv/\mathrm dt = \mathrm d^2x/\mathrm dt^2$. Newton's second law, $F = ma$, is therefore a statement about a second derivative, and [the topic on motion](../motion-and-phase-space/) shows how it determines a trajectory.
+When the variable is time, the derivatives have familiar names. The derivative of position $x(t)$ is the velocity $v = \mathrm dx/\mathrm dt$, and the derivative of velocity is the acceleration $a = \mathrm dv/\mathrm dt = \mathrm d^2x/\mathrm dt^2$. Newton's second law, $F = ma$, is therefore a statement about a second derivative, and [the chapter on motion](../motion-and-phase-space/) shows how it determines a trajectory.
 
 ## The rules of differentiation
 
@@ -96,7 +96,7 @@ $$
 V'(r) = 4\left(-12\,r^{-13} + 6\,r^{-7}\right),
 $$
 
-and setting $V'(r) = 0$ gives $r^6 = 2$, so the equilibrium separation is $r_0 = 2^{1/6} \approx 1.122$ (in units of the atomic diameter $\sigma$), where the energy is $V(r_0) = -1$, the depth of the well. To the left of $r_0$ the slope is negative and the force $-V'$ is positive, pushing the atoms apart; to the right it pulls them together. The second derivative at the minimum, $V''(r_0) = 72/2^{1/3} \approx 57.1$, is the stiffness of the bond, its effective spring constant. This number sets the frequency at which the atoms vibrate about their equilibrium spacing, which is how derivatives of energy surfaces connect to measured vibrational spectra. The same reasoning in many dimensions gives forces as gradients, developed in [the topic on gradients](../gradients/) and used throughout [molecular dynamics](../molecular-dynamics/).
+and setting $V'(r) = 0$ gives $r^6 = 2$, so the equilibrium separation is $r_0 = 2^{1/6} \approx 1.122$ (in units of the atomic diameter $\sigma$), where the energy is $V(r_0) = -1$, the depth of the well. To the left of $r_0$ the slope is negative and the force $-V'$ is positive, pushing the atoms apart; to the right it pulls them together. The second derivative at the minimum, $V''(r_0) = 72/2^{1/3} \approx 57.1$, is the stiffness of the bond, its effective spring constant. This number sets the frequency at which the atoms vibrate about their equilibrium spacing, which is how derivatives of energy surfaces connect to measured vibrational spectra. The same reasoning in many dimensions gives forces as gradients, developed in [the chapter on gradients](../gradients/) and used throughout [molecular dynamics](../molecular-dynamics/).
 
 ## Optimisation
 
@@ -106,7 +106,7 @@ $$
 x_{\text{new}} = x - \eta\, f'(x),
 $$
 
-with a small step size $\eta$, walks down to a minimum. This is **gradient descent**, the optimisation method behind nearly all of deep learning, studied in detail in [its own topic](../gradient-descent/). A faster method for smooth functions is **Newton's method**, which uses the second derivative as well: it approximates the function near $x$ by a parabola and jumps straight to the parabola's minimum, $x_{\text{new}} = x - f'(x)/f''(x)$. Near a minimum it roughly doubles the number of correct digits at every step.
+with a small step size $\eta$, walks down to a minimum. This is **gradient descent**, the optimisation method behind nearly all of deep learning, studied in detail in [its own chapter](../gradient-descent/). A faster method for smooth functions is **Newton's method**, which uses the second derivative as well: it approximates the function near $x$ by a parabola and jumps straight to the parabola's minimum, $x_{\text{new}} = x - f'(x)/f''(x)$. Near a minimum it roughly doubles the number of correct digits at every step.
 
 ## Taylor series
 
@@ -148,7 +148,7 @@ It would seem, then, that the best choice is the smallest possible $h$. The figu
 
 {{< widget name="fderr" title="The error of finite differences against the step size" caption="Each curve is computed live in your browser's double-precision arithmetic (or emulated single precision). Drag across the plot to read off the errors at a chosen h." >}}
 
-For large $h$ the errors fall along straight lines of slope 1 (forward) and 2 (central): this is the truncation error predicted by the Taylor series. But below a certain $h$ the curves turn round and the error grows again, becoming erratic. The cause is rounding. A computer stores about 16 significant decimal digits in double precision ([the topic on numbers in a computer](../numbers-in-a-computer/) explains why). When $h$ is tiny, $f(x + h)$ and $f(x)$ agree in almost all their digits, and subtracting them leaves only the few digits that differ, most of which are rounding noise. Dividing by the tiny $h$ then magnifies that noise. The **round-off error** grows like $\epsilon/h$, where $\epsilon \approx 2.2 \times 10^{-16}$ is the machine precision.
+For large $h$ the errors fall along straight lines of slope 1 (forward) and 2 (central): this is the truncation error predicted by the Taylor series. But below a certain $h$ the curves turn round and the error grows again, becoming erratic. The cause is rounding. A computer stores about 16 significant decimal digits in double precision ([the chapter on numbers in a computer](../numbers-in-a-computer/) explains why). When $h$ is tiny, $f(x + h)$ and $f(x)$ agree in almost all their digits, and subtracting them leaves only the few digits that differ, most of which are rounding noise. Dividing by the tiny $h$ then magnifies that noise. The **round-off error** grows like $\epsilon/h$, where $\epsilon \approx 2.2 \times 10^{-16}$ is the machine precision.
 
 The best step balances the two errors. For the forward difference the optimum is near $h \approx \sqrt{\epsilon} \approx 10^{-8}$, giving an error around $10^{-8}$; for the central difference it is near $h \approx \epsilon^{1/3} \approx 10^{-5}$, giving an error of $10^{-10}$ or better. Tick the single-precision box, as used on many GPUs, and the optimum moves to much larger $h$ with an error of only around $10^{-4}$ to $10^{-7}$. Finite differences therefore never reach full machine precision, and they need two or more function evaluations per input variable, which is prohibitive for a function of a million variables.
 

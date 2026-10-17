@@ -1,5 +1,5 @@
 ---
-title: "Energy landscapes: minima, transition states and reaction paths"
+title: "Energy landscapes and transition states"
 description: "The geometry of rare events: the timescale gap between molecular vibrations and the processes we care about, basins and stationary points of the potential energy surface, transition states as first-order saddles, minimum energy paths and the intrinsic reaction coordinate, double-ended methods (elastic band, NEB, climbing-image NEB, string method) and single-ended methods (eigenvector following, dimer, activation–relaxation), with an ASE example, and the step from energy to free-energy landscapes."
 track: rl-land
 weight: 1
@@ -18,9 +18,9 @@ This subject is about the methods that overcome this problem. Some locate barrie
 
 ## Basins and stationary points
 
-The potential energy surface $U(\mathbf r_1, \dots, \mathbf r_N)$, introduced in [the topic on potential energy surfaces](../potential-energy-surfaces/), is a function on a $3N$-dimensional configuration space. Its **minima** are the stable and metastable structures: a crystal, a vacancy at a particular site, a conformer of a molecule, a reactant or a product. Around each minimum lies its **basin of attraction**, the set of configurations from which steepest descent leads to that minimum. A dynamical trajectory at low temperature spends long periods inside one basin, rattling near its minimum, and occasionally passes into a neighbouring basin.
+The potential energy surface $U(\mathbf r_1, \dots, \mathbf r_N)$, introduced in [the chapter on potential energy surfaces](../potential-energy-surfaces/), is a function on a $3N$-dimensional configuration space. Its **minima** are the stable and metastable structures: a crystal, a vacancy at a particular site, a conformer of a molecule, a reactant or a product. Around each minimum lies its **basin of attraction**, the set of configurations from which steepest descent leads to that minimum. A dynamical trajectory at low temperature spends long periods inside one basin, rattling near its minimum, and occasionally passes into a neighbouring basin.
 
-As [the topic on gradients](../gradients/) showed, stationary points, where the gradient vanishes, are classified by the eigenvalues of the **Hessian** matrix of second derivatives $H_{ij} = \partial^2 U / \partial x_i \partial x_j$. At a minimum, all eigenvalues are positive (apart from zero eigenvalues associated with overall translation and rotation). At a **first-order saddle point**, exactly one eigenvalue is negative: the point is a maximum along one direction and a minimum along all others. Saddles of higher order, with several negative eigenvalues, are maxima in several directions and are not important for transitions, because there is always a lower route around them.
+As [the chapter on gradients](../gradients/) showed, stationary points, where the gradient vanishes, are classified by the eigenvalues of the **Hessian** matrix of second derivatives $H_{ij} = \partial^2 U / \partial x_i \partial x_j$. At a minimum, all eigenvalues are positive (apart from zero eigenvalues associated with overall translation and rotation). At a **first-order saddle point**, exactly one eigenvalue is negative: the point is a maximum along one direction and a minimum along all others. Saddles of higher order, with several negative eigenvalues, are maxima in several directions and are not important for transitions, because there is always a lower route around them.
 
 {{< eq title="A transition state" say="The highest point on the lowest pass between two valleys: zero slope, and curved downwards in exactly one direction." >}}
 $$ \nabla U(\mathbf x^\ddagger) = \mathbf 0, \qquad \mathbf H(\mathbf x^\ddagger)\,\mathbf v_1 = \lambda_1 \mathbf v_1 \;\text{ with }\; \lambda_1 < 0 < \lambda_2 \le \lambda_3 \le \cdots $$
@@ -29,7 +29,7 @@ $$ \nabla U(\mathbf x^\ddagger) = \mathbf 0, \qquad \mathbf H(\mathbf x^\ddagger
 - the energy barrier is $\Delta E^\ddagger = U(\mathbf x^\ddagger) - U(\mathbf x_{\text{min}})$
 {{< /eq >}}
 
-The first-order saddle connecting two basins is the **transition state** of the transition between them, the mountain pass in the hiking-map picture. Its energy above the starting minimum is the **activation energy** that enters the rate, and its vibrational frequencies (the positive Hessian eigenvalues) enter the prefactor, as [the topic on reaction rates](../es-rates/) explains. Locating transition states is therefore the first quantitative task in studying a rare event.
+The first-order saddle connecting two basins is the **transition state** of the transition between them, the mountain pass in the hiking-map picture. Its energy above the starting minimum is the **activation energy** that enters the rate, and its vibrational frequencies (the positive Hessian eigenvalues) enter the prefactor, as [the chapter on reaction rates](../es-rates/) explains. Locating transition states is therefore the first quantitative task in studying a rare event.
 
 ## Minimum energy paths
 
@@ -102,9 +102,9 @@ Single-ended searches launched in many random directions from a minimum map out 
 
 ## From energy to free energy
 
-The landscapes and paths of this topic are properties of the potential energy, and they describe transitions at low temperature well. At finite temperature, a system does not follow the MEP exactly; it fluctuates around it, and the relevant barrier is a **free-energy barrier**, which includes the entropy of all the motions transverse to the path. A narrow pass and a wide valley of the same height are crossed at different rates, because the wide valley offers more ways through. In liquids, biomolecules and soft matter, where many configurations of similar energy coexist, entropy often dominates, and the energy landscape alone can be misleading: there may be no single saddle point at all, but a broad region of configuration space through which transitions pass.
+The landscapes and paths of this chapter are properties of the potential energy, and they describe transitions at low temperature well. At finite temperature, a system does not follow the MEP exactly; it fluctuates around it, and the relevant barrier is a **free-energy barrier**, which includes the entropy of all the motions transverse to the path. A narrow pass and a wide valley of the same height are crossed at different rates, because the wide valley offers more ways through. In liquids, biomolecules and soft matter, where many configurations of similar energy coexist, entropy often dominates, and the energy landscape alone can be misleading: there may be no single saddle point at all, but a broad region of configuration space through which transitions pass.
 
-The free-energy landscape is defined along chosen **collective variables**, as [the topic on ensembles](../ensembles-and-free-energy/) introduced: $F(\xi) = -k_BT\ln P(\xi)$. Choosing collective variables that capture the slow, rare motion is one of the central problems of this subject, discussed in [the topic on collective variables](../es-collective-variables/); computing free energies along them is the subject of the free-energy and enhanced-sampling topics that follow.
+The free-energy landscape is defined along chosen **collective variables**, as [the chapter on ensembles](../ensembles-and-free-energy/) introduced: $F(\xi) = -k_BT\ln P(\xi)$. Choosing collective variables that capture the slow, rare motion is one of the central problems of this subject, discussed in [the chapter on collective variables](../es-collective-variables/); computing free energies along them is the subject of the free-energy and enhanced-sampling chapters that follow.
 
 {{< note type="key" >}}
 - Rare events are slow because barrier crossing has probability $\propto e^{-\Delta E/k_BT}$; the crossing itself is fast but the waiting time is long, creating a gap of many orders of magnitude between MD time steps and the processes of interest.

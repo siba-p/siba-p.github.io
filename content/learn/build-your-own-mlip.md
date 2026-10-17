@@ -1,16 +1,16 @@
 ---
-title: "Tutorial: build your own machine-learned potential"
+title: "Building a potential from scratch"
 description: "A complete, tested walk-through: generate a labelled data set of copper configurations, write Behler–Parrinello symmetry functions and an atomic neural network from scratch in PyTorch, train on energies and forces, wrap the model as an ASE calculator, validate it by lattice constant, energy–volume curve and energy-conserving molecular dynamics, and then train an equivariant MACE model on the same data from the command line."
 track: practice
-weight: 3
+weight: 2
 level: Advanced
 prereqs: ["neural-network-potentials", "mlip", "python-classes", "numpy-arrays"]
-lab: "Every script below was run while writing this topic; the numbers quoted are its output"
+lab: "Every script below was run while writing this chapter; the numbers quoted are its output"
 ---
 
 ## What we will build
 
-This topic builds a complete machine-learned interatomic potential for copper, from raw data to molecular dynamics, using the ideas of the preceding topics: the atomic decomposition and symmetry functions of [neural-network potentials](../neural-network-potentials/), the energy-and-force loss of [what an MLIP must learn](../mlip-foundations/), and the validation strategy of [training and validation](../mlip/). Every line of code below was run while writing this topic, on a laptop CPU, and every number quoted is the actual output. The whole exercise takes about an hour of computer time.
+This chapter builds a complete machine-learned interatomic potential for copper, from raw data to molecular dynamics, using the ideas of the preceding chapters: the atomic decomposition and symmetry functions of [neural-network potentials](../neural-network-potentials/), the energy-and-force loss of [what an MLIP must learn](../mlip-foundations/), and the validation strategy of [training and validation](../mlip/). Every line of code below was run while writing this chapter, on a laptop CPU, and every number quoted is the actual output. The whole exercise takes about an hour of computer time.
 
 The steps are: generate reference data; turn each atom's environment into symmetry-function descriptors; define the atomic neural network; train it on energies and forces; use it as an ASE calculator and test it beyond its test error; and finally train an equivariant MACE model on the same data, to see how a modern package compares with a model written by hand.
 
@@ -309,7 +309,7 @@ NVE, 108 atoms, 1 ps: total-energy drift +0.03 meV/atom, fluctuation 0.01 meV/at
 force RMSE against EMT along the trajectory: 7 meV/Å
 ```
 
-The network reproduces the equilibrium lattice constant exactly and the energy–volume curve to within a meV per atom across the strains it was trained on (lattice constants between about 3.50 and 3.72 Å). At 3.45 and 3.80 Å, outside the training range, the errors grow to 5 meV per atom, the first sign of extrapolation that [the topic on training and validation](../mlip/) warns about: the model was never shown such strongly compressed or expanded crystals. The molecular dynamics run, in a 108-atom cell three times larger than the training cells, conserves the total energy to 0.03 meV per atom over a picosecond, which shows that the forces are smooth and exactly conservative, and the forces along the trajectory agree with EMT to 7 meV/Å, better than the test error because room-temperature configurations are near the centre of the training distribution.
+The network reproduces the equilibrium lattice constant exactly and the energy–volume curve to within a meV per atom across the strains it was trained on (lattice constants between about 3.50 and 3.72 Å). At 3.45 and 3.80 Å, outside the training range, the errors grow to 5 meV per atom, the first sign of extrapolation that [the chapter on training and validation](../mlip/) warns about: the model was never shown such strongly compressed or expanded crystals. The molecular dynamics run, in a 108-atom cell three times larger than the training cells, conserves the total energy to 0.03 meV per atom over a picosecond, which shows that the forces are smooth and exactly conservative, and the forces along the trajectory agree with EMT to 7 meV/Å, better than the test error because room-temperature configurations are near the centre of the training distribution.
 
 ## Step 6: the same data with MACE
 
@@ -336,7 +336,7 @@ mace_run_train --name="cu_mace" --train_file="cu_train_mace.xyz" --valid_fractio
     --default_dtype="float64" --device=cpu --seed=1
 ```
 
-This is a deliberately small MACE (32 channels, vector features up to $L = 1$, correlation order 3) trained for only 30 epochs on a CPU. The `--swa` flag turns on what MACE calls stage two: from epoch 20 the energy weight in the loss rises from 1 to 1000 while the force weight stays at 100. The first stage is dominated by forces, which carry many numbers per configuration, but forces say nothing about how the energy changes under uniform strain, where every atom stays at a symmetric site with zero force; without stage two the energy–volume curve is learned poorly, even when the forces are excellent. The trained model is saved as `cu_mace.model` and is used from ASE with `from mace.calculators import MACECalculator; calc = MACECalculator(model_paths="cu_mace.model", device="cpu")`, or from LAMMPS for large simulations. Fine-tuning a foundation model instead of training from scratch, as described in [the topic on universal potentials](../universal-potentials/), uses the same command with `--foundation_model` pointing to a pre-trained model.
+This is a deliberately small MACE (32 channels, vector features up to $L = 1$, correlation order 3) trained for only 30 epochs on a CPU. The `--swa` flag turns on what MACE calls stage two: from epoch 20 the energy weight in the loss rises from 1 to 1000 while the force weight stays at 100. The first stage is dominated by forces, which carry many numbers per configuration, but forces say nothing about how the energy changes under uniform strain, where every atom stays at a symmetric site with zero force; without stage two the energy–volume curve is learned poorly, even when the forces are excellent. The trained model is saved as `cu_mace.model` and is used from ASE with `from mace.calculators import MACECalculator; calc = MACECalculator(model_paths="cu_mace.model", device="cpu")`, or from LAMMPS for large simulations. Fine-tuning a foundation model instead of training from scratch, as described in [the chapter on universal potentials](../universal-potentials/), uses the same command with `--foundation_model` pointing to a pre-trained model.
 
 ## From here to a research potential
 

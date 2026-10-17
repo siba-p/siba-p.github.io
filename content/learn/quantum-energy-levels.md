@@ -1,5 +1,5 @@
 ---
-title: "Quantum energy levels, and when classical is enough"
+title: "Quantum energy levels"
 description: "Why energy comes in steps: the Schrödinger equation, the particle in a box, the harmonic oscillator and zero-point energy, how quantum turns into classical at high energy, and how temperature populates the levels. The bridge from quantum mechanics to statistical mechanics."
 track: physics
 weight: 2

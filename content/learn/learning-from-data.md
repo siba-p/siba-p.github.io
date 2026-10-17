@@ -1,5 +1,5 @@
 ---
-title: "Learning from data: models, losses and fitting"
+title: "Learning from data"
 description: "What it means for a model to learn, why least squares is the default, where it comes from in probability, and what changes when you pick a different loss."
 track: ml
 weight: 1

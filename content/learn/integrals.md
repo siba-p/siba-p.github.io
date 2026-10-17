@@ -1,5 +1,5 @@
 ---
-title: "Integrals and accumulation"
+title: "Integrals"
 description: "The integral as an accumulated total: Riemann sums, signed area, the fundamental theorem of calculus that links integrals to derivatives, standard techniques and the Gaussian integral, integrals in physics such as work and averages, numerical quadrature, and Monte Carlo integration in many dimensions."
 track: calc
 weight: 3
@@ -14,7 +14,7 @@ The derivative answers the question "how fast is this changing?". The integral a
 
 When the speed varies, the region under the graph is no longer a rectangle, but the principle is the same. Over a short enough time interval the speed is nearly constant, so the distance covered in that interval is nearly speed × duration, the area of a thin vertical strip. Adding up the strips gives the total distance. The integral is the exact value this sum approaches as the strips become infinitely thin.
 
-The same idea appears whenever a total is built from a varying rate or density. The mass of a rod whose density varies along its length is the integral of density over length. The charge that has flowed through a wire is the integral of the current over time. The amount of product formed in a chemical reaction is the integral of the reaction rate. The work done by a varying force is the integral of force over distance. And, as later topics show, every average and every probability in statistical mechanics is an integral.
+The same idea appears whenever a total is built from a varying rate or density. The mass of a rod whose density varies along its length is the integral of density over length. The charge that has flowed through a wire is the integral of the current over time. The amount of product formed in a chemical reaction is the integral of the reaction rate. The work done by a varying force is the integral of force over distance. And, as later chapters show, every average and every probability in statistical mechanics is an integral.
 
 ## Riemann sums and the definite integral
 
@@ -86,7 +86,7 @@ The **work** done by a force $F(x)$ that moves an object from $a$ to $b$ is $W =
 
 The **average** of a function over an interval is its integral divided by the length of the interval, $\bar f = \frac{1}{b - a}\int_a^b f(x)\,\mathrm dx$: the height of the rectangle with the same area. A time average from a simulation is exactly this, with the integral replaced by a sum over saved frames.
 
-A **probability density** $p(x)$ describes a continuous random quantity: the probability that it lies between $a$ and $b$ is $\int_a^b p(x)\,\mathrm dx$, and the total integral is 1. The average of any quantity $g(x)$ is then $\langle g \rangle = \int g(x)\,p(x)\,\mathrm dx$. [The topic on probability](../probability/) develops this, and statistical mechanics is built on it: the average energy of a system is an integral of energy weighted by the Boltzmann probability over all positions and momenta.
+A **probability density** $p(x)$ describes a continuous random quantity: the probability that it lies between $a$ and $b$ is $\int_a^b p(x)\,\mathrm dx$, and the total integral is 1. The average of any quantity $g(x)$ is then $\langle g \rangle = \int g(x)\,p(x)\,\mathrm dx$. [The chapter on probability](../probability/) develops this, and statistical mechanics is built on it: the average energy of a system is an integral of energy weighted by the Boltzmann probability over all positions and momenta.
 
 Integrals extend naturally to several dimensions. The volume under a surface $f(x, y)$ is the double integral $\iint f\,\mathrm dx\,\mathrm dy$, the limit of a sum of thin columns, and the mass of a three-dimensional object is the triple integral of its density over its volume. The **partition function** of $N$ classical atoms is an integral over all $3N$ position coordinates and $3N$ momentum coordinates, a $6N$-dimensional integral. Computing such integrals is the central difficulty of statistical mechanics, and it is the reason for the last section of this topic.
 
@@ -94,7 +94,7 @@ Integrals extend naturally to several dimensions. The volume under a surface $f(
 
 When an antiderivative is unavailable, or the integrand is known only as data, integrals are computed numerically by a **quadrature rule**: a weighted sum of function values. The rules in the strips figure are the simplest. Their accuracy can be read off from Taylor's theorem, just as for finite differences. With $n$ strips of width $h$, the left- and right-edge rules have errors proportional to $h$; the midpoint and trapezoid rules, which are symmetric within each strip, have errors proportional to $h^2$; and **Simpson's rule**, which fits a parabola through each pair of strips, has error proportional to $h^4$. Doubling $n$ therefore halves the error of the left-edge rule, quarters that of the trapezoid rule and divides that of Simpson's rule by sixteen. You can check the first two in the figure: compare the errors before and after pressing "Double n".
 
-The same ideas, applied to the equations of motion, give the integrators of molecular dynamics. Advancing a trajectory by one time step means integrating the acceleration to update the velocity and integrating the velocity to update the position. The velocity Verlet algorithm used in nearly every MD code is a carefully symmetrised version of the midpoint idea, as [the topic on integrators](../molecular-dynamics/) explains.
+The same ideas, applied to the equations of motion, give the integrators of molecular dynamics. Advancing a trajectory by one time step means integrating the acceleration to update the velocity and integrating the velocity to update the position. The velocity Verlet algorithm used in nearly every MD code is a carefully symmetrised version of the midpoint idea, as [the chapter on integrators](../molecular-dynamics/) explains.
 
 ## Monte Carlo integration
 
@@ -104,7 +104,7 @@ The way out is to sample at random. To estimate the area of a region, enclose it
 
 {{< widget name="mcint" title="Estimating π by throwing random darts" caption="Left: random points in the unit square, teal inside the quarter circle and rose outside. Right: the error of the estimate against the number of darts on log–log axes. The dashed line is the 1/√N law predicted by the central limit theorem." >}}
 
-The error falls as $1/\sqrt N$: a hundred times more darts buys one more correct digit. That is slow compared with Simpson's rule in one dimension. The crucial point is that the $1/\sqrt N$ law does not depend on the dimension at all. The same number of random samples gives the same statistical error whether the integral is over two variables or six thousand. This is why the integrals of statistical mechanics are evaluated by sampling, either with [Monte Carlo methods](../monte-carlo/) that draw configurations at random with the right probabilities, or with molecular dynamics, which generates them by following the motion. The error bar on every simulated average is ultimately this $1/\sqrt N$ law, with $N$ the number of effectively independent samples, as [the topic on probability](../probability/) explains.
+The error falls as $1/\sqrt N$: a hundred times more darts buys one more correct digit. That is slow compared with Simpson's rule in one dimension. The crucial point is that the $1/\sqrt N$ law does not depend on the dimension at all. The same number of random samples gives the same statistical error whether the integral is over two variables or six thousand. This is why the integrals of statistical mechanics are evaluated by sampling, either with [Monte Carlo methods](../monte-carlo/) that draw configurations at random with the right probabilities, or with molecular dynamics, which generates them by following the motion. The error bar on every simulated average is ultimately this $1/\sqrt N$ law, with $N$ the number of effectively independent samples, as [the chapter on probability](../probability/) explains.
 
 {{< note type="key" >}}
 - The definite integral is the limit of a sum of thin strips: a signed area, and physically an accumulated total of a rate or a density.

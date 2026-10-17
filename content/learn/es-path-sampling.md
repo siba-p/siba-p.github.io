@@ -1,5 +1,5 @@
 ---
-title: "Path sampling: TPS, TIS, forward flux, milestoning and weighted ensemble"
+title: "Path sampling"
 description: "Sampling the rare transitions themselves instead of the states: the transition path ensemble, transition path sampling with shooting and shifting moves, rate constants from transition interface sampling and forward-flux sampling, milestoning, weighted-ensemble simulation, finite-temperature and swarms-of-trajectories string methods, transition path theory, and how path ensembles reveal mechanisms and reaction coordinates."
 track: rl-path
 weight: 1
@@ -52,9 +52,9 @@ The **weighted-ensemble** method (Gary Huber and Sangtae Kim, 1996) runs many tr
 
 ## Strings at finite temperature and transition path theory
 
-The string method of [the topic on energy landscapes](../es-landscapes/) finds minimum energy paths at zero temperature. Its **finite-temperature** version (Weinan E, Weiqing Ren and Eric Vanden-Eijnden, 2005) evolves the string according to averages computed in restrained simulations around each image, so that it converges to the principal curve of the transition tube in collective-variable space, accounting for entropy. The **string method with swarms of trajectories** (Albert Pan, Deniz Sezer and Benoît Roux, 2008) moves each image by the average drift of many short unrestrained trajectories launched from it, which avoids the need for restraints and is popular for large conformational changes in proteins.
+The string method of [the chapter on energy landscapes](../es-landscapes/) finds minimum energy paths at zero temperature. Its **finite-temperature** version (Weinan E, Weiqing Ren and Eric Vanden-Eijnden, 2005) evolves the string according to averages computed in restrained simulations around each image, so that it converges to the principal curve of the transition tube in collective-variable space, accounting for entropy. The **string method with swarms of trajectories** (Albert Pan, Deniz Sezer and Benoît Roux, 2008) moves each image by the average drift of many short unrestrained trajectories launched from it, which avoids the need for restraints and is popular for large conformational changes in proteins.
 
-All these methods can be understood within **transition path theory** (E and Vanden-Eijnden, 2006), which describes the statistics of reactive trajectories in terms of the committor $q(\mathbf x)$, the probability of reaching B before A introduced in [the topic on rates](../es-rates/). The density of reactive trajectories, the probability current of transitions and the rate can all be written in terms of $q$; the committor's isosurfaces are the natural interfaces, and the committor itself is the ideal reaction coordinate. Much of the recent work on machine-learned collective variables aims to learn $q$ from data ([the topic on learned collective variables](../es-ml-cvs/)).
+All these methods can be understood within **transition path theory** (E and Vanden-Eijnden, 2006), which describes the statistics of reactive trajectories in terms of the committor $q(\mathbf x)$, the probability of reaching B before A introduced in [the chapter on rates](../es-rates/). The density of reactive trajectories, the probability current of transitions and the rate can all be written in terms of $q$; the committor's isosurfaces are the natural interfaces, and the committor itself is the ideal reaction coordinate. Much of the recent work on machine-learned collective variables aims to learn $q$ from data ([the chapter on learned collective variables](../es-ml-cvs/)).
 
 {{< note type="key" >}}
 - Path sampling samples the transition path ensemble of trajectories from A to B, under the true dynamics, without needing a reaction coordinate.

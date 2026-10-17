@@ -1,5 +1,5 @@
 ---
-title: "How numbers live in a computer"
+title: "Numbers in a computer"
 description: "Bits and bytes, integers and their overflow, and floating-point numbers bit by bit: why 0.1 + 0.2 is not 0.3, what machine epsilon means, and the rounding traps that bite real simulations and neural networks."
 track: machine
 weight: 2

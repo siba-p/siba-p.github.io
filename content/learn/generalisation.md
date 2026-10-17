@@ -1,5 +1,5 @@
 ---
-title: "Overfitting, regularisation and validation"
+title: "Generalisation and regularisation"
 description: "Why a model that fits your data perfectly can be useless, the bias–variance trade-off, how penalties tame flexible models, and how to measure performance honestly, including the traps specific to materials data."
 track: ml
 weight: 3

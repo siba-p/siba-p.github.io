@@ -1,5 +1,5 @@
 ---
-title: "Graph neural networks and message passing"
+title: "Graph neural networks"
 description: "Molecules and crystals as graphs; the message-passing framework that learns its own descriptors; why sum aggregation gives permutation invariance; receptive fields; and the line from SchNet to equivariant networks."
 track: arch
 weight: 2

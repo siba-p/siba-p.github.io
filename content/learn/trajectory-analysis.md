@@ -1,8 +1,8 @@
 ---
-title: "From trajectories to properties"
+title: "Analysing trajectories"
 description: "Turning a trajectory into numbers you can trust: ensemble averages, equilibration, correlated errors and block averaging, radial distribution functions, diffusion coefficients and a first look at free energies."
 track: analysis
-weight: 3
+weight: 1
 level: Core
 minutes: 50
 lab: "Estimate an honest error bar from a correlated signal"

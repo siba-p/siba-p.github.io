@@ -1,8 +1,8 @@
 ---
-title: "Neural networks in practice"
+title: "Training neural networks"
 description: "Neurons, layers and activation functions; why networks can approximate any smooth function; backpropagation derived with the chain rule; and the choices that matter when the output is an energy whose derivative is a force."
-track: ml
-weight: 4
+track: neuron
+weight: 5
 level: Core
 minutes: 55
 lab: "Train a network live and watch its neurons"

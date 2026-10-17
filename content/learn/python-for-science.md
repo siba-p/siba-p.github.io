@@ -1,5 +1,5 @@
 ---
-title: "Scientific data: files, tables, fitting and plotting"
+title: "Scientific data"
 description: "The everyday work of computational science in Python: reading and writing text and binary files, parsing simulation output, loading tables with NumPy and pandas, fitting linear and nonlinear models with uncertainties, making publication-quality figures with Matplotlib, and organising an analysis so that it can be reproduced."
 track: pysci
 weight: 2
@@ -10,7 +10,7 @@ lab: "Parse simulation output, fit models with error bars, and draw real Matplot
 
 ## From raw output to a result
 
-A typical computational study produces files: trajectories, energy logs, structure files, tables of computed properties. Turning those files into a number with an error bar, or a figure in a paper, follows the same sequence almost every time. The files are **read and parsed** into arrays; the arrays are **cleaned and checked**; a quantity is **computed or fitted**; its **uncertainty** is estimated; and the result is **plotted** and written out. Each step is easy on its own. Doing all of them correctly, in a way that can be rerun next month on new data and give the same answer for the same input, is the real skill, and Python's scientific libraries make it straightforward. This topic goes through the steps in order.
+A typical computational study produces files: trajectories, energy logs, structure files, tables of computed properties. Turning those files into a number with an error bar, or a figure in a paper, follows the same sequence almost every time. The files are **read and parsed** into arrays; the arrays are **cleaned and checked**; a quantity is **computed or fitted**; its **uncertainty** is estimated; and the result is **plotted** and written out. Each step is easy on its own. Doing all of them correctly, in a way that can be rerun next month on new data and give the same answer for the same input, is the real skill, and Python's scientific libraries make it straightforward. This chapter goes through the steps in order.
 
 ## Files and paths
 
@@ -24,7 +24,7 @@ with open("energy.dat") as f:            # mode "r" (read, text) is the default
         t, e = map(float, line.split())
 ```
 
-The second argument of `open` selects the **mode**: `"r"` to read, `"w"` to write (erasing any existing file), `"a"` to append, and a `"b"` suffix for binary files, which return bytes instead of text. Text files are decoded with an **encoding**, almost always UTF-8; specifying `encoding="utf-8"` avoids surprises on systems with other defaults. Iterating over the file object reads one line at a time, so even a file of many gigabytes can be processed with constant memory, as the trajectory generator of [the topic on control flow](../python-control-flow/) did.
+The second argument of `open` selects the **mode**: `"r"` to read, `"w"` to write (erasing any existing file), `"a"` to append, and a `"b"` suffix for binary files, which return bytes instead of text. Text files are decoded with an **encoding**, almost always UTF-8; specifying `encoding="utf-8"` avoids surprises on systems with other defaults. Iterating over the file object reads one line at a time, so even a file of many gigabytes can be processed with constant memory, as the trajectory generator of [the chapter on control flow](../python-control-flow/) did.
 
 Paths are best handled with `pathlib.Path`, which joins directory names portably, finds files by pattern and reads small files in one call:
 
@@ -102,7 +102,7 @@ print("larger cells:", df[df.a_angstrom > 3.9]["metal"].tolist())
 
 ## Fitting models to data
 
-Fitting determines the parameters of a model that best describe some data, and it is how most physical constants are extracted from simulations. The commonest method is **least squares**: choose parameters that minimise the sum of squared differences between the data and the model's predictions. [The topic on probability](../probability/) explains why this is the right choice when errors are independent and Gaussian, and [learning from data](../learning-from-data/) develops it as the first machine-learning method.
+Fitting determines the parameters of a model that best describe some data, and it is how most physical constants are extracted from simulations. The commonest method is **least squares**: choose parameters that minimise the sum of squared differences between the data and the model's predictions. [The chapter on probability](../probability/) explains why this is the right choice when errors are independent and Gaussian, and [learning from data](../learning-from-data/) develops it as the first machine-learning method.
 
 For a model that is linear in its parameters, such as a straight line or a polynomial, least squares has an exact solution, and `np.polyfit` computes it together with the **covariance matrix** of the parameters, whose diagonal gives their variances. The Arrhenius law, $k = A e^{-E_a/RT}$, becomes a straight line when plotted as $\ln k$ against $1/T$, with slope $-E_a/R$:
 

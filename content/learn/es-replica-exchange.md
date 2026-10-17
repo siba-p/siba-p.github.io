@@ -1,5 +1,5 @@
 ---
-title: "Replica exchange, tempering and accelerated dynamics"
+title: "Replica exchange and tempering"
 description: "Enhanced sampling without collective variables: heating to cross barriers, parallel tempering and replica-exchange MD, the exchange acceptance rule from detailed balance, designing temperature ladders, Hamiltonian replica exchange and REST2 solute tempering, simulated tempering, combinations with metadynamics, and boost-potential methods (accelerated MD and Gaussian-accelerated MD)."
 track: rl-bias
 weight: 3
@@ -10,7 +10,7 @@ lab: "Run a ladder of replicas on a rugged landscape, with and without exchanges
 
 ## Heating without losing the low-temperature ensemble
 
-The collective-variable methods of the previous topics accelerate sampling along chosen coordinates. A blunter but more general way to cross barriers is to raise the temperature: at high $T$, barriers that are many $k_BT$ high at room temperature become small, and the system explores freely. The difficulty is that the high-temperature ensemble is not the one we want. The idea of **tempering** is to run at high temperature to explore, and at low temperature to sample correctly, letting configurations move between the two in a way that preserves the correct distribution at every temperature.
+The collective-variable methods of the previous chapters accelerate sampling along chosen coordinates. A blunter but more general way to cross barriers is to raise the temperature: at high $T$, barriers that are many $k_BT$ high at room temperature become small, and the system explores freely. The difficulty is that the high-temperature ensemble is not the one we want. The idea of **tempering** is to run at high temperature to explore, and at low temperature to sample correctly, letting configurations move between the two in a way that preserves the correct distribution at every temperature.
 
 ## Parallel tempering and replica exchange
 
@@ -40,7 +40,7 @@ For large solvated systems, most of the energy fluctuation comes from the solven
 
 ## Simulated tempering and expanded ensembles
 
-**Simulated tempering** (Enzo Marinari and Giorgio Parisi, 1992) achieves the same random walk in temperature with a single simulation, by treating the temperature as a dynamical variable that changes by Monte Carlo moves. To make the walk uniform it needs weights for each temperature, essentially the free energy at each temperature, which must be learned; adaptive schemes such as Wang–Landau-style updating or the OPES expanded-ensemble method of [the previous topic](../es-opes-abf/) provide them. The single-simulation approach avoids running many replicas but is harder to tune.
+**Simulated tempering** (Enzo Marinari and Giorgio Parisi, 1992) achieves the same random walk in temperature with a single simulation, by treating the temperature as a dynamical variable that changes by Monte Carlo moves. To make the walk uniform it needs weights for each temperature, essentially the free energy at each temperature, which must be learned; adaptive schemes such as Wang–Landau-style updating or the OPES expanded-ensemble method of [the previous chapter](../es-opes-abf/) provide them. The single-simulation approach avoids running many replicas but is harder to tune.
 
 ## Combinations and boost potentials
 

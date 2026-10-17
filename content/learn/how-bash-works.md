@@ -1,12 +1,12 @@
 ---
-title: "What bash does with a command line"
+title: "How the shell reads a command"
 description: "The shell's read–expand–execute cycle, step by step: tokens and quoting, the order of expansions, redirections and pipes as rewired file descriptors, built-ins versus programs, environment variables and exit status, and the classic traps."
 track: toolbox
-weight: 2
+weight: 3
 level: Foundation
 minutes: 40
 lab: "Watch bash take a command line apart"
-prereqs: ["linux-architecture"]
+prereqs: ["linux-shell"]
 ---
 
 ## The shell is a program like any other
@@ -40,7 +40,7 @@ Two consequences are worth remembering. Word splitting and globbing happen *afte
 
 ### 3. Redirections, pipes and starting programs
 
-Before running a command, bash sets up its **file descriptors** ([previous chapter](../linux-architecture/)): 0 for input, 1 for output, 2 for errors.
+Before running a command, bash sets up its **file descriptors** ([the chapter on the Linux system](../linux-architecture/)): 0 for input, 1 for output, 2 for errors.
 
 {{< eq title="Redirection is rewiring" say="A redirection replaces one of a process's file descriptors before the program starts; the program never knows." >}}
 $$ \underbrace{\textcolor{#4c6ef5}{0}}_{\text{stdin}} \leftarrow \texttt{< in.txt} \qquad \underbrace{\textcolor{#12a594}{1}}_{\text{stdout}} \rightarrow \texttt{> out.txt} \qquad \underbrace{\textcolor{#e64980}{2}}_{\text{stderr}} \rightarrow \texttt{2> err.txt} \qquad \textcolor{#e64980}{2} \rightarrow \textcolor{#12a594}{1}\;\;(\texttt{2>\&1}) $$

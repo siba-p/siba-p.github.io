@@ -1,5 +1,5 @@
 ---
-title: "Gradient descent and optimisation"
+title: "Gradient descent"
 description: "How models with thousands to billions of parameters are fitted: follow the slope downhill, choose the step size, and why momentum and Adam help on badly shaped surfaces."
 track: ml
 weight: 2

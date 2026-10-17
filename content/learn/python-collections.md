@@ -1,5 +1,5 @@
 ---
-title: "Lists, tuples, dictionaries and sets"
+title: "Collections"
 description: "Python's built-in collections and how they are implemented: lists as over-allocated dynamic arrays of references, slicing and the cost of each operation, tuples and unpacking, dictionaries and sets as hash tables with constant-time lookup, Counter and defaultdict, nested data and JSON, and how to choose the right structure using the idea of algorithmic complexity."
 track: pycore
 weight: 5
@@ -45,7 +45,7 @@ def stats(values):
 lo, hi, mean = stats(energies)        # several results from one function
 ```
 
-A tuple whose fields deserve names can be made into a **named tuple** with `collections.namedtuple`, or, more flexibly, a **data class** ([the topic on classes](../python-classes/)), so that `atom.mass` replaces the cryptic `atom[1]`.
+A tuple whose fields deserve names can be made into a **named tuple** with `collections.namedtuple`, or, more flexibly, a **data class** ([the chapter on classes](../python-classes/)), so that `atom.mass` replaces the cryptic `atom[1]`.
 
 ## Dictionaries
 
@@ -101,7 +101,7 @@ On a laptop running native Python the set is about ten thousand times faster for
 
 ## Nested data and JSON
 
-Real data are usually nested: a list of dictionaries, one per molecule, each holding a list of atoms, each atom a dictionary with an element and coordinates. Python's containers nest freely, and access chains naturally: `molecules[3]["atoms"][0]["xyz"][2]`. Remember that nesting stores references: a dictionary placed into two lists is one object, and changing it changes both, as [the topic on objects and names](../python-objects-and-names/) showed. Use `copy.deepcopy` when independent copies are needed.
+Real data are usually nested: a list of dictionaries, one per molecule, each holding a list of atoms, each atom a dictionary with an element and coordinates. Python's containers nest freely, and access chains naturally: `molecules[3]["atoms"][0]["xyz"][2]`. Remember that nesting stores references: a dictionary placed into two lists is one object, and changing it changes both, as [the chapter on objects and names](../python-objects-and-names/) showed. Use `copy.deepcopy` when independent copies are needed.
 
 Nested dictionaries and lists of strings, numbers, Booleans and `None` map exactly onto **JSON**, the text format used by most web services and many materials databases. The `json` module converts in both directions:
 
