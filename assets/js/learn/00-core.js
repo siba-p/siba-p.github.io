@@ -327,7 +327,7 @@
     $$("[data-learn-count]").forEach(b => { const list = slugsOf(b); b.textContent = list ? list.filter(x => s.has(x)).length : s.size; });
     $$("[data-learn-total]").forEach(t => { const list = slugsOf(t); t.hidden = !(list ? list.some(x => s.has(x)) : s.size); });
     $$("[data-learn-bar]").forEach(bar => { const list = slugsOf(bar) || []; bar.style.width = (list.length ? 100 * list.filter(x => s.has(x)).length / list.length : 0) + "%"; });
-    $$("[data-learn-mark]").forEach(b => { const on = s.has(b.dataset.learnMark); b.textContent = on ? "Read ✓  (undo)" : "Mark this topic as read"; b.classList.toggle("btn-primary", !on); b.classList.toggle("btn-ghost", on); });
+    $$("[data-learn-mark]").forEach(b => { const on = s.has(b.dataset.learnMark); b.textContent = on ? "Read ✓  (undo)" : "Mark this chapter as read"; b.classList.toggle("btn-primary", !on); b.classList.toggle("btn-ghost", on); });
   }
   function progress() {
     $$("[data-learn-mark]").forEach(b => b.addEventListener("click", () => markDone(b.dataset.learnMark, !doneSet().has(b.dataset.learnMark))));

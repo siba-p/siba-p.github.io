@@ -239,7 +239,7 @@
 
 /* ---------- quiz ---------- */
 .quiz { margin: 3rem 0 1rem; padding: 1.4rem 1.4rem .6rem; border-radius: 14px; border: 1px solid var(--line); background: var(--bg-2); }
-.quiz h2 { margin: 0 0 1rem !important; font-size: 1.3rem; }
+.quiz h2, .quiz h3 { margin: 0 0 1rem !important; padding: 0 !important; border: 0 !important; font-size: 1.3rem; }
 .qz-list { padding-left: 1.3rem; margin: 0; }
 .qz { margin: 0 0 1.4rem; }
 .qz-q p { margin: 0 0 .6rem; font-weight: 500; color: var(--ink); }
@@ -677,13 +677,13 @@ table.cr .cr-ex:hover { border-color: var(--accent); }
 .chapter + .chapter { border-top: 1px solid var(--line); padding-top: 2.6rem; }
 .ch-head { margin-bottom: 1.6rem; max-width: 76ch; }
 .ch-title { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .55em; align-items: baseline; margin: 0 0 .6rem; font-size: clamp(1.6rem, 2.8vw, 2.15rem); line-height: 1.15; text-wrap: balance; }
-.ch-n { font: 400 1.25em/1 "Instrument Serif", Georgia, serif; color: var(--tone); }
+.ch-n { font: 500 .92em/1 var(--f-display); color: var(--tone); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
 .ch-desc { display: none; }
 .ch-meta { display: flex; flex-wrap: wrap; gap: .4rem 1rem; align-items: center; margin: 0; font-size: .86rem; color: var(--ink-3); }
 .ch-foot { margin-top: 2rem; }
 .ch-body > h3 { scroll-margin-top: 76px; font-size: 1.42rem; margin: 2.4em 0 .7em; }
 .ch-body > h3:not([id$="references-and-further-reading"]) { counter-increment: sec; display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: .6em; align-items: baseline; padding-top: .8em; border-top: 1px solid var(--line); }
-.ch-body > h3:not([id$="references-and-further-reading"])::before { content: counter(chap) "." counter(sec); font: 400 1.15em/1 "Instrument Serif", Georgia, serif; color: var(--tone); }
+.ch-body > h3:not([id$="references-and-further-reading"])::before { content: counter(chap) "." counter(sec); font: 500 .9em/1 var(--f-display); color: var(--tone); font-variant-numeric: tabular-nums; }
 .ch-body > h3:first-child { margin-top: 0; }
 .ch-body > h3 { counter-reset: sub; }
 .ch-body > h4 { font-size: 1.12rem; scroll-margin-top: 76px; margin: 1.9em 0 .55em; counter-increment: sub; display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: .55em; align-items: baseline; }
@@ -711,3 +711,7 @@ table.cr .cr-ex:hover { border-color: var(--accent); }
 .zoo small { font-size: .74rem; color: var(--ink-3); }
 
 .vol-rn { display: none; }
+.ch-time { color: var(--ink-3); }
+.book-progress { position: fixed; left: 0; right: 0; top: 0; height: 3px; z-index: 60; pointer-events: none; }
+.book-progress i { display: block; height: 100%; background: var(--tone, var(--accent)); transform-origin: 0 50%; transform: scaleX(0); }
+.section-learn .site-header { background: color-mix(in oklab, var(--bg) 97%, transparent); }

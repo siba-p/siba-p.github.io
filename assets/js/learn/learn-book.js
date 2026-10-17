@@ -15,7 +15,10 @@
     const items = [...book.querySelectorAll(".bn-chs > li")], secLinks = [...book.querySelectorAll(".bn-secs a")];
     const chapters = [...book.querySelectorAll(".chapter")], heads = [...book.querySelectorAll(".ch-body > h3[id]")];
     let ticking = false;
-    function spy() { ticking = false; const y = 120;
+    const bar = document.createElement("div"); bar.className = "book-progress"; bar.setAttribute("aria-hidden", "true"); bar.innerHTML = "<i></i>"; book.append(bar);
+    const body = book.querySelector(".book-body");
+    function progress() { const r = body.getBoundingClientRect(), span = r.height - innerHeight; bar.firstChild.style.transform = "scaleX(" + Math.min(1, Math.max(0, span > 0 ? -r.top / span : 0)) + ")"; }
+    function spy() { ticking = false; const y = 120; progress();
       let ch = chapters[0]; for (const c of chapters) { if (c.getBoundingClientRect().top - y <= 0) ch = c; else break; }
       let hd = null; for (const h of heads) { if (h.getBoundingClientRect().top - y <= 0) hd = h; else break; }
       items.forEach(li => li.classList.toggle("on", ch && li.dataset.ch === ch.id));

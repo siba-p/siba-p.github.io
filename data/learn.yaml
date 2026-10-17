@@ -11,7 +11,7 @@
   tone: violet
   icon: curve
   level: "Foundations"
-  blurb: "Functions, differential and integral calculus, linear algebra, multivariable calculus and probability: the mathematics used throughout simulation and machine learning, developed from first principles."
+  blurb: "The mathematics used throughout simulation and machine learning, developed from first principles: functions and calculus, linear algebra and gradients, and probability."
   parts:
     - id: calc
       title: "Calculus"
@@ -31,7 +31,7 @@
   tone: teal
   icon: chip
   level: "Foundations"
-  blurb: "Processor architecture, memory hierarchy and number representation; the Linux operating system and the shell; and compiled languages for numerical work."
+  blurb: "How a computer executes a program and stores numbers, how Linux and the shell work, and how compiled code is written for numerical work."
   parts:
     - id: machine
       title: "Computer architecture"
@@ -51,7 +51,7 @@
   tone: sky
   icon: code
   level: "Foundations"
-  blurb: "The Python language from the interpreter up: how source code becomes bytecode, the object and memory model, control flow, functions, data structures and classes, then NumPy, data handling and performance."
+  blurb: "Python from the interpreter up: how source code runs, the object model, data structures and classes, then NumPy, scientific data and performance."
   parts:
     - id: pycore
       title: "The language"
@@ -68,7 +68,7 @@
   tone: indigo
   icon: curve
   level: "Core"
-  blurb: "From a single artificial neuron to deep networks: regression and classification, optimisation, generalisation, unsupervised learning, kernels and Gaussian processes, and architectures for images, graphs and sequences."
+  blurb: "Learning from data, from fitting a line to deep networks: optimisation, generalisation, kernels and Gaussian processes, neural networks and modern architectures."
   parts:
     - id: ml
       title: "Learning from data"
@@ -91,7 +91,7 @@
   tone: gold
   icon: atoms
   level: "Core"
-  blurb: "Classical and quantum mechanics of particles, then statistical mechanics: microstates and entropy, the ensembles, free energy, fluctuations, phase transitions and the structure of liquids."
+  blurb: "The mechanics of particles and the statistical mechanics built on it: entropy and temperature, the Boltzmann distribution, ensembles and free energy, fluctuations, phase transitions and liquids."
   parts:
     - id: physics
       title: "Mechanics"
@@ -108,7 +108,7 @@
   tone: orange
   icon: atoms
   level: "Core"
-  blurb: "How molecular dynamics and Monte Carlo simulations are built and used: interaction models, boundary conditions, integrators, thermostats and barostats, sampling and free energies, and the analysis of trajectories."
+  blurb: "How molecular simulations are built and analysed: potential energy surfaces and force fields, Monte Carlo, molecular dynamics, thermostats and barostats, and transport properties."
   parts:
     - id: models
       title: "Interaction models"
@@ -131,7 +131,7 @@
   tone: green
   icon: curve
   level: "Advanced"
-  blurb: "Energy landscapes, transition states and reaction paths; rate theory; free-energy perturbation, thermodynamic integration and non-equilibrium work; umbrella sampling, metadynamics, OPES, ABF and replica exchange; path sampling and Markov state models; and machine-learned collective variables and generative samplers."
+  blurb: "Why important events are rare in simulations, and how to sample them anyway: energy landscapes and rates, free-energy methods, adaptive biasing, tempering, path sampling and machine-learned approaches."
   parts:
     - id: rl-land
       title: "Landscapes and rates"
@@ -157,7 +157,7 @@
   tone: rose
   icon: crystal
   level: "Advanced"
-  blurb: "Descriptors and symmetry, crystal graphs, machine-learned interatomic potentials, differentiable simulation, generative models and closed-loop discovery."
+  blurb: "Machine learning for atomistic materials science: the history and theory of interatomic potentials, how to build and validate them, universal models, and generative and differentiable methods."
   parts:
     - id: found
       title: "Foundations"

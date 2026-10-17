@@ -50,7 +50,7 @@
             <header class="ch-head">
               <h2 class="ch-title"><span class="ch-n">{{ $n }}</span><span>{{ $pg.Title }}</span></h2>
               {{ with $pg.Description }}<p class="ch-desc">{{ . }}</p>{{ end }}
-              <p class="ch-meta">{{ with $pg.Params.prereqs }}<span>Builds on {{ range $j, $s := . }}{{ with site.GetPage (printf "/learn/%s" $s) }}{{ if $j }}, {{ end }}<a href="{{ .RelPermalink }}">{{ .Title }}</a>{{ end }}{{ end }}</span>{{ end }}</p>
+              <p class="ch-meta"><span class="ch-time">about {{ int (math.Ceil (div (float $pg.WordCount) 130)) }} min read</span>{{ with $pg.Params.prereqs }}<span>Builds on {{ range $j, $s := . }}{{ with site.GetPage (printf "/learn/%s" $s) }}{{ if $j }}, {{ end }}<a href="{{ .RelPermalink }}">{{ .Title }}</a>{{ end }}{{ end }}</span>{{ end }}</p>
             </header>
             <div class="ch-body lesson-body prose">{{ $html | safeHTML }}</div>
             <div class="ch-foot"><button type="button" class="btn btn-ghost" data-learn-mark="{{ $slug }}">Mark this chapter as read</button></div>
@@ -102,15 +102,15 @@
             <span class="pk-n">1</span>
             <span class="pk-book">Physics and statistical mechanics</span>
             <span>3&ensp;Entropy and temperature</span>
-            <span class="on">4&ensp;Boltzmann and Maxwell</span>
-            <span class="sub">4.1&ensp;A small system in a bath</span>
-            <span class="sub on">4.2&ensp;The Boltzmann distribution</span>
-            <span class="sub">4.3&ensp;Speeds in a gas</span>
+            <span class="on">4&ensp;The Boltzmann distribution</span>
+            <span class="sub">4.1&ensp;From an isolated system to one at a temperature</span>
+            <span class="sub on">4.2&ensp;Deriving the Boltzmann factor</span>
+            <span class="sub">4.3&ensp;The partition function knows everything</span>
             <span>5&ensp;Ensembles and free energy</span>
           </nav>
           <div class="pk-body">
             <div class="pk-step"><span class="pk-n">2</span>
-              <h3>4.2&ensp;The Boltzmann distribution</h3>
+              <h3>4.2&ensp;Deriving the Boltzmann factor</h3>
               <p>A system in contact with a heat bath at temperature <i>T</i> is found in a state of energy <i>E<sub>n</sub></i> with a probability that falls exponentially with energy. Ludwig Boltzmann reached this result in 1877 by counting the number of ways the energy of a gas can be shared among its molecules.</p>
             </div>
             <div class="pk-step"><span class="pk-n">3</span>
