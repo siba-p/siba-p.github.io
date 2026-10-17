@@ -592,3 +592,59 @@ table.cr .cr-ex:hover { border-color: var(--accent); }
 .bc-res { margin: 4px 0 0; font-size: .88rem; } .bc-res.ok { color: var(--ink); } .bc-res.bad { color: #e64980; font-weight: 600; }
 .pf-img { display: block; max-width: 100%; margin: 10px auto 0; border-radius: 10px; background: #fff; }
 .pt-frame em { white-space: nowrap; }
+
+/* ================= subject = one book page ================= */
+.book-head { padding-block: clamp(36px, 5vw, 64px) 30px; border-bottom: 1px solid var(--line); background: linear-gradient(180deg, color-mix(in oklab, var(--tone) 7%, var(--bg)), var(--bg)); }
+.book-head-in { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 36px; align-items: center; }
+.book-head .vol-cover { aspect-ratio: 3 / 4; border-radius: 12px; box-shadow: 0 22px 44px -22px rgb(0 0 0 / .45); transform: rotate(-2deg); }
+.book-head h1 { margin: .6rem 0 .5rem; font-size: clamp(2rem, 4.2vw, 3.1rem); max-width: 22ch; }
+.book-head .crumbs span:last-child { color: var(--tone); font-weight: 500; }
+@media (max-width: 760px) { .book-head-in { grid-template-columns: minmax(0, 1fr); } .book-head .vol-cover { display: none; } }
+.book-layout { display: grid; grid-template-columns: 290px minmax(0, 1fr); gap: 56px; align-items: start; padding-top: 36px; padding-bottom: 80px; }
+.book-nav { position: sticky; top: 76px; max-height: calc(100vh - 92px); overflow-y: auto; scrollbar-width: thin; font-size: .86rem; padding-right: 6px; }
+.bn-toggle { display: none; }
+.bn-title { margin: 0 0 .8rem; font: 600 .95rem var(--f-display); color: var(--ink); }
+.bn-part { margin: 1.1rem 0 .35rem; font: 600 .74rem var(--f-body); color: var(--tone); letter-spacing: .02em; }
+.bn-chs, .bn-secs { list-style: none; margin: 0; padding: 0; }
+.bn-chs > li > a { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 6px; padding: .34em .5em; border-radius: 7px; color: var(--ink-2); line-height: 1.35; text-decoration: none; }
+.bn-chs > li > a:hover { background: var(--bg-2); color: var(--ink); }
+.bn-n { font: 500 .74rem var(--f-mono); color: var(--ink-3); padding-top: .15em; }
+.bn-chs > li > a.is-done .bn-n { color: var(--teal); }
+.bn-chs > li.on > a { background: color-mix(in oklab, var(--tone) 11%, transparent); color: var(--ink); font-weight: 600; }
+.bn-chs > li.on > a .bn-n { color: var(--tone); }
+.bn-secs { display: none; margin: .15rem 0 .5rem 1.9rem; border-left: 1px solid var(--line); }
+.bn-chs > li.on .bn-secs { display: block; }
+.bn-secs a { display: block; padding: .2em .7em; color: var(--ink-3); font-size: .8rem; line-height: 1.35; text-decoration: none; border-left: 2px solid transparent; margin-left: -1px; }
+.bn-secs a:hover { color: var(--ink); }
+.bn-secs a.on { color: var(--tone); border-left-color: var(--tone); font-weight: 500; }
+.bn-all { margin: 1.4rem 0 0; font-size: .82rem; }
+.book-body { min-width: 0; counter-reset: chap; }
+.book-part { scroll-margin-top: 80px; }
+.bp-title { margin: 0 0 .3rem; font: 400 clamp(2rem, 3.6vw, 2.7rem)/1.1 "Instrument Serif", Georgia, serif; letter-spacing: 0; padding-top: 2.2rem; border-top: 3px solid var(--tone); }
+.book-part:first-child .bp-title { padding-top: .4rem; border-top: 0; }
+.bp-blurb { margin: 0 0 1.6rem; color: var(--ink-2); max-width: 70ch; }
+.chapter { counter-increment: chap; counter-reset: sec fig; scroll-margin-top: 76px; padding: 1.2rem 0 2.6rem; }
+.chapter + .chapter { border-top: 1px solid var(--line); padding-top: 2.6rem; }
+.ch-head { margin-bottom: 1.6rem; max-width: 76ch; }
+.ch-title { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .55em; align-items: baseline; margin: 0 0 .6rem; font-size: clamp(1.6rem, 2.8vw, 2.15rem); line-height: 1.15; text-wrap: balance; }
+.ch-n { font: 400 1.25em/1 "Instrument Serif", Georgia, serif; color: var(--tone); }
+.ch-desc { margin: 0 0 .7rem; color: var(--ink-2); font-size: 1.02rem; line-height: 1.6; }
+.ch-meta { display: flex; flex-wrap: wrap; gap: .4rem 1rem; align-items: center; margin: 0; font-size: .86rem; color: var(--ink-3); }
+.ch-foot { margin-top: 2rem; }
+.ch-body > h3 { scroll-margin-top: 76px; font-size: 1.42rem; margin: 2.4em 0 .7em; }
+.ch-body > h3:not([id$="references-and-further-reading"]) { counter-increment: sec; display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: .6em; align-items: baseline; padding-top: .8em; border-top: 1px solid var(--line); }
+.ch-body > h3:not([id$="references-and-further-reading"])::before { content: counter(chap) "." counter(sec); font: 400 1.15em/1 "Instrument Serif", Georgia, serif; color: var(--tone); }
+.ch-body > h3:first-child { margin-top: 0; }
+.ch-body > h4 { font-size: 1.12rem; scroll-margin-top: 76px; }
+.ch-body figure.lw { counter-increment: fig; }
+.ch-body figure.lw .lw-tag::before { content: "Figure " counter(chap) "." counter(fig); }
+.learn-forward { padding-block: 80px; text-align: center; color: var(--ink-2); }
+@media (max-width: 1100px) {
+  .book-layout { grid-template-columns: minmax(0, 1fr); gap: 0; padding-top: 0; }
+  .book-nav { position: sticky; top: 56px; z-index: 5; max-height: none; overflow: visible; margin: 0 calc(-1 * var(--gutter)); padding: 8px var(--gutter); background: color-mix(in oklab, var(--bg) 92%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+  .bn-toggle { display: inline-flex; align-items: center; gap: .5em; font: 600 .86rem var(--f-body); padding: .45em .9em; border-radius: 9px; border: 1px solid var(--line-2); background: var(--card); color: var(--ink); cursor: pointer; }
+  .bn-toggle::after { content: "▾"; font-size: .8em; }
+  .bn-in { display: none; max-height: 70vh; overflow-y: auto; padding: 8px 2px 12px; }
+  .book-nav.open .bn-in { display: block; }
+  .book-body { padding-top: 24px; }
+}

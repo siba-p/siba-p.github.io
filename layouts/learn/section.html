@@ -3,51 +3,74 @@
 {{- $roman := slice "I" "II" "III" "IV" "V" "VI" -}}
 {{- $cid := .Params.course -}}
 {{- if $cid }}
-  {{- /* ================= one subject: its themes and topics ================= */ -}}
+  {{- /* ================= one subject = one book page ================= */ -}}
   {{- $c := index (where site.Data.learn "id" $cid) 0 -}}
   {{- $mine := where $order "course.id" $cid -}}
-  <header class="vol-head tone-{{ $c.tone }}">
-    <div class="wrap vol-head-in">
-      <div class="vol-cover vol-{{ $c.id }}" aria-hidden="true"><span class="vol-rn">{{ $c.mark }}</span>{{ partial "learn-cover.html" $c.id }}</div>
-      <div>
-        <nav class="crumbs" aria-label="Breadcrumb"><a href="{{ "learn/" | relURL }}">Learn</a><span aria-hidden="true">/</span><span>{{ $c.short }}</span></nav>
-        <h1>{{ $c.title }}</h1>
-        <p class="lead">{{ $c.blurb }}</p>
-        <div class="lh-stats"><span><b>{{ len $mine }}</b> topics</span><span>{{ $c.level }}</span>
-          <span class="lh-progress" data-learn-total hidden data-learn-slugs="{{ range $mine }}{{ .page.File.ContentBaseName }} {{ end }}"><b data-learn-count>0</b> of {{ len $mine }} read</span></div>
-        <div class="lh-cta">{{ with index $mine 0 }}<a class="btn btn-primary" href="{{ .page.RelPermalink }}">Start with {{ .page.Title | truncate 46 }}</a>{{ end }}<a class="btn btn-ghost" href="{{ "learn/" | relURL }}">All subjects</a></div>
+  {{- $slugs := slice }}{{ range $mine }}{{ $slugs = $slugs | append .page.File.ContentBaseName }}{{ end -}}
+  <div class="book tone-{{ $c.tone }}">
+    <header class="book-head">
+      <div class="wrap book-head-in">
+        <div class="vol-cover vol-{{ $c.id }}" aria-hidden="true"><span class="vol-rn">{{ $c.mark }}</span>{{ partial "learn-cover.html" $c.id }}</div>
+        <div>
+          <nav class="crumbs" aria-label="Breadcrumb"><a href="{{ "learn/" | relURL }}">Learn</a><span aria-hidden="true">/</span><span>{{ $c.short }}</span></nav>
+          <h1>{{ $c.title }}</h1>
+          <p class="lead">{{ $c.blurb }}</p>
+          <div class="lh-stats" data-learn-slugs="{{ delimit $slugs " " }}"><span><b>{{ len $mine }}</b> chapters</span><span>{{ $c.level }}</span><span class="lh-progress" data-learn-total hidden><b data-learn-count>0</b> of {{ len $mine }} read</span></div>
+        </div>
+      </div>
+    </header>
+    <div class="wrap book-layout">
+      <aside class="book-nav" aria-label="Contents of {{ $c.short }}">
+        <button type="button" class="bn-toggle" aria-expanded="false">Contents</button>
+        <nav class="bn-in">
+          <p class="bn-title">{{ $c.title }}</p>
+          {{- $n := 0 }}
+          {{- range $pi, $p := $c.parts }}{{ $ch := where $mine "part.id" $p.id }}{{ if $ch }}
+          <p class="bn-part">{{ $p.title }}</p>
+          <ol class="bn-chs">
+            {{- range $ch }}{{ $n = add $n 1 }}{{ $pg := .page }}{{ $slug := $pg.File.ContentBaseName }}
+            <li data-ch="{{ $slug }}"><a href="#{{ $slug }}" data-learn-slug="{{ $slug }}"><span class="bn-n">{{ $n }}</span><span>{{ $pg.Title }}</span></a>
+              <ol class="bn-secs">{{ range $pg.Fragments.Headings }}{{ range .Headings }}{{ if not (hasPrefix .ID "references") }}<li><a href="#{{ $slug }}--{{ .ID }}">{{ .Title | plainify }}</a></li>{{ end }}{{ end }}{{ end }}</ol>
+            </li>
+            {{- end }}
+          </ol>
+          {{- end }}{{ end }}
+          <p class="bn-all"><a href="{{ "learn/" | relURL }}">← All subjects</a></p>
+        </nav>
+      </aside>
+      <div class="book-body">
+        {{- $n = 0 }}
+        {{- range $pi, $p := $c.parts }}{{ $ch := where $mine "part.id" $p.id }}{{ if $ch }}
+        <section class="book-part" id="part-{{ $p.id }}">
+          <h2 class="bp-title"><span>{{ $p.title }}</span></h2>
+          <p class="bp-blurb">{{ $p.blurb }}</p>
+          {{- range $ch }}{{ $n = add $n 1 }}{{ $pg := .page }}{{ $slug := $pg.File.ContentBaseName }}
+          {{- $html := $pg.Content | replaceRE "<h3([ >])" "<h4$1" | replaceRE "</h3>" "</h4>" | replaceRE "<h2([ >])" "<h3$1" | replaceRE "</h2>" "</h3>" | replaceRE "(<h[34][^>]*? id=\")" (printf "${1}%s--" $slug) }}
+          <article class="chapter" id="{{ $slug }}" data-learn-page="{{ $slug }}">
+            <header class="ch-head">
+              <h2 class="ch-title"><span class="ch-n">{{ $n }}</span><span>{{ $pg.Title }}</span></h2>
+              {{ with $pg.Description }}<p class="ch-desc">{{ . }}</p>{{ end }}
+              <p class="ch-meta"><span class="lvl lvl-{{ lower $pg.Params.level }}">{{ $pg.Params.level }}</span>{{ with $pg.Params.prereqs }}<span>Builds on {{ range $j, $s := . }}{{ with site.GetPage (printf "/learn/%s" $s) }}{{ if $j }}, {{ end }}<a href="{{ .RelPermalink }}">{{ .Title }}</a>{{ end }}{{ end }}</span>{{ end }}</p>
+            </header>
+            <div class="ch-body lesson-body prose">{{ $html | safeHTML }}</div>
+            <div class="ch-foot"><button type="button" class="btn btn-ghost" data-learn-mark="{{ $slug }}">Mark this chapter as read</button></div>
+          </article>
+          {{- end }}
+        </section>
+        {{- end }}{{ end }}
+        <nav class="course-next" aria-label="Other subjects">
+          {{ range site.Data.learn }}{{ if ne .id $cid }}<a class="tone-{{ .tone }}" href="{{ printf "learn/%s/" .slug | relURL }}"><span class="cn-cn" aria-hidden="true"></span><span><b>{{ .title }}</b></span></a>{{ end }}{{ end }}
+        </nav>
       </div>
     </div>
-  </header>
-  <section class="section tone-{{ $c.tone }}">
-    <div class="wrap themes">
-      {{ range $c.parts }}{{ $p := . }}{{ if where $mine "part.id" $p.id }}
-      <section class="theme" id="theme-{{ $p.id }}">
-        <header><h2>{{ $p.title }}</h2><p>{{ $p.blurb }}</p></header>
-        <div class="topic-grid">
-          {{ range $mine }}{{ if eq .part.id $p.id }}{{ $pg := .page }}
-          <a class="topic-card" href="{{ $pg.RelPermalink }}" data-learn-slug="{{ $pg.File.ContentBaseName }}">
-            <b>{{ $pg.Title }}</b>
-            <span class="tc-d">{{ $pg.Description }}</span>
-            <span class="tc-m"><span class="lvl lvl-{{ lower $pg.Params.level }}">{{ $pg.Params.level }}</span>{{ with $pg.Params.lab }}<span>{{ . }}</span>{{ end }}</span>
-            <span class="lp-done" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
-          </a>
-          {{ end }}{{ end }}
-        </div>
-      </section>
-      {{ end }}{{ end }}
-      <nav class="course-next" aria-label="Other subjects">
-        {{ range site.Data.learn }}{{ if ne .id $cid }}<a class="tone-{{ .tone }}" href="{{ printf "learn/%s/" .slug | relURL }}"><span class="cn-cn" aria-hidden="true"></span><span><b>{{ .title }}</b></span></a>{{ end }}{{ end }}
-      </nav>
-    </div>
-  </section>
+  </div>
 {{- else }}
   {{- /* ================= the library ================= */ -}}
   <header class="lib-head">
     <div class="wrap">
       <h1>{{ .Title }}</h1>
       {{ with .Params.lead }}<p class="lead">{{ . | markdownify }}</p>{{ end }}
-      <div class="lh-stats"><span><b>{{ len site.Data.learn }}</b> subjects</span><span><b>{{ len $order }}</b> topics</span><span>Models computed client-side; references to primary sources</span>
+      <div class="lh-stats"><span><b>{{ len site.Data.learn }}</b> subjects</span><span><b>{{ len $order }}</b> chapters</span><span>Models computed client-side; references to primary sources</span>
         <span class="lh-progress" data-learn-total hidden><b data-learn-count>0</b> read</span></div>
     </div>
   </header>
@@ -61,8 +84,8 @@
           <span class="vol-body">
             <b>{{ $c.title }}</b>
             <span class="vol-blurb">{{ $c.blurb }}</span>
-            <span class="vol-parts">{{ range $c.parts }}<span>{{ .title }}</span>{{ end }}</span>
-            <span class="vol-foot"><span>{{ len $mine }} topics · {{ $c.level }}</span><span class="lp-bar"><i data-learn-bar></i></span></span>
+            <span class="vol-parts">{{ range $c.parts }}{{ if where $mine "part.id" .id }}<span>{{ .title }}</span>{{ end }}{{ end }}</span>
+            <span class="vol-foot"><span>{{ len $mine }} chapters · {{ $c.level }}</span><span class="lp-bar"><i data-learn-bar></i></span></span>
           </span>
         </a>
         {{ end }}
@@ -74,7 +97,7 @@
     <div class="wrap">
       <div class="section-head"><div><h2>Dependency map</h2><p>Topics grouped by subject, with lines for prerequisites. Hover a topic to highlight everything it depends on; click to open it.</p></div></div>
       {{- $nodes := slice -}}
-      {{- range $order }}{{ $nodes = $nodes | append (dict "s" .page.File.ContentBaseName "t" .page.Title "n" "" "c" .course.id "u" .page.RelPermalink "d" .page.Description "m" .page.Params.level "p" (.page.Params.prereqs | default slice)) }}{{ end -}}
+      {{- range $order }}{{ $nodes = $nodes | append (dict "s" .page.File.ContentBaseName "t" .page.Title "n" "" "c" .course.id "u" (printf "%s#%s" (printf "learn/%s/" .course.slug | relURL) .page.File.ContentBaseName) "d" .page.Description "m" .page.Params.level "p" (.page.Params.prereqs | default slice)) }}{{ end -}}
       {{- $courses := slice -}}{{ range site.Data.learn }}{{ $courses = $courses | append (dict "id" .id "t" .title "tone" .tone "r" .mark) }}{{ end -}}
       <figure class="lw lw-map" data-widget="learnmap" data-opts="{{ dict "nodes" $nodes "courses" $courses | jsonify }}"><div class="lw-body"><p class="lw-loading">Loading the map…</p></div></figure>
     </div>

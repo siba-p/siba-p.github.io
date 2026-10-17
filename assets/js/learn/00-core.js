@@ -274,7 +274,12 @@
 
   /* ---------- mount ---------- */
   function mountAll() {
-    $$("figure.lw[data-widget]").forEach(fig => {
+    // mount every figure now, so the page height is final before any #anchor is scrolled to;
+    // animation loops still sleep while their figure is off screen (LW.loop)
+    $$("figure.lw[data-widget]").forEach(mountOne);
+  }
+  function mountOne(fig) {
+    [fig].forEach(fig => {
       const name = fig.dataset.widget, body = $(".lw-body", fig), fn = reg[name];
       if (!fn) { body.innerHTML = `<p class="lw-loading">Interactive “${LW.esc(name)}” is not available.</p>`; return; }
       body.innerHTML = "";

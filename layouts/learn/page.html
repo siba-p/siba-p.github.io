@@ -1,75 +1,18 @@
 {{ define "main" }}
+{{- /* Every topic is read inside its subject's book page; this URL forwards there, keeping any
+       section anchor (old #section links become #slug--section). */ -}}
 {{- $order := partial "learn-order.html" . -}}
-{{- $me := . -}}
-{{- $slug := .File.ContentBaseName -}}
-{{- $cur := dict -}}
+{{- $me := . -}}{{- $cur := dict -}}
 {{- range $order }}{{ if eq .page.RelPermalink $me.RelPermalink }}{{ $cur = . }}{{ end }}{{ end -}}
-{{- $c := $cur.course | default dict -}}
-{{- $mine := where $order "course.id" $c.id -}}
-{{- /* topics that list this one as a prerequisite */ -}}
-{{- $leads := slice -}}
-{{- range $order }}{{ if in (.page.Params.prereqs | default slice) $slug }}{{ $leads = $leads | append . }}{{ end }}{{ end -}}
-<article class="lesson tone-{{ $c.tone }}" data-learn-page="{{ $slug }}">
-  <header class="lesson-head">
-    <div class="wrap">
-      <nav class="crumbs" aria-label="Breadcrumb"><a href="{{ "learn/" | relURL }}">Learn</a><span aria-hidden="true">/</span><a href="{{ printf "learn/%s/" $c.slug | relURL }}">{{ $c.short }}</a><span aria-hidden="true">/</span><a href="{{ printf "learn/%s/" $c.slug | relURL }}#theme-{{ $cur.part.id }}">{{ $cur.part.title }}</a></nav>
-      <h1>{{ .Title }}</h1>
-      {{ with .Description }}<p class="lead">{{ . }}</p>{{ end }}
-      <ul class="lesson-meta">
-        <li><span class="lvl lvl-{{ lower .Params.level }}">{{ .Params.level }}</span></li>
-        {{ with .Params.lab }}<li class="lm-lab">Interactive: {{ . }}</li>{{ end }}
-      </ul>
-      {{ with .Params.prereqs }}
-      <p class="prereq">Builds on
-        {{ range $j, $s := . }}{{ with site.GetPage (printf "/learn/%s" $s) }}{{ if $j }}, {{ end }}<a href="{{ .RelPermalink }}">{{ .Title }}</a>{{ end }}{{ end }}
-      </p>
-      {{ end }}
-    </div>
-  </header>
-
-  <div class="wrap lesson-layout">
-    <aside class="course-nav" aria-label="Topics in {{ $c.short }}">
-      <details class="cn-box" open>
-        <summary>{{ $c.short }} <span class="cn-prog" data-learn-slugs="{{ range $mine }}{{ .page.File.ContentBaseName }} {{ end }}"><b data-learn-count>0</b>/{{ len $mine }}</span></summary>
-        {{ range $c.parts }}{{ $p := . }}
-        <div class="cn-track tone-{{ $c.tone }}{{ if eq $p.id $cur.part.id }} is-cur{{ end }}">
-          <p class="cn-th">{{ $p.title }}</p>
-          <ul>
-            {{ range $mine }}{{ if eq .part.id $p.id }}
-            {{- $pg := .page }}
-            <li><a href="{{ $pg.RelPermalink }}" data-learn-slug="{{ $pg.File.ContentBaseName }}"{{ if eq $pg.RelPermalink $me.RelPermalink }} aria-current="page"{{ end }}><span class="cn-n" aria-hidden="true"></span><span class="cn-t">{{ $pg.Title }}</span></a>
-              {{ if eq $pg.RelPermalink $me.RelPermalink }}{{ with $me.TableOfContents }}<div class="cn-toc">{{ . }}</div>{{ end }}{{ end }}
-            </li>
-            {{ end }}{{ end }}
-          </ul>
-        </div>
-        {{ end }}
-        <p class="cn-all"><a href="{{ "learn/" | relURL }}">← All subjects</a></p>
-      </details>
-    </aside>
-
-    <div class="lesson-body prose">
-      {{ .Content }}
-      <div class="lesson-finish">
-        <button type="button" class="btn btn-primary" data-learn-mark="{{ $slug }}">Mark this topic as read</button>
-        <p class="muted">Progress is stored in this browser only.</p>
-      </div>
-    </div>
-  </div>
-
-  <div class="wrap">
-    <section class="topic-next" aria-label="Where to go from here">
-      <h2>Where to go from here</h2>
-      <div class="tn-grid">
-        {{ with $leads }}
-        <div><h3>Topics that build on this one</h3><ul>{{ range . }}<li><a class="tone-{{ .course.tone }}" href="{{ .page.RelPermalink }}"><small>{{ .course.short }}</small><span>{{ .page.Title }}</span></a></li>{{ end }}</ul></div>
-        {{ end }}
-        {{ $sib := slice }}{{ range $mine }}{{ if and (eq .part.id $cur.part.id) (ne .page.RelPermalink $me.RelPermalink) }}{{ $sib = $sib | append . }}{{ end }}{{ end }}
-        {{ with $sib }}
-        <div><h3>More on {{ lower $cur.part.title }}</h3><ul>{{ range . }}<li><a class="tone-{{ .course.tone }}" href="{{ .page.RelPermalink }}"><small>{{ .course.short }}</small><span>{{ .page.Title }}</span></a></li>{{ end }}</ul></div>
-        {{ end }}
-      </div>
-    </section>
-  </div>
-</article>
+{{- $slug := .File.ContentBaseName -}}
+{{- with $cur.course }}
+{{- $target := printf "learn/%s/" .slug | relURL -}}
+<div class="wrap learn-forward">
+  <p>“{{ $me.Title }}” is a chapter of <a href="{{ $target }}#{{ $slug }}">{{ .title }}</a>.</p>
+</div>
+<script>(function () { var t = {{ $target }}, s = {{ $slug }}, h = location.hash.slice(1); location.replace(t + "#" + (h ? s + "--" + h : s)); })();</script>
+<noscript><meta http-equiv="refresh" content="0; url={{ $target }}#{{ $slug }}"></noscript>
+{{- else }}
+<div class="wrap learn-forward"><h1>{{ .Title }}</h1>{{ .Content }}</div>
+{{- end }}
 {{ end }}
