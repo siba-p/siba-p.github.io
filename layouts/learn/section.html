@@ -74,22 +74,7 @@
     </div>
   </header>
 
-  <section class="section tight">
-    <div class="wrap lib-intro">
-      <div class="li-cover prose">
-        <h2>What these notes cover</h2>
-        {{ .Params.covers | markdownify }}
-      </div>
-      <aside class="li-author">
-        <h2>About the author</h2>
-        <p class="li-name">Sibasankar Panigrahy</p>
-        <p class="li-role">Computational Materials Scientist, QpiAI · PhD, IIT Delhi</p>
-        {{ .Params.author_note | markdownify }}
-      </aside>
-    </div>
-  </section>
-
-  <section class="section tight lib-shelf-wrap">
+  <section class="section tight lib-shelf-wrap" id="subjects">
     <div class="wrap">
       <div class="section-head"><div><h2>Subjects</h2><p>Eight books, from the foundations to current research methods. Each opens as a single page with its own contents.</p></div></div>
       <div class="shelf">
@@ -165,6 +150,21 @@
   </section>
 
   <section class="section">
+    <div class="wrap lib-intro">
+      <div class="li-cover prose">
+        <h2>What these notes cover</h2>
+        {{ .Params.covers | markdownify }}
+      </div>
+      <aside class="li-author">
+        <h2>About the author</h2>
+        <p class="li-name">Sibasankar Panigrahy</p>
+        <p class="li-role">Computational Materials Scientist, QpiAI · PhD, IIT Delhi</p>
+        {{ .Params.author_note | markdownify }}
+      </aside>
+    </div>
+  </section>
+
+  <section class="section alt">
     <div class="wrap">
       <div class="section-head"><div><h2>Dependency map</h2><p>Every chapter, grouped by subject, with lines to its prerequisites. Hover a chapter to highlight what it builds on; click to open it.</p></div></div>
       {{- $nodes := slice -}}
@@ -174,7 +174,7 @@
     </div>
   </section>
 
-  <section class="section alt">
+  <section class="section">
     <div class="wrap">
       <div class="section-head"><div><h2>Reference tools</h2><p>Practical pages for day-to-day work on a cluster.</p></div></div>
       <div class="lq-grid">
@@ -186,7 +186,7 @@
     </div>
   </section>
 
-  <section class="section">
+  <section class="section alt">
     <div class="wrap"><div class="prose learn-about">{{ .Content }}</div></div>
   </section>
 {{- end }}

@@ -8,13 +8,19 @@ prereqs: ["es-opes-abf", "monte-carlo"]
 lab: "Run a ladder of replicas on a rugged landscape, with and without exchanges, and compare the low-temperature sampling"
 ---
 
-## Heating without losing the low-temperature ensemble
+## Tempering
+
+### Heating without losing the low-temperature ensemble
 
 The collective-variable methods of the previous chapters accelerate sampling along chosen coordinates. A blunter but more general way to cross barriers is to raise the temperature: at high $T$, barriers that are many $k_BT$ high at room temperature become small, and the system explores freely. The difficulty is that the high-temperature ensemble is not the one we want. The idea of **tempering** is to run at high temperature to explore, and at low temperature to sample correctly, letting configurations move between the two in a way that preserves the correct distribution at every temperature.
 
-## Parallel tempering and replica exchange
+## Parallel tempering
+
+### The method
 
 **Parallel tempering**, or replica exchange, runs $M$ copies (replicas) of the system simultaneously at temperatures $T_1 < T_2 < \cdots < T_M$, each sampling its own canonical ensemble. Periodically, a swap of configurations between two replicas is attempted and accepted with a probability that keeps every replica's ensemble exact. The method was introduced for spin glasses by Robert Swendsen and Jian-Sheng Wang (1986), generalised by Charles Geyer (1991) and by Koji Hukushima and Koji Nemoto (1996) as exchange Monte Carlo, and brought to molecular dynamics by Yuji Sugita and Yuko Okamoto in 1999 as **replica-exchange molecular dynamics** (REMD).
+
+### The acceptance rule
 
 The acceptance rule follows from detailed balance in the extended ensemble of all replicas, whose probability is a product of Boltzmann factors. Swapping configurations $\mathbf x_i$ and $\mathbf x_j$ between temperatures $T_i$ and $T_j$ changes that product by a factor that depends only on the two energies:
 
@@ -24,27 +30,45 @@ $$ P_{\text{acc}}(i \leftrightarrow j) = \min\!\Big(1,\; \exp\big[(\beta_i - \be
 - every replica continues to sample its exact canonical ensemble
 {{< /eq >}}
 
+### A random walk in temperature
+
 Each configuration therefore performs a random walk in temperature: it heats up, crosses barriers easily, cools down, and is sampled at the target temperature in a new basin. The figure runs a ladder of walkers by Metropolis Monte Carlo on a rugged one-dimensional landscape with several wells separated by barriers of several $k_BT$ at the lowest temperature.
 
 {{< widget name="remd" title="Parallel tempering on a rugged landscape" caption="Top: one walker per temperature, coloured from blue (T = 1) to red (T_max), on the landscape. Bottom: the histogram of the T = 1 replica against the exact Boltzmann distribution. Turn exchanges off and on, and vary the number of replicas and the highest temperature." >}}
 
 Without exchanges, the lowest-temperature walker stays in its starting well, and its histogram covers one well only, a large error in the sampled distribution. With exchanges, configurations visited at high temperature flow down the ladder, and the lowest-temperature histogram converges to the full Boltzmann distribution across all wells. Reduce the number of replicas while keeping $T_{\max}$ fixed and the acceptance falls: neighbouring temperatures are now so different that their energy distributions do not overlap, and swaps are almost always rejected.
 
-## Designing the ladder
+### Replica exchange in a simulation box
+
+A one-dimensional landscape shows the principle; a real system shows what it looks like in a simulation. The figure below runs replica-exchange molecular dynamics on the **two-dimensional Lennard-Jones heptamer**, LJ7: seven atoms interacting through the Lennard-Jones potential, in reduced units ($\varepsilon = \sigma = m = 1$, time in $\tau = \sigma\sqrt{m/\varepsilon}$), with Langevin dynamics. Christoph Dellago, Peter Bolhuis and David Chandler used this cluster in 1998 to develop transition path sampling, and it has been a standard test of rare-event methods since. Its ground state is a hexagon around a central atom with six neighbours, at $E = -12.53\,\varepsilon$. Three other isomers lie about $1\,\varepsilon$ higher, separated from the hexagon by barriers that a cluster at $k_BT = 0.06\,\varepsilon$ crosses only rarely.
+
+Every replica starts in the same higher isomer, a trapezoid at $E = -11.50\,\varepsilon$. A separate box on the left runs ordinary molecular dynamics at the lowest temperature as a control. The ladder boxes keep their temperatures; the atoms carry the colour of their replica, so when a swap is accepted you see the two configurations change places, and over time each colour wanders up and down the ladder. A green flash between two boxes is an accepted swap, a red one a rejected attempt.
+
+{{< widget name="remdbox" title="Replica-exchange molecular dynamics of the LJ7 cluster" caption="Top: a plain MD control at the lowest temperature (dashed frame) and the replica ladder, coloured from cold (blue frame) to hot (red frame); atoms are coloured by replica identity and the six-coordinated central atom of the hexagon is outlined. Bottom left: the temperature of each replica over time. Bottom right: the potential-energy distribution at each temperature; swaps between neighbours are accepted in proportion to the overlap of their distributions." >}}
+
+Watch three things. First, the hot boxes change shape constantly, the cold ones rarely; the coldest replica finds the hexagon only after a configuration that reached it at high temperature has walked down the ladder. In the runs used to prepare this chapter, five replicas from $k_BT = 0.06$ to $0.30\,\varepsilon$ with a swap attempt every 100 steps brought the hexagon into the coldest box after $47\,\tau$ (the figure, with a different random seed, typically does so within a few tens of $\tau$), while five independent plain MD runs at $k_BT = 0.06\,\varepsilon$ stayed in the trapezoid for between $1400\,\tau$ and more than $2000\,\tau$. Second, the energy distributions: neighbouring curves overlap, and the overlap is largest at the cold end, where the measured acceptances were 0.50 and 0.46, falling to 0.26 and 0.25 between the hotter pairs. Third, turn the exchanges off: every replica is then an independent simulation, and the coldest one is as trapped as the control. Reduce the number of replicas to three with the same highest temperature, and the gaps between the distributions open up; swaps are rejected, the colours stop moving and the method fails, which is the subject of the next section.
+
+### Designing the ladder
 
 The acceptance between neighbouring replicas depends on the overlap of their potential-energy distributions. For a system with $N$ degrees of freedom, the energy fluctuates by $\sim\sqrt N$ while its mean changes with temperature by $\sim N$, so the temperature spacing must shrink as $1/\sqrt N$ and the number of replicas needed to span a given range grows as $\sqrt N$, as David Kofke analysed in 2002. A solvated protein of tens of thousands of atoms needs dozens to hundreds of replicas to span 300–450 K, which is the main cost of the method. Temperatures are usually spaced geometrically, giving roughly uniform acceptance, with target acceptance rates around 20–30 %; the highest temperature must be high enough to cross the relevant barriers quickly, but not so high that the system spends its time in irrelevant high-energy states, such as an unfolded protein that takes long to refold.
 
-## Hamiltonian replica exchange and REST
+## Variants of tempering
+
+### Hamiltonian replica exchange and REST
 
 For large solvated systems, most of the energy fluctuation comes from the solvent, which is why so many replicas are needed. **Hamiltonian replica exchange** (Hiroaki Fukunishi, Osamu Watanabe and Shoji Takada, 2002) instead varies the Hamiltonian across replicas, for example by scaling particular interactions, while keeping the temperature fixed; the acceptance rule involves the energies of each configuration under both Hamiltonians. **Replica exchange with solute tempering** (REST, Pu Liu, Byungchan Kim, Richard Friesner and Bruce Berne, 2005) and its improved form REST2 (Lingle Wang, Friesner and Berne, 2011) scale only the interactions involving a solute, which is equivalent to heating the solute while the solvent stays cold. Because only a small part of the system is effectively heated, far fewer replicas are needed. REST2 is widely used for protein–ligand binding and peptide conformations, and as a component of alchemical free-energy protocols.
 
-## Simulated tempering and expanded ensembles
+### Simulated tempering and expanded ensembles
 
 **Simulated tempering** (Enzo Marinari and Giorgio Parisi, 1992) achieves the same random walk in temperature with a single simulation, by treating the temperature as a dynamical variable that changes by Monte Carlo moves. To make the walk uniform it needs weights for each temperature, essentially the free energy at each temperature, which must be learned; adaptive schemes such as Wang–Landau-style updating or the OPES expanded-ensemble method of [the previous chapter](../es-opes-abf/) provide them. The single-simulation approach avoids running many replicas but is harder to tune.
 
 ## Combinations and boost potentials
 
+### Parallel-tempering metadynamics
+
 Tempering and collective-variable biasing are complementary: tempering helps all degrees of freedom a little, while CV biasing helps a few degrees of freedom a lot. **Parallel-tempering metadynamics** (Giovanni Bussi, Francesco Gervasio, Alessandro Laio and Michele Parrinello, 2006) combines them, and many protocols use replica exchange between umbrella windows to reduce hidden barriers in orthogonal coordinates.
+
+### Accelerated molecular dynamics
 
 A different CV-free strategy adds a **boost potential** that raises the energy of low-lying regions without changing the high ones, flattening the landscape everywhere at once. **Accelerated MD** (Donald Hamelberg, John Mongan and Andrew McCammon, 2004) adds, whenever the potential energy $U$ is below a threshold $E$, the boost $\Delta U = (E - U)^2/(\alpha + E - U)$. **Gaussian-accelerated MD** (GaMD, Yinglong Miao, Victoria Feher and McCammon, 2015) uses a harmonic boost $\Delta U = \tfrac12 k(E - U)^2$, chosen so that the distribution of boost energies is nearly Gaussian, which makes reweighting by a cumulant expansion accurate. Both are implemented in AMBER and other codes and are popular for exploring protein conformational changes, but reweighting becomes noisy for large boosts and large systems, which limits their use for accurate free energies.
 
@@ -86,5 +110,7 @@ A different CV-free strategy adds a **boost potential** that raises the energy o
 9. G. Bussi, F. L. Gervasio, A. Laio and M. Parrinello, "Free-energy landscape for β hairpin folding from combined parallel tempering and metadynamics", *Journal of the American Chemical Society* **128**, 13435–13441 (2006).
 10. D. Hamelberg, J. Mongan and J. A. McCammon, "Accelerated molecular dynamics: a promising and efficient simulation method for biomolecules", *Journal of Chemical Physics* **120**, 11919–11929 (2004).
 11. Y. Miao, V. A. Feher and J. A. McCammon, "Gaussian accelerated molecular dynamics: unconstrained enhanced sampling and free energy calculation", *Journal of Chemical Theory and Computation* **11**, 3584–3595 (2015).
+
+1. C. Dellago, P. G. Bolhuis and D. Chandler, "Efficient transition path sampling: application to Lennard-Jones cluster rearrangements", *Journal of Chemical Physics* **108**, 9236–9245 (1998).
 
 </div>
