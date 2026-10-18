@@ -18,6 +18,9 @@
   {{- $lj := (slice $core) | append (resources.Match "js/learn/[a-z]*.js") | resources.Concat "js/learn-bundle.js" | minify | fingerprint }}
   <script src="{{ $lj.RelPermalink }}" integrity="{{ $lj.Data.Integrity }}" defer></script>
   {{- end }}
+  {{- if .IsHome }}{{ with resources.Get "js/learn/learn-cards.js" | minify | fingerprint }}
+  <script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" defer></script>
+  {{- end }}{{ end }}
   {{- range .Params.scripts }}
   {{- with resources.Get . | minify | fingerprint }}
   <script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" defer></script>

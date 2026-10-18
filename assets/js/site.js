@@ -38,6 +38,9 @@
   /* Reveal */
   const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { rootMargin: "0px 0px -8% 0px" });
   $$(".reveal").forEach(el => io.observe(el));
+  /* never leave content hidden: reveal everything once the page has settled */
+  setTimeout(() => $$(".reveal:not(.in)").forEach(el => { if (el.getBoundingClientRect().top < innerHeight * 1.5) el.classList.add("in"); }), 1500);
+  window.addEventListener("beforeprint", () => $$(".reveal").forEach(el => el.classList.add("in")));
 
   /* Videos: play only while visible */
   const vio = new IntersectionObserver(es => es.forEach(e => {

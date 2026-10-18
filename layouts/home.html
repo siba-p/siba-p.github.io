@@ -4,17 +4,18 @@
   <canvas class="sim" data-sim data-panel="hero-panel" data-sigma="27" data-max="900" data-phi="0.44" data-prewarm="2000" aria-label="Live simulation of DNA-coated gold nanoparticles self-assembling into a binary crystal" role="img"></canvas>
   <div class="wrap hero-inner">
     <div class="hero-text">
-      <p class="role">{{ site.Params.role }} · {{ site.Params.affiliation }}</p>
       <h1>Sibasankar<br>Panigrahy</h1>
+      <p class="role">{{ site.Params.role }}, {{ site.Params.affiliation }}</p>
       <p class="intro">I design programmable nanomaterials with molecular simulation and machine learning.</p>
-      <div class="hero-links">
-        <a href="{{ "research/" | relURL }}">Research</a>
-        <a href="{{ "publications/" | relURL }}">Publications</a>
-        <a href="#network">Contact</a>
+      <div class="hero-cta">
+        <a class="btn hero-btn" href="{{ "research/" | relURL }}">Research</a>
+        <a class="btn hero-btn ghost" href="{{ "learn/" | relURL }}">Learn</a>
+        <a class="btn hero-btn ghost" href="#network">Contact</a>
       </div>
     </div>
   </div>
   <div class="wrap dock-wrap">
+    <p class="sim-cap">Live simulation: DNA-coated gold nanoparticles self-assembling. Choose which strands bind, or lower the temperature to let them crystallise.</p>
     <div class="dock" id="hero-panel" role="group" aria-label="Simulation controls">
       <div class="dock-seg" role="group" aria-label="Which DNA strands bind">
         <button type="button" data-program="complementary" aria-pressed="true" title="Complementary strands: only unlike particles bind, building an alternating lattice"><i class="d a"></i><i class="d b"></i></button>
@@ -87,62 +88,76 @@
   </div>
 </section>
 
-<section class="section">
+<section class="section" id="papers">
   <div class="wrap">
     <div class="section-head">
-      <div>
-        <h2>Beyond the thesis</h2>
-      </div>
+      <div><h2>Selected publications</h2></div>
+      <a class="more" href="{{ "publications/" | relURL }}">All publications</a>
     </div>
-    <div class="spans">
-      <a class="span-card reveal" href="https://openreview.net/forum?id=RTQSTVPHJ9">
-        <svg viewBox="0 0 48 48" aria-hidden="true"><rect x="4" y="8" width="14" height="14" rx="3"/><rect x="4" y="26" width="14" height="14" rx="3"/><circle cx="38" cy="24" r="6"/><path d="M18 15c8 0 10 9 14 9M18 33c8 0 10-9 14-9"/></svg>
-        <h3>AI for accelerated materials design</h3>
-        <p>Hybrid CNN–GRU–attention networks and tandem inverse design, presented at the NeurIPS AI4Mat workshop.</p>
-        <span class="go">Read on OpenReview</span>
+    {{- $sel := where $pubs.items "status" "in" (slice "published" "workshop" "review") }}
+    <ol class="pub-list">
+      {{- range first 4 (sort $sel "year" "desc") }}
+      {{- $href := cond (isset . "doi") (printf "https://doi.org/%s" (.doi | default "")) (.url | default (printf "%spublications/#pub-%s" ("" | relURL) .key)) }}
+      <li class="pub-row reveal">
+        {{ with .image }}<a class="pub-thumb" href="{{ $href }}" tabindex="-1" aria-hidden="true"><img src="{{ . | relURL }}" alt="" loading="lazy"></a>{{ end }}
+        <div>
+          <p class="pub-meta"><span>{{ .year }}</span><span>{{ .short_venue }}</span>{{ if eq .status "review" }}<span class="pub-flag">Under review</span>{{ else if eq .status "workshop" }}<span class="pub-flag">Workshop paper</span>{{ end }}</p>
+          <h3><a href="{{ $href }}">{{ .title }}</a></h3>
+          <p class="pub-auth">{{ range $i, $a := .authors }}{{ if $i }}, {{ end }}{{ if eq $a $pubs.me }}<b>{{ $a }}</b>{{ else }}{{ $a }}{{ end }}{{ end }}</p>
+          <p class="pub-take">{{ .takeaway }}</p>
+        </div>
+      </li>
+      {{- end }}
+    </ol>
+  </div>
+</section>
+
+<section class="section alt" id="tools">
+  <div class="wrap">
+    <div class="section-head">
+      <div><h2>Open research tools</h2><p>Free-energy, solvation, statistics and materials tools that run in the browser and install with pip.</p></div>
+      <a class="more" href="{{ "software/" | relURL }}">All software</a>
+    </div>
+    <div class="tool-strip">
+      {{- range site.Data.tools.groups }}{{ range .tools }}{{ if .url }}
+      <a class="tool-tile reveal" href="{{ .url | relURL }}">
+        <span class="tool-ic">{{ partial "toolkit-icon.html" .icon }}</span>
+        <b>{{ .name }}</b>
+        <span class="tool-txt">{{ .text }}</span>
       </a>
-      <a class="span-card reveal" href="{{ "publications/#pub-rajput2024crowding" | relURL }}">
-        <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="7"/><circle cx="10" cy="12" r="4"/><circle cx="38" cy="11" r="3"/><circle cx="40" cy="34" r="4.5"/><circle cx="9" cy="36" r="3"/><circle cx="25" cy="41" r="2.5"/></svg>
-        <h3>Macromolecular crowding</h3>
-        <p>How the crowded interior of a cell changes folding, binding and assembly, from biomolecules to nanomaterials.</p>
-        <span class="go">ACS Omega review</span>
-      </a>
-      <a class="span-card reveal" href="{{ "publications/#pub-panigrahy2023pccp" | relURL }}">
-        <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M6 36c4-20 8-24 12-10s6 12 9 4 5-12 8-6 5 8 7 8"/><path d="M6 40h36"/></svg>
-        <h3>Force-field development</h3>
-        <p>Reparameterising interactions against osmotic and transport data, so that concentrated solutions behave as they do in experiment.</p>
-        <span class="go">PCCP 2023</span>
-      </a>
-      <a class="span-card reveal" href="{{ "software/" | relURL }}">
-        <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 34c3 0 4-18 8-18s4 10 7 10 4-14 8-14 5 22 9 22"/><path d="M14 40l4-4M20 40l4-4M26 40l4-4"/></svg>
-        <h3>Open scientific software</h3>
-        <p>Validated tools for free energies, solvation thermodynamics, simulation statistics and nanomaterials.</p>
-        <span class="go">Software</span>
-      </a>
+      {{- end }}{{ end }}{{ end }}
     </div>
   </div>
 </section>
 
 {{- $order := partial "learn-order.html" . }}
-<section class="section alt" id="learn">
-  <div class="wrap learn-band">
-    <div class="lb-text">
-      <h2>Computational science and machine learning</h2>
-      <p>Notes with derivations, interactive models and primary references on the mathematics, programming, statistical mechanics, molecular simulation and machine learning used in computational materials research.</p>
-      <div class="lb-cta">
-        <a class="btn btn-primary" href="{{ "learn/" | relURL }}">Open Learn</a>
-        
-      </div>
+<section class="section" id="learn">
+  <div class="wrap">
+    <div class="section-head">
+      <div><h2>Learn</h2><p>Eight books on the foundations of computational materials science, from first principles to current research methods, with simulations that run in the browser.</p></div>
+      <a class="more" href="{{ "learn/" | relURL }}">Open Learn</a>
     </div>
-    <ol class="lb-tracks">
-      {{ range site.Data.learn }}{{ $t := . }}{{ $n := 0 }}{{ range $order }}{{ if eq .track.id $t.id }}{{ $n = add $n 1 }}{{ end }}{{ end }}
-      <li class="reveal"><a href="{{ printf "learn/%s/" $t.slug | relURL }}"><span class="lb-n lb-{{ $t.tone }}">{{ $t.n }}</span><span><b>{{ $t.title }}</b><small>{{ $n }} topics</small></span></a></li>
-      {{ end }}
-    </ol>
+    <div class="home-subjects">
+      {{- range site.Data.learn }}{{ $c := . }}{{ $mine := where $order "course.id" $c.id }}
+      <a class="subj tone-{{ $c.tone }}" href="{{ printf "learn/%s/" $c.slug | relURL }}">
+        <span class="subj-in">
+          <span class="subj-face subj-front">
+            <canvas class="subj-art" data-art="{{ $c.id }}" aria-hidden="true"></canvas>
+            <span class="subj-cap"><b>{{ $c.title }}</b><span>{{ $c.tagline }}</span></span>
+          </span>
+          <span class="subj-face subj-back" aria-hidden="true">
+            <b>{{ $c.title }}</b>
+            <span class="subj-chs">{{ range $mine }}<span>{{ .page.Title }}</span>{{ end }}</span>
+            <span class="subj-open">Open the book →</span>
+          </span>
+        </span>
+      </a>
+      {{- end }}
+    </div>
   </div>
 </section>
 
-<section class="section">
+<section class="section alt">
   <div class="wrap grid-2" style="align-items:start">
     <div class="panel reveal">
       <div class="panel-head"><h3>News</h3></div>
@@ -162,7 +177,7 @@
     <div class="section-head">
       <div>
         <h2>Collaborations &amp; connections</h2>
-        <p>The institutions, collaborators and venues my research runs through. Hover a card to find it on the map.</p>
+        <p>The institutions, collaborators and venues my research runs through.</p>
       </div>
     </div>
     {{ partial "network.html" . }}

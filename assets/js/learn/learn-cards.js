@@ -93,6 +93,7 @@
     if (still) { items.forEach(it => { for (let k = 0; k < 200; k++) { if (!fit(it)) break; const c = it.cv.getContext("2d"); c.setTransform(it.d, 0, 0, it.d, 0, 0); c.clearRect(0, 0, it.W, it.H); it.draw(c, it.W, it.H, 3 + k * 0.05, 0.05); } }); return; }
     const io = new IntersectionObserver(es => es.forEach(e => { const it = items.find(i => i.cv === e.target); if (it) it.on = e.isIntersecting; }), { rootMargin: "60px" });
     items.forEach(it => io.observe(it.cv));
+    items.forEach(it => { for (let k = 0; k < 40; k++) paint(it, 2 + k * 0.05, 0.05); });
     let last = 0, t = 0;
     function frame(now) { const dt = last ? Math.min(0.05, (now - last) / 1000) : 0.033; if (!last || now - last > 30) { last = now; t += dt; items.forEach(it => { if (it.on) paint(it, t, dt); }); } requestAnimationFrame(frame); }
     requestAnimationFrame(frame);

@@ -1,15 +1,4 @@
 /* ================= Learn: hub, lessons and interactive labs ================= */
-:root { --violet: #6d4fe0; --rose: #d6336c; --sky: #1971c2; --orange: #d9480f; --green: #2b8a3e; --lw-radius: 14px; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --violet: #a993ff; --rose: #ff7aa5; --sky: #4dabf7; --orange: #ff9f5a; --green: #69db7c; } }
-:root[data-theme="dark"] { --violet: #a993ff; --rose: #ff7aa5; --sky: #4dabf7; --orange: #ff9f5a; --green: #69db7c; }
-.tone-teal { --tone: var(--teal); }
-.tone-indigo { --tone: var(--accent); }
-.tone-gold { --tone: var(--gold); }
-.tone-violet { --tone: var(--violet); }
-.tone-rose { --tone: var(--rose); }
-.tone-sky { --tone: var(--sky); }
-.tone-orange { --tone: var(--orange); }
-.tone-green { --tone: var(--green); }
 .muted { color: var(--ink-3); }
 
 /* ---------- hub ---------- */
@@ -512,7 +501,6 @@ table.cr .cr-ex:hover { border-color: var(--accent); }
 .db-s, .db-s p { margin: .3rem 0 0; color: var(--ink-2); font-size: .95rem; line-height: 1.55; }
 @media (max-width: 560px) { .depth-band { padding: 18px; gap: 14px; } .db-t { font-size: 1.6rem; } }
 
-/* ---------- subject page: themes of topic cards ---------- */
 .themes { max-width: 1120px; }
 .theme { margin-bottom: 56px; scroll-margin-top: 80px; }
 .theme > header { display: grid; gap: .3rem; max-width: 70ch; padding-bottom: 16px; margin-bottom: 18px; border-bottom: 2px solid var(--tone); }
@@ -640,7 +628,6 @@ table.cr .cr-ex:hover { border-color: var(--accent); }
 .pf-img { display: block; max-width: 100%; margin: 10px auto 0; border-radius: 10px; background: #fff; }
 .pt-frame em { white-space: nowrap; }
 
-/* ================= subject = one book page ================= */
 .book-head { padding-block: clamp(36px, 5vw, 64px) 30px; border-bottom: 1px solid var(--line); background: linear-gradient(180deg, color-mix(in oklab, var(--tone) 7%, var(--bg)), var(--bg)); }
 .book-head-in { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 36px; align-items: center; }
 .book-head .vol-cover { aspect-ratio: 3 / 4; border-radius: 12px; box-shadow: 0 22px 44px -22px rgb(0 0 0 / .45); transform: rotate(-2deg); }
@@ -716,37 +703,6 @@ table.cr .cr-ex:hover { border-color: var(--accent); }
 .book-progress i { display: block; height: 100%; background: var(--tone, var(--accent)); transform-origin: 0 50%; transform: scaleX(0); }
 .section-learn .site-header { background: color-mix(in oklab, var(--bg) 97%, transparent); }
 
-/* ---------- subject cards: living cover on the front, chapters on the back ---------- */
-.subj-grid { gap: 20px; }
-.subj { display: block; height: 330px; perspective: 1400px; color: #fff; text-decoration: none; border-radius: 18px; }
-.subj:hover { text-decoration: none; }
-.subj-in { position: relative; display: block; height: 100%; transform-style: preserve-3d; transition: transform .75s cubic-bezier(.2, .75, .25, 1); }
-.subj-face { position: absolute; inset: 0; display: block; border-radius: 18px; overflow: hidden; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
-.subj-front { background: radial-gradient(120% 90% at 20% 0%, color-mix(in oklab, var(--tone) 80%, #fff 20%), transparent 60%), linear-gradient(160deg, color-mix(in oklab, var(--tone) 92%, #000), color-mix(in oklab, var(--tone) 50%, #0b1020)); box-shadow: 0 1px 0 rgb(255 255 255 / .12) inset, 0 18px 40px -26px rgb(10 14 30 / .6); }
-.subj-art { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-.subj-cap { position: absolute; left: 0; right: 0; bottom: 0; display: grid; gap: 4px; padding: 44px 18px 18px; background: linear-gradient(180deg, transparent, rgb(6 10 24 / .55) 55%, rgb(6 10 24 / .72)); }
-.subj-cap b { font: 600 1.14rem/1.2 var(--f-display); letter-spacing: -.012em; text-wrap: balance; }
-.subj-cap span { font-size: .84rem; color: rgb(255 255 255 / .82); }
-.subj-bar { position: absolute; left: 18px; right: 18px; bottom: 9px; height: 3px; border-radius: 3px; background: rgb(255 255 255 / .18); overflow: hidden; }
-.subj-bar i { display: block; height: 100%; width: 0; background: #fff; border-radius: 3px; transition: width .4s; }
-.subj-back { transform: rotateY(180deg); display: grid; grid-template-rows: auto 1fr auto; gap: 10px; padding: 18px 18px 16px; background: var(--card); color: var(--ink); border: 1px solid color-mix(in oklab, var(--tone) 35%, var(--line)); box-shadow: 0 18px 40px -26px rgb(10 14 30 / .45); }
-.subj-back > b { font: 600 1rem/1.25 var(--f-display); color: var(--ink); padding-bottom: 8px; border-bottom: 2px solid var(--tone); }
-.subj-chs { display: grid; align-content: start; gap: 1px; counter-reset: sc; min-height: 0; overflow: hidden; }
-.subj-chs > span { counter-increment: sc; display: grid; grid-template-columns: 1.6em minmax(0, 1fr); font-size: .76rem; line-height: 1.38; color: var(--ink-2); white-space: nowrap; }
-.subj-chs > span::before { content: counter(sc); color: var(--tone); font: 600 .72rem/1.5 var(--f-display); font-variant-numeric: tabular-nums; }
-.subj-chs > span { overflow: hidden; text-overflow: ellipsis; }
-.subj-open { font: 600 .84rem var(--f-display); color: var(--tone); }
-@media (hover: hover) { .subj:hover .subj-in { transform: rotateY(180deg); } }
-.subj:focus-visible { outline: none; }
-.subj:focus-visible .subj-in { transform: rotateY(180deg); }
-.subj:focus-visible .subj-back { outline: 3px solid var(--tone); outline-offset: 2px; }
-@media (prefers-reduced-motion: reduce) { .subj-in { transition: none; } }
-@media (max-width: 560px) { .subj { height: 230px; } }
-.vol-cover .subj-art { z-index: 0; }
-.subj-front .subj-art { height: 72%; -webkit-mask-image: linear-gradient(180deg, #000 78%, transparent); mask-image: linear-gradient(180deg, #000 78%, transparent); }
-.subj-front .subj-cap { padding-top: 22px; background: linear-gradient(180deg, transparent, rgb(6 10 24 / .35) 40%, rgb(6 10 24 / .55)); }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .subj-front, :root:not([data-theme="light"]) .vol-cover { background: linear-gradient(160deg, color-mix(in oklab, var(--tone) 62%, #000), color-mix(in oklab, var(--tone) 32%, #070b18)); } }
-:root[data-theme="dark"] .subj-front, :root[data-theme="dark"] .vol-cover { background: linear-gradient(160deg, color-mix(in oklab, var(--tone) 62%, #000), color-mix(in oklab, var(--tone) 32%, #070b18)); }
 .lib-intro { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
 .li-author { order: -1; padding: 0; border: 0; background: none; }
 .li-author p { font-size: 1.02rem; line-height: 1.7; color: var(--ink-2); margin: 0 0 1em; }
@@ -757,6 +713,3 @@ table.cr .cr-ex:hover { border-color: var(--accent); }
 .lib-head .lead { max-width: 62ch; margin-inline: auto; text-wrap: pretty; }
 .lib-head .lh-stats { justify-content: center; }
 .lib-head h1 { max-width: 24ch; }
-#subjects .section-head { justify-content: center; text-align: center; }
-#subjects .section-head > div { margin-inline: auto; }
-#subjects .section-head p { margin-inline: auto; }
