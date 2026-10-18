@@ -752,3 +752,11 @@ table.cr .cr-ex:hover { border-color: var(--accent); }
 .li-author p { font-size: 1.02rem; line-height: 1.7; color: var(--ink-2); margin: 0 0 1em; }
 .li-author p:first-of-type { color: var(--ink); }
 .li-cover p { font-size: .94rem; }
+.lib-head .wrap { text-align: center; }
+.lib-head h1 { max-width: 20ch; margin-inline: auto; text-wrap: balance; }
+.lib-head .lead { max-width: 62ch; margin-inline: auto; text-wrap: pretty; }
+.lib-head .lh-stats { justify-content: center; }
+.lib-head h1 { max-width: 24ch; }
+#subjects .section-head { justify-content: center; text-align: center; }
+#subjects .section-head > div { margin-inline: auto; }
+#subjects .section-head p { margin-inline: auto; }
