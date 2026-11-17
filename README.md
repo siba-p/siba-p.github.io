@@ -50,6 +50,9 @@ ffmpeg -ss 1.5 -i static/media/my-run.mp4 -frames:v 1 -q:v 5 static/media/my-run
 | News list (home page) | `data/news.yaml` |
 | Collaboration map (home page): add a collaborator with lat/lon | `data/network.yaml` |
 | Publication lineage: research thread and which paper builds on which | `lane` and `builds_on` in `data/publications.yaml` |
+| Learn books, their parts, audience and outcomes | `data/learn.yaml` |
+| Learn chapters (hook, objectives, prereqs in the front matter) | `content/learn/<slug>.md` |
+| Learn reading paths (hub page) | `data/learnpaths.yaml` |
 | About text | `content/about/_index.md` |
 | Email, Scholar, LinkedIn, ORCID, CV link | `[params]` in `hugo.toml` |
 

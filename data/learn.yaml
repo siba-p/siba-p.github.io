@@ -2,6 +2,10 @@
 # with `track:`; `weight` orders topics inside a theme. There is no fixed reading order across
 # subjects: topics declare what they build on (`prereqs:`) and topic pages list what builds on them.
 # Themes with no topics yet are hidden.
+# Each book page (layouts/learn/section.html) shows the subject's `audience` and `outcomes`, then a syllabus.
+# Each chapter page (layouts/learn/page.html) shows the chapter's own front matter: `hook` (one or two
+# sentences that open the chapter), `objectives` (3–5 items for "What you'll learn") and `prereqs`.
+# Guided reading paths on the Learn hub live in data/learnpaths.yaml.
 - id: math
   n: 1
   slug: mathematics
@@ -13,6 +17,13 @@
   level: "Foundations"
   blurb: "The mathematics used throughout simulation and machine learning, developed from first principles: functions and calculus, linear algebra and gradients, and probability."
   tagline: "Calculus, linear algebra and probability"
+  audience: "For students and early-career scientists who want the mathematics behind simulation and machine learning built from first principles; school algebra and a little trigonometry are all you need first."
+  outcomes:
+    - "Read laws of nature from data by choosing axes that straighten them"
+    - "Differentiate and integrate the functions of physical science, and approximate them with Taylor series"
+    - "Treat matrices as transformations and use eigenvectors to find normal modes and principal components"
+    - "Compute forces from energy landscapes and classify minima, saddles and transition states"
+    - "Quantify uncertainty with distributions, Bayes' theorem and honest error bars from simulation data"
   parts:
     - id: calc
       title: "Calculus"
@@ -34,6 +45,13 @@
   level: "Foundations"
   blurb: "How a computer executes a program and stores numbers, how Linux and the shell work, and how compiled code is written for numerical work."
   tagline: "Processors, Linux and compiled code"
+  audience: "For students and early-career researchers in simulation or machine learning who use computers daily but have never looked under the hood; no prior Linux or programming experience is needed, only school-level mathematics."
+  outcomes:
+    - "Explain how a processor executes code and why memory access limits speed"
+    - "Predict when integer and floating-point arithmetic will overflow, round or cancel"
+    - "Work in the Linux shell, knowing exactly how bash interprets a line"
+    - "Run, monitor and debug simulation jobs on a Slurm cluster"
+    - "Write, compile, debug and parallelise numerical Fortran, and call it from Python"
   parts:
     - id: machine
       title: "Computer architecture"
@@ -55,6 +73,13 @@
   level: "Foundations"
   blurb: "Python from the interpreter up: how source code runs, the object model, data structures and classes, then NumPy, scientific data and performance."
   tagline: "From the interpreter to NumPy"
+  audience: "For scientists and students who have written a little code in any language and want to use Python with understanding rather than by recipe; the Computing book's chapters on computer architecture and floating-point numbers are useful background."
+  outcomes:
+    - "Explain how CPython turns source code into bytecode and runs it"
+    - "Predict how names, objects and mutability behave, and avoid aliasing bugs"
+    - "Choose containers and algorithms by their cost, and write clear functions and classes"
+    - "Write vectorised NumPy code that uses views, broadcasting and suitable dtypes"
+    - "Read, fit and plot simulation data, then profile and speed up the slow parts"
   parts:
     - id: pycore
       title: "The language"
@@ -73,6 +98,13 @@
   level: "Core"
   blurb: "Learning from data, from fitting a line to deep networks: optimisation, generalisation, kernels and Gaussian processes, neural networks and modern architectures."
   tagline: "From one neuron to transformers"
+  audience: "For students and early-career scientists who want to understand machine learning from the ground up; you should be comfortable with derivatives, gradients, matrices, basic probability and simple NumPy."
+  outcomes:
+    - "Fit and judge a model by choosing its loss, optimiser and validation scheme"
+    - "Train neurons and deep networks with backpropagation and diagnose failing training runs"
+    - "Quantify predictive uncertainty with Gaussian processes, ensembles and calibration checks"
+    - "Reduce dimensionality and cluster unlabelled data to reveal structure in materials data sets"
+    - "Choose convolutional, graph or transformer architectures to match the symmetry of your data"
   parts:
     - id: ml
       title: "Learning from data"
@@ -97,6 +129,13 @@
   level: "Core"
   blurb: "The mechanics of particles and the statistical mechanics built on it: entropy and temperature, the Boltzmann distribution, ensembles and free energy, fluctuations, phase transitions and liquids."
   tagline: "From Newton to free energy"
+  audience: "For students and early-career researchers who run or analyse molecular simulations; it assumes first-year calculus and basic probability, and no prior statistical mechanics."
+  outcomes:
+    - "Predict classical motion from a potential and read it as a phase-space trajectory"
+    - "Judge when quantised energy levels matter and when classical nuclei are accurate"
+    - "Derive entropy, temperature and the Boltzmann distribution by counting microstates"
+    - "Compute thermodynamic properties from partition functions, fluctuations and free-energy profiles"
+    - "Interpret phase transitions, critical behaviour and liquid structure in simulations and experiments"
   parts:
     - id: physics
       title: "Mechanics"
@@ -115,6 +154,13 @@
   level: "Core"
   blurb: "How molecular simulations are built and analysed: potential energy surfaces and force fields, Monte Carlo, molecular dynamics, thermostats and barostats, and transport properties."
   tagline: "Molecular dynamics and Monte Carlo"
+  audience: "For students and early-career scientists who want to run and analyse atomistic simulations with understanding; read the statistical mechanics book first (Boltzmann distribution, ensembles, fluctuations) and be comfortable with calculus, probability and basic Python."
+  outcomes:
+    - "Explain how force fields approximate the Born–Oppenheimer energy surface, and where they fail"
+    - "Sample equilibrium ensembles with Metropolis Monte Carlo and molecular dynamics"
+    - "Choose integrators, time steps, thermostats and barostats that sample the intended ensemble"
+    - "Attach honest error bars to simulated averages using autocorrelation and block averaging"
+    - "Compute structure and transport coefficients from trajectories, including finite-size corrections"
   parts:
     - id: models
       title: "Interaction models"
@@ -139,6 +185,13 @@
   level: "Advanced"
   blurb: "Why important events are rare in simulations, and how to sample them anyway: energy landscapes and rates, free-energy methods, adaptive biasing, tempering, path sampling and machine-learned approaches."
   tagline: "Free energies and rare events"
+  audience: "For graduate students and early-career researchers who run molecular dynamics and need free energies or rates; it assumes basic statistical mechanics (Boltzmann distribution, partition function, free energy) and some hands-on MD."
+  outcomes:
+    - "Locate transition states and minimum energy paths with NEB, string and dimer methods"
+    - "Predict rates from barriers with transition-state theory, recrossing corrections and Kramers' theory"
+    - "Compute free-energy differences and profiles with FEP, TI, MBAR and umbrella sampling"
+    - "Choose and run metadynamics, OPES, ABF or replica exchange for a sampling problem"
+    - "Extract mechanisms and kinetics with path sampling, Markov state models and learned variables"
   parts:
     - id: rl-land
       title: "Landscapes and rates"
@@ -166,6 +219,13 @@
   level: "Advanced"
   blurb: "Machine learning for atomistic materials science: the history and theory of interatomic potentials, how to build and validate them, universal models, and generative and differentiable methods."
   tagline: "Interatomic potentials and generative models"
+  audience: "For graduate students and early-career researchers in computational materials science or chemistry who already know potential energy surfaces, basic molecular dynamics, how a neural network is trained, and Python with NumPy."
+  outcomes:
+    - "Explain how interatomic potentials evolved from pair potentials to universal machine-learned models"
+    - "Build symmetric descriptors and train a neural-network potential on energies and forces"
+    - "Choose between kernel, neural-network and equivariant message-passing potentials for a problem"
+    - "Design, grow by active learning and physically validate a training set for a potential"
+    - "Use universal, generative and differentiable models critically, knowing where each one fails"
   parts:
     - id: found
       title: "Foundations"

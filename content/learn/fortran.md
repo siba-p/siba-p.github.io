@@ -1,6 +1,13 @@
 ---
 title: "Fortran"
 description: "Modern Fortran from a first program to modules, array syntax, memory layout and performance, compiler flags for debugging and speed, Makefiles, OpenMP, MPI, LAPACK, and calling Fortran from Python. Every program here was compiled and run."
+hook: "VASP, Quantum ESPRESSO and CP2K are written largely in a language first released in 1957. It is still there because it is fast, if you respect its memory layout: here, one swapped pair of loops makes the same arithmetic 4.5 times slower."
+objectives:
+  - "Write, compile and run modern Fortran organised in modules"
+  - "Avoid the literal-precision and integer-division traps with kind parameters"
+  - "Explain column-major storage and order loops for contiguous memory access"
+  - "Choose compiler flags for debugging and for speed, and build with a Makefile"
+  - "Parallelise loops with OpenMP and call LAPACK and Fortran routines from Python"
 track: code
 weight: 4
 level: Core

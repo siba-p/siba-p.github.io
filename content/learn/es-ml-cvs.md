@@ -1,6 +1,13 @@
 ---
 title: "Machine-learned collective variables"
 description: "Learning the coordinates that matter from simulation data: unsupervised methods (PCA, diffusion maps, sketch-map, autoencoders), supervised discriminants (LDA, HLDA, Deep-LDA), dynamical methods (TICA, Deep-TICA, VAMPnets, state-free reversible VAMPnets), information-bottleneck methods (RAVE and the state predictive information bottleneck, SPIB), committor learning, and how learned variables are used to drive enhanced sampling iteratively with PLUMED and mlcolvar."
+hook: "The largest motion in a trajectory is often the least interesting: a floppy loop, a rattling side chain. Learned collective variables look instead for what is slow, what separates states, or what predicts the future."
+objectives:
+  - "Explain why variance-based methods such as PCA can miss the slow transition"
+  - "Compute TICA directions from instantaneous and time-lagged covariance matrices"
+  - "Compare supervised (Deep-LDA), dynamical (Deep-TICA, VAMPnets) and information-bottleneck (SPIB) variables"
+  - "Recognise why committor-learning schemes alternate between training and biased sampling"
+  - "Run biased simulations on learned variables with mlcolvar and PLUMED, checking for extrapolation"
 track: rl-ml
 weight: 1
 level: Advanced

@@ -1,6 +1,13 @@
 ---
 title: "OPES and adaptive biasing force"
 description: "Biasing towards a target distribution rather than filling with hills: on-the-fly probability enhanced sampling (OPES) and its explore, expanded-ensemble and flooding variants; variationally enhanced sampling (VES) as the minimisation of a convex functional; and the adaptive biasing force (ABF) method, which cancels the mean force instead of the free energy; with their equations, convergence behaviour, PLUMED and Colvars usage, and how to choose among adaptive methods."
+hook: "Metadynamics keeps every hill it has ever dropped. OPES keeps a running estimate of the probability instead, and the adaptive biasing force measures the force holding the system back and cancels it."
+objectives:
+  - "Derive the bias that turns the unbiased distribution of a variable into a chosen target"
+  - "Explain why OPES reaches a quasi-static bias faster than metadynamics"
+  - "Write a minimal PLUMED input for OPES from an estimate of the barrier height"
+  - "Explain how VES finds a bias by minimising a convex functional"
+  - "Compute a free-energy profile from the ABF mean force, and choose among adaptive methods"
 track: rl-bias
 weight: 2
 level: Advanced
@@ -35,7 +42,7 @@ The essential difference from metadynamics is what is accumulated. Metadynamics 
 
 In the figure, OPES typically makes its first crossing a little later than an aggressive metadynamics run, because the bias is capped and grows from a probability estimate rather than from a pile of hills, but once both states have been visited its bias settles and its estimate converges smoothly, without the persistent fluctuations of plain metadynamics.
 
-Several variants extend the method. **OPES-explore** (2022) targets the well-tempered distribution of the biased rather than the unbiased simulation, which explores faster at the cost of slower convergence, a useful first step for mapping a landscape. **OPES expanded ensembles** (Invernizzi, Pablo Piaggi and Parrinello, 2020) apply the same idea to temperatures or Hamiltonians instead of collective variables, sampling several thermodynamic states at once in a single simulation, a CV-free alternative to replica exchange. **OPES flooding** (Dhiman Ray and Parrinello, 2023) builds the bias only in the reactant basin and keeps the transition state unbiased, giving rates in the same spirit as infrequent metadynamics. In PLUMED, a basic OPES run is
+Several variants extend the method. **OPES-explore** (2022) targets the well-tempered distribution of the biased rather than the unbiased simulation, which explores faster at the cost of slower convergence, a useful first step for mapping a landscape. **OPES expanded ensembles** (Invernizzi, Pablo Piaggi and Parrinello, 2020) apply the same idea to temperatures or Hamiltonians instead of collective variables, sampling several thermodynamic states at once in a single simulation, a CV-free alternative to replica exchange. **OPES flooding** (Dhiman Ray, Michele Parrinello and co-workers, 2022) builds the bias only in the reactant basin and keeps the transition state unbiased, giving rates in the same spirit as infrequent metadynamics. In PLUMED, a basic OPES run is
 
 ```text
 d1: DISTANCE ATOMS=1,10

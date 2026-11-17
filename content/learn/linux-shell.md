@@ -1,6 +1,13 @@
 ---
 title: "The Linux shell"
 description: "The command line from zero: the file-system tree, paths, the anatomy of a command, wildcards, pipes and redirection, permissions and your first scripts, practised in a terminal that runs in this page."
+hook: "A simulation project quickly fills up with thousands of files. A pipeline of four small commands can search, filter and count them in seconds, and a ten-line script can prepare the next fifty runs."
+objectives:
+  - "Navigate the file-system tree with absolute and relative paths"
+  - "Read a command's options and arguments, and find help with man and --help"
+  - "Find files and lines with wildcards, grep and find"
+  - "Combine commands with pipes and redirection to filter simulation output"
+  - "Write a shell script that prepares a series of simulation inputs"
 track: toolbox
 weight: 2
 level: Foundation
@@ -158,6 +165,13 @@ Points to notice: the first line (the **shebang**) says which program runs the s
 - Press **Ctrl-R** and type part of an earlier command to search your history.
 - **Ctrl-C** stops a running command; **Ctrl-L** clears the screen.
 - Keep each project in its own directory with a `README` saying what is where, and save the commands you ran in scripts rather than retyping them.
+{{< /note >}}
+
+{{< note type="key" >}}
+- Every file has one place in a tree rooted at `/`; a path names it absolutely or relative to where you are.
+- A command is a program, then options, then arguments; `man` and `--help` document each one.
+- The shell expands wildcards before the command runs; quote a pattern to pass it on unchanged.
+- Small programs joined by pipes and redirections replace pages of code, and a script makes the work repeatable.
 {{< /note >}}
 
 {{< quiz >}}

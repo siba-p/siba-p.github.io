@@ -1,6 +1,13 @@
 ---
 title: "Monte Carlo simulation"
 description: "Sampling the Boltzmann distribution without dynamics: the origins of Monte Carlo at Los Alamos, Markov chains, stationary distributions and detailed balance, the Metropolis and Metropolis–Hastings acceptance rules, tuning moves and measuring correlation, Monte Carlo in the canonical, isothermal–isobaric, grand canonical and Gibbs ensembles, configurational-bias, cluster and hybrid moves, and when to choose Monte Carlo over molecular dynamics."
+hook: "In 1953, on the MANIAC computer at Los Alamos, five scientists found how to sample the Boltzmann distribution without ever computing the partition function. Their rule fits on one line: always go downhill, go uphill only sometimes."
+objectives:
+  - "Derive the Metropolis acceptance rule from detailed balance"
+  - "Explain why a rejected move must count the old configuration again"
+  - "Tune the step size by minimising the integrated autocorrelation time"
+  - "Choose Monte Carlo moves for the isothermal–isobaric, grand canonical and Gibbs ensembles"
+  - "Compare Monte Carlo with molecular dynamics and pick the right one for a problem"
 track: sampling
 weight: 1
 level: Core

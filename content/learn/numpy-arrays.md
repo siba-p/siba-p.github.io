@@ -1,6 +1,13 @@
 ---
 title: "NumPy arrays"
 description: "Why NumPy exists and how it works: the ndarray as a typed, contiguous buffer described by a shape, a dtype and strides; views and copies; vectorised arithmetic that runs compiled loops; reductions along axes; indexing, slicing, fancy and Boolean indexing; broadcasting rules; fixed-width integer and float pitfalls; and vectorising a pairwise-distance calculation."
+hook: "Transposing a NumPy array of a billion numbers takes under a microsecond, because not one number moves. An array is a block of raw bytes plus a shape, a type and strides, and nearly every rule of NumPy follows from that."
+objectives:
+  - "Compute an array's strides from its shape, dtype and memory order"
+  - "Predict which operations return views that share memory and which return copies"
+  - "Vectorise loops with ufuncs, reductions along an axis and Boolean masks"
+  - "Apply broadcasting to compute all pair distances in a periodic box without loops"
+  - "Recognise silent integer overflow and float32 precision loss before they corrupt results"
 track: pysci
 weight: 1
 level: Core

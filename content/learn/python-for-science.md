@@ -1,6 +1,13 @@
 ---
 title: "Scientific data"
 description: "The everyday work of computational science in Python: reading and writing text and binary files, parsing simulation output, loading tables with NumPy and pandas, fitting linear and nonlinear models with uncertainties, making publication-quality figures with Matplotlib, and organising an analysis so that it can be reproduced."
+hook: "A fitted activation energy with a tiny error bar can still be wrong. Reading the files, fitting the model, plotting the residuals and keeping the whole chain reproducible are what make a number from a simulation worth trusting."
+objectives:
+  - "Read and parse text files, tables and structure files with open, pathlib and np.loadtxt"
+  - "Choose between text, .npy and HDF5 files, and between NumPy arrays and pandas tables"
+  - "Fit linear and nonlinear models and report parameter uncertainties from the covariance matrix"
+  - "Diagnose a wrong model or underestimated errors by plotting the residuals"
+  - "Make clear Matplotlib figures and organise an analysis so that it can be rerun"
 track: pysci
 weight: 2
 level: Core

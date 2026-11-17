@@ -1,6 +1,13 @@
 ---
 title: "The structure of liquids"
 description: "How disordered matter is described statistically: the radial distribution function and what its peaks mean, coordination numbers, energy, pressure and compressibility from g(r), the potential of mean force and why it differs from the pair potential, the structure factor measured by X-ray and neutron scattering, the hard-sphere picture of liquids, and how g(r) is computed correctly from simulations."
+hook: "A liquid has no lattice, yet stand on any atom of a simple liquid and you will count about a dozen neighbours at nearly the same distance. One curve, g(r), captures this hidden order, and X-ray scattering measures it."
+objectives:
+  - "Interpret the peaks of g(r) and compute coordination numbers from them"
+  - "Compute energy, pressure and compressibility from g(r) for pair potentials"
+  - "Explain why the potential of mean force differs from the pair potential"
+  - "Relate g(r) to the structure factor measured by X-ray and neutron scattering"
+  - "Compute g(r) correctly from a periodic simulation, with the ideal-gas normalisation"
 track: statmech
 weight: 6
 level: Core

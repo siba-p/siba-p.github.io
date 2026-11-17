@@ -1,6 +1,13 @@
 ---
 title: "Vectors and matrices"
 description: "Vectors as arrows and as lists of numbers, linear combinations and bases, length and the dot product, matrices as linear transformations of space, matrix multiplication as composition, the determinant as an area factor, linear systems, and eigenvectors and eigenvalues with their uses in vibrations, PCA and neural networks."
+hook: "A matrix looks like a table of numbers, but it is better read as a machine that moves space. Its columns say where the basis arrows land, and that alone fixes where every other point goes."
+objectives:
+  - "Compute dot products and use them to find lengths, angles and projections"
+  - "Build the matrix of a rotation, stretch or shear from the images of the basis vectors"
+  - "Explain why matrix multiplication composes transformations and does not commute"
+  - "Interpret the determinant as an area or volume factor and spot matrices that cannot be inverted"
+  - "Find eigenvectors and eigenvalues, and relate them to normal modes and principal components"
 track: linalg
 weight: 1
 level: Foundation

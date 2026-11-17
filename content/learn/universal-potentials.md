@@ -1,6 +1,13 @@
 ---
 title: "Universal potentials"
 description: "Interatomic potentials that cover most of the periodic table: the data sets that made them possible (Materials Project trajectories, Alexandria, OMat24, SPICE), the main models from M3GNet and CHGNet to MACE-MP-0, GNoME, MatterSim, SevenNet, ORB and EquiformerV2, how they are benchmarked, their systematic errors such as potential-energy-surface softening, and how to use and fine-tune them in practice."
+hook: "A single model trained on about 1.6 million DFT structures relaxes copper to a lattice constant 0.3 per cent from experiment, with no copper-specific training. Knowing where such universal potentials can be trusted, and where they soften, is the skill this chapter builds."
+objectives:
+  - "Explain how large DFT data sets and element embeddings made universal potentials possible"
+  - "Compare M3GNet, CHGNet, MACE-MP-0, MatterSim, ORB and EquiformerV2 by data and design"
+  - "Interpret Matbench Discovery results and their limits as a guide to dynamics"
+  - "Recognise energy-surface softening and errors inherited from the reference functional"
+  - "Run a universal potential through ASE and decide when to fine-tune it"
 track: practice
 weight: 3
 level: Advanced

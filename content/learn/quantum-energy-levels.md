@@ -1,6 +1,13 @@
 ---
 title: "Quantum energy levels"
 description: "Why energy comes in steps: the Schrödinger equation, the particle in a box, the harmonic oscillator and zero-point energy, how quantum turns into classical at high energy, and how temperature populates the levels. The bridge from quantum mechanics to statistical mechanics."
+hook: "At room temperature fewer than one C–H bond in a million is vibrationally excited, yet a classical simulation gives each one a full kBT of energy. Energy comes in steps, and this chapter shows when the steps matter."
+objectives:
+  - "Explain how boundary conditions quantise energy in a box and in an oscillator"
+  - "Compute level spacings for real motions and compare them with the thermal energy kBT"
+  - "Estimate thermal populations, zero-point energies and the kinetic isotope effect of a bond"
+  - "Explain the correspondence principle by comparing quantum and classical probability densities"
+  - "Choose between classical and quantum nuclei using ħω/kBT and the thermal wavelength"
 track: physics
 weight: 2
 level: Foundation
@@ -15,7 +22,7 @@ Molecular dynamics moves nuclei with Newton's laws, as in [the previous chapter]
 
 ## Waves of matter
 
-In 1924 de Broglie proposed that every particle with momentum $p$ behaves like a wave of wavelength $\lambda = h/p$, where $h = 6.626 \times 10^{-34}$ J s is Planck's constant. For a cricket ball the wavelength is absurdly small; for an electron in an atom it is about the size of the atom, and wave behaviour dominates. The state of a quantum particle is described by a **wavefunction** $\psi(x)$, and the probability of finding the particle near $x$ is $|\psi(x)|^2\,\mathrm dx$ (Born's rule).
+In 1924 de Broglie proposed that every particle with momentum $p$ behaves like a wave of wavelength $\lambda = h/p$, where $h = 6.626 \times 10^{-34}$ J s is Planck's constant. For a cricket ball of 160 g bowled at 40 m s⁻¹ the wavelength is about $10^{-34}$ m, absurdly small; for the electron in a hydrogen atom, with its kinetic energy of 13.6 eV, it is 3.3 Å, exactly the circumference of the first Bohr orbit and about the size of the atom, and wave behaviour dominates. The state of a quantum particle is described by a **wavefunction** $\psi(x)$, and the probability of finding the particle near $x$ is $|\psi(x)|^2\,\mathrm dx$ (Born's rule).
 
 States of definite energy satisfy the time-independent **Schrödinger equation**, in which the classical energy $p^2/2m + V$ becomes an operator:
 
@@ -40,6 +47,12 @@ $$ \psi_n(x) = \sqrt{\tfrac{2}{L}}\,\sin\frac{n\pi x}{L}, \qquad \textcolor{#d4a
 
 Three consequences matter for materials. Energy is **quantised**. The lowest energy is **not zero**: squeezing a particle into a small space forces short wavelengths and therefore kinetic energy, the reason electrons do not collapse into the nucleus. And the spacing falls as $1/L^2$, so in a big box the levels are so close that the energy looks continuous. Quantum dots exploit the $1/L^2$ law: the smaller the nanocrystal, the larger its gap and the bluer its light.
 
+### How big are the steps?
+
+Two numbers show why the same formula describes very different physics. For an electron confined to a box 1 nm wide, a typical quantum-dot size, $E_1 = h^2/8mL^2 = 0.38$ eV, and the first gap is $E_2 - E_1 = 3E_1 = 1.1$ eV, the energy of a near-infrared photon and more than 40 times the thermal energy $k_BT$ (25.9 meV at room temperature). Electrons in nanostructures are quantum through and through.
+
+Now put a nitrogen molecule, of mass $4.65 \times 10^{-26}$ kg, in a box 1 cm wide, a fair model of translation in a gas. Its ground level is $E_1 = 1.2 \times 10^{-38}$ J, about $3 \times 10^{-18}\,k_BT$ at 300 K. Thermal energy reaches levels up to $n \approx \sqrt{k_BT/E_1} \approx 6 \times 10^8$, and there neighbouring rungs are separated by $2nE_1 \approx 3 \times 10^{-9}\,k_BT$. No experiment could resolve steps that fine: the translation of molecules in a gas is classical to an excellent approximation. The vibrations of chemical bonds turn out to be the opposite case.
+
 ## The harmonic oscillator
 
 Near the bottom of any valley the potential is a parabola, $V = \tfrac12 m\omega^2 x^2$, so the harmonic oscillator describes every chemical bond vibration and every phonon in a crystal. Its levels are equally spaced:
@@ -53,7 +66,23 @@ $$ \textcolor{#d4a017}{E_n} = \left(n + \tfrac12\right)\hbar\textcolor{#12a594}{
 
 {{< widget name="quantum" title="Energy levels, wavefunctions and thermal populations" caption="Left: the potential (blue), the levels (dashed) and each level's wavefunction drawn at its energy; the highlighted level is orange. Switch to |ψ|² and turn on the classical overlay to compare with where a classical particle of the same energy spends its time. The bars show how temperature shares the system among the levels (units with ħ = m = 1)." >}}
 
+{{< note type="try" >}}
+Choose the harmonic oscillator with $\omega = 1$ and set $k_BT = 0.1$: the ground state holds essentially all of the population, and the thermal mean energy sits at the zero-point value 0.5, five times the classical prediction of 0.1. Raise $k_BT$ to 5 and the mean energy, 5.02, is within half a per cent of the classical $k_BT$. Then switch to the particle in a box and drag $L$ from 4 down to 1: every level climbs sixteenfold.
+{{< /note >}}
+
 Zero-point energy is measurable and important. It is why liquid helium does not freeze at normal pressure, it shifts reaction barriers and bond lengths, and it makes deuterated molecules react more slowly than ordinary ones (the kinetic isotope effect), because the heavier isotope has a lower $\tfrac12\hbar\omega$.
+
+### Worked example: the kinetic isotope effect
+
+Replace the hydrogen of a C–H bond by deuterium. The force constant, set by the electrons, stays the same, but the reduced mass rises from $\mu_{\mathrm{CH}} = (12 \times 1.008)/13.008 = 0.930$ u to $\mu_{\mathrm{CD}} = (12 \times 2.014)/14.014 = 1.725$ u. Since $\omega = \sqrt{k/\mu}$, the stretch frequency falls by a factor $\sqrt{1.725/0.930} = 1.36$, from about 3000 cm⁻¹ to about 2200 cm⁻¹. The zero-point energies are then about 1500 and 1100 cm⁻¹, a difference of 400 cm⁻¹, or 4.8 kJ/mol.
+
+Now suppose a reaction breaks this bond, and that at the transition state the stretch has turned into the motion along the reaction path, so it no longer holds zero-point energy. The C–D bond starts 4.8 kJ/mol lower in its well but must reach the same transition state, so its barrier is higher by that amount. With $k_BT$ equal to 208.5 cm⁻¹ at 300 K, its rate is lower by
+
+$$
+\frac{k_{\mathrm H}}{k_{\mathrm D}} \approx e^{\Delta\mathrm{ZPE}/k_BT} = e^{400/208.5} \approx 6.8 \quad \text{at 300 K.}
+$$
+
+Measured primary isotope effects for breaking C–H bonds at room temperature are indeed a few, up to about 7. They are smaller when the transition state keeps part of the zero-point energy, and much larger values are taken as evidence that the hydrogen tunnels through the barrier, a still more quantum effect. Classical statistical mechanics predicts that equilibrium structures and populations do not depend on isotopic mass at all, and that rates change only through the speed of crossing the barrier, by at most about $\sqrt 2$ for hydrogen against deuterium.
 
 ## From quantum to classical
 
@@ -63,7 +92,7 @@ $$
 \rho_{\text{cl}}(x) = \frac{1}{\pi\sqrt{a^2 - x^2}}, \qquad a = \text{amplitude}.
 $$
 
-At high quantum number the two agree, as Bohr's **correspondence principle** demands. Quantum effects matter when the level spacing is comparable to the energy available, and that brings temperature in.
+At high quantum number the two agree, as Bohr's **correspondence principle** demands. There is also a geometric bridge. The classical orbit of an oscillator with energy $E_n = (n + \tfrac12)\hbar\omega$ encloses an area $2\pi E_n/\omega = (n + \tfrac12)h$ in phase space, so successive quantum states are separated by exactly one cell of area $h$, the yardstick used in [the worked example on a CO bond](../motion-and-phase-space/). Statistical mechanics uses the same rule when it counts classical states as phase-space volume divided by $h^{3N}$. Quantum effects matter when the level spacing is comparable to the energy available, and that brings temperature in.
 
 ## Temperature populates the levels
 
@@ -79,6 +108,52 @@ Slide the temperature in the lab. When $k_BT \ll \hbar\omega$ almost everything 
 
 The numbers for real molecules are revealing. A C–H stretch vibrates at about 3000 cm⁻¹, so $\hbar\omega/k_BT \approx 14$ at room temperature and the ground state holds 99.9999 % of the molecules: that vibration is completely quantum. A soft torsion or lattice mode at 200 cm⁻¹ has $\hbar\omega/k_BT \approx 1$, and is close to classical. Einstein used exactly this freezing-out to explain in 1907 why the heat capacity of solids falls at low temperature.
 
+{{< note type="story" >}}
+Diamond was a known exception to the Dulong–Petit rule long before quantum theory: at room temperature its molar heat capacity is about 6.1 J mol⁻¹ K⁻¹, a quarter of the classical $3R = 24.9$ J mol⁻¹ K⁻¹, and H. F. Weber had measured it falling further on cooling. In 1907 Einstein treated each atom as three oscillators with Planck's quantised energies. With a single frequency corresponding to $\hbar\omega/k_B \approx 1300$ K, his formula gives 6.2 J mol⁻¹ K⁻¹ at room temperature and follows the trend of Weber's data, one of the first applications of quantum ideas to matter rather than to light.
+{{< /note >}}
+
+### Translation, rotation and vibration side by side
+
+The ratio of a level spacing to $k_BT$ sorts the motions of molecules at room temperature into classical and quantum. At 300 K, $k_BT$ corresponds to 208.5 cm⁻¹:
+
+| motion | example | level spacing | spacing / $k_BT$ | at 300 K |
+|---|---|---|---|---|
+| translation | N₂ in a 1 cm box | $7 \times 10^{-7}$ cm⁻¹ near thermal energies | $3 \times 10^{-9}$ | classical |
+| rotation | N₂, first gap $2B$ | 4.0 cm⁻¹ | 0.02 | classical |
+| rotation | H₂, first gap $2B$ | 122 cm⁻¹ | 0.58 | mildly quantum |
+| soft vibration | torsion or lattice mode | 100–200 cm⁻¹ | 0.5–1 | nearly classical |
+| bond stretch | C=O | 1700 cm⁻¹ | 8.2 | frozen |
+| bond stretch | C–H | 3000 cm⁻¹ | 14.4 | frozen |
+
+### Worked example: one C–H stretch at 300 K
+
+Follow a single C–H stretch through the numbers. Its quantum is $\hbar\omega = hc\tilde\nu = (6.626 \times 10^{-34}\ \text{J s})(2.998 \times 10^{10}\ \text{cm s}^{-1})(3000\ \text{cm}^{-1}) = 5.96 \times 10^{-20}$ J, which is 0.372 eV or 35.9 kJ/mol. At 300 K, $k_BT = 4.14 \times 10^{-21}$ J, so $x = \hbar\omega/k_BT = 14.4$.
+
+- The fraction of oscillators above the ground state is $e^{-x} = 5.6 \times 10^{-7}$, about one in 1.8 million.
+- The thermal energy above the zero point is $\hbar\omega/(e^{x} - 1) = 2.1 \times 10^{-7}$ eV. Classical MD gives the mode $k_BT = 0.026$ eV, about $10^5$ times too much.
+- The zero-point energy, $\tfrac12\hbar\omega = 0.19$ eV or 17.9 kJ/mol, is seven times $k_BT$, and classical MD leaves it out entirely.
+- The mode's heat capacity is $k_B x^2 e^x/(e^x - 1)^2 = 1.2 \times 10^{-4}\,k_B$, against the classical $k_B$.
+
+Classical mechanics therefore gets this mode wrong in two opposite ways: far too much thermal energy, and no zero-point energy at all. The cell below repeats the calculation for a range of modes.
+
+{{< py title="Which vibrations are frozen at 300 K?" >}}
+import numpy as np
+h, c, kB = 6.62607015e-34, 2.99792458e10, 1.380649e-23   # SI, but c in cm/s
+T = 300.0
+modes = {"lattice mode": 100, "torsion": 200, "C-C stretch": 1000,
+         "C=O stretch": 1700, "C-H stretch": 3000}        # wavenumbers, cm^-1
+print(f"{'mode':13s}{'x':>7s}{'excited':>10s}{'E_th/kBT':>10s}{'C/kB':>9s}{'ZPE/kBT':>9s}")
+for name, nu in modes.items():
+    x = h * c * nu / (kB * T)              # level spacing in units of kB*T
+    excited = np.exp(-x)                   # fraction of oscillators above n = 0
+    E_th = x / np.expm1(x)                 # thermal energy above zero point / kB*T
+    C = x**2 * np.exp(x) / np.expm1(x)**2  # heat capacity / kB
+    print(f"{name:13s}{x:7.2f}{excited:10.1e}{E_th:10.2g}{C:9.2g}{x / 2:9.2f}")
+print("classical MD: E_th/kBT = 1 and C/kB = 1 for every mode, ZPE = 0")
+{{< /py >}}
+
+The output shows the crossover. Modes below about 200 cm⁻¹ keep most of their classical thermal energy and heat capacity; a C–C stretch near 1000 cm⁻¹ already holds only 4 % of its classical thermal energy; and stiffer bonds are frozen while carrying zero-point energies of several $k_BT$.
+
 ## Is classical molecular dynamics allowed?
 
 Classical MD treats nuclei as points obeying Newton's laws, so it gives each vibration $k_BT$ of energy whether or not it should. A useful yardstick is the **thermal de Broglie wavelength**, the typical quantum blur of a particle at temperature $T$:
@@ -91,9 +166,18 @@ $$ \Lambda = \frac{h}{\sqrt{2\pi\,\textcolor{#845ef7}{m}\,k_B\textcolor{#e64980}
 
 The verdict is that classical dynamics of nuclei is accurate for heavy atoms and for structure, diffusion and most thermodynamics at room temperature. It fails for light atoms (hydrogen, lithium), for high-frequency vibrations, for low temperatures and for heat capacities. The remedies are to constrain stiff bonds (as most biomolecular force fields do with bonds to hydrogen), to apply quantum corrections afterwards, or to use path-integral MD, which represents each quantum nucleus as a ring of classical beads.
 
+{{< note type="warn" >}}
+Flexible classical water is the standard trap. Each water molecule has three internal vibrations, a bend near 1600 cm⁻¹ and two stretches near 3700 cm⁻¹, all frozen at room temperature. A classical simulation gives each of them $k_B$ of heat capacity, adding $3R \approx 25$ J mol⁻¹ K⁻¹ to a quantity whose measured value for the liquid is 75 J mol⁻¹ K⁻¹. This is one reason why widely used water models such as SPC/E and TIP4P are rigid, and why heat capacities from classical simulations are often corrected with quantum harmonic factors before they are compared with experiment.
+{{< /note >}}
+
+{{< note type="practice" >}}
+A quick test before trusting classical nuclei: compute $\hbar\omega/k_BT$ for the highest frequencies that matter to the property you want. Below about 1, a classical oscillator's heat capacity is within 10 % of the quantum value; above about 5, the mode holds less than 4 % of its classical thermal energy and should be constrained, corrected or treated quantum mechanically. Path-integral MD needs a number of beads comfortably larger than the largest $\hbar\omega/k_BT$ in the system, about 17 for the O–H stretch of water at 300 K, so around 32 beads are typical there.
+{{< /note >}}
+
 {{< note type="key" >}}
 - Confinement quantises energy: a wave must fit its boundary conditions. The box gives levels spaced as $n^2$, the oscillator gives evenly spaced levels starting at the zero-point energy $\tfrac12\hbar\omega$.
 - At high energy quantum probability averages to the classical one (the correspondence principle).
+- Translation and the rotation of heavy molecules are classical at room temperature; bond stretches are frozen and carry zero-point energies of several $k_BT$, which explain the kinetic isotope effect.
 - Temperature populates the levels as $e^{-E/k_BT}$; a mode with $\hbar\omega \gg k_BT$ is frozen, and classical MD, which gives every mode $k_BT$, is accurate only when $\hbar\omega \lesssim k_BT$ and the thermal wavelength is small.
 {{< /note >}}
 
@@ -114,6 +198,14 @@ The verdict is that classical dynamics of nuclei is accurate for heavy atoms and
   options: ["Liquid argon", "Proton transfer in water", "Diffusion of gold atoms on a surface"]
   answer: 1
   why: "Hydrogen is light, so its thermal wavelength is about an ångström and tunnelling and zero-point energy matter. Path-integral methods are used for such problems."
+- q: "Why does a C–D bond usually break more slowly than the corresponding C–H bond?"
+  options: ["Deuterium forms a stronger electronic bond", "The heavier C–D bond has a lower zero-point energy, so it needs more energy to reach the transition state", "Deuterium is more electronegative than hydrogen"]
+  answer: 1
+  why: "The potential is the same for both isotopes; only the zero-point energy differs, by about 4.8 kJ/mol, giving a rate ratio of up to about 7 at room temperature."
+- q: "A nitrogen molecule moves in a 1 cm box at 300 K. How does the translational level spacing near its thermal energy compare with $k_BT$?"
+  options: ["It is comparable to $k_BT$", "It is a few per cent of $k_BT$", "It is a few billionths of $k_BT$, so translation is classical"]
+  answer: 2
+  why: "Near level $n \\approx \\sqrt{k_BT/E_1} \\approx 6 \\times 10^8$ the spacing is $2nE_1 \\approx 3 \\times 10^{-9}\\,k_BT$."
 {{< /quiz >}}
 
 ## References and further reading

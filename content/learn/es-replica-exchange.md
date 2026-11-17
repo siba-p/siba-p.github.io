@@ -1,6 +1,13 @@
 ---
 title: "Replica exchange and tempering"
 description: "Enhanced sampling without collective variables: heating to cross barriers, parallel tempering and replica-exchange MD, the exchange acceptance rule from detailed balance, designing temperature ladders, Hamiltonian replica exchange and REST2 solute tempering, simulated tempering, combinations with metadynamics, and boost-potential methods (accelerated MD and Gaussian-accelerated MD)."
+hook: "Plain molecular dynamics of a seven-atom cluster stayed trapped for at least 1400 time units; with replica exchange, the coldest copy reached the ground state in 47. Swapping configurations between temperatures, done right, changes no ensemble at all."
+objectives:
+  - "Derive the replica-exchange acceptance rule from detailed balance in the extended ensemble"
+  - "Design a temperature ladder with enough energy overlap between neighbouring replicas"
+  - "Explain why the number of replicas grows as the square root of system size"
+  - "Compare Hamiltonian exchange, REST2 and simulated tempering with temperature replica exchange"
+  - "Recognise the uses and reweighting limits of accelerated and Gaussian-accelerated MD"
 track: rl-bias
 weight: 3
 level: Advanced
@@ -110,7 +117,6 @@ A different CV-free strategy adds a **boost potential** that raises the energy o
 9. G. Bussi, F. L. Gervasio, A. Laio and M. Parrinello, "Free-energy landscape for β hairpin folding from combined parallel tempering and metadynamics", *Journal of the American Chemical Society* **128**, 13435–13441 (2006).
 10. D. Hamelberg, J. Mongan and J. A. McCammon, "Accelerated molecular dynamics: a promising and efficient simulation method for biomolecules", *Journal of Chemical Physics* **120**, 11919–11929 (2004).
 11. Y. Miao, V. A. Feher and J. A. McCammon, "Gaussian accelerated molecular dynamics: unconstrained enhanced sampling and free energy calculation", *Journal of Chemical Theory and Computation* **11**, 3584–3595 (2015).
-
-1. C. Dellago, P. G. Bolhuis and D. Chandler, "Efficient transition path sampling: application to Lennard-Jones cluster rearrangements", *Journal of Chemical Physics* **108**, 9236–9245 (1998).
+12. C. Dellago, P. G. Bolhuis and D. Chandler, "Efficient transition path sampling: application to Lennard-Jones cluster rearrangements", *Journal of Chemical Physics* **108**, 9236–9245 (1998).
 
 </div>

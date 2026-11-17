@@ -1,6 +1,13 @@
 ---
 title: "Analysing trajectories"
 description: "Turning a trajectory into numbers you can trust: ensemble averages, equilibration, correlated errors and block averaging, radial distribution functions, diffusion coefficients and a first look at free energies."
+hook: "A 10 ns run saved every picosecond holds 10,000 frames but perhaps only 100 independent samples. Treat them all as independent and your error bar shrinks tenfold, without the answer becoming any more accurate."
+objectives:
+  - "Estimate the integrated autocorrelation time and effective sample size of a time series"
+  - "Compute honest error bars by block averaging and spot runs too short to trust"
+  - "Remove equilibration bias by discarding the initial transient of a trajectory"
+  - "Compute radial distribution functions and coordination numbers from particle positions"
+  - "Extract diffusion coefficients from mean-squared displacements, with finite-size corrections"
 track: analysis
 weight: 1
 level: Core

@@ -1,6 +1,13 @@
 ---
 title: "Building a potential from scratch"
 description: "A complete, tested walk-through: generate a labelled data set of copper configurations, write Behler–Parrinello symmetry functions and an atomic neural network from scratch in PyTorch, train on energies and forces, wrap the model as an ASE calculator, validate it by lattice constant, energy–volume curve and energy-conserving molecular dynamics, and then train an equivariant MACE model on the same data from the command line."
+hook: "Four hundred copper snapshots and a network of 2,273 weights, written from scratch, make a potential that conserves energy in a cell larger than any it saw. A far more sophisticated model, trained on the same data, then gets the lattice constant wrong."
+objectives:
+  - "Generate a labelled data set of copper configurations with ASE molecular dynamics"
+  - "Implement differentiable symmetry functions and an atomic network in PyTorch"
+  - "Train on energies and forces by differentiating through the force computation"
+  - "Validate a potential with an energy–volume curve and energy-conserving dynamics"
+  - "Explain why a low test error did not guarantee MACE a correct lattice constant"
 track: practice
 weight: 2
 level: Advanced
@@ -354,6 +361,21 @@ Turning this exercise into a potential for research changes four things. The ref
 - The hand-written network reached 0.3 meV/atom and 17 meV/Å, reproduced the lattice constant and conserved energy in NVE dynamics in a cell larger than any training cell; errors grew outside the trained strain range.
 - MACE trains on the same extended-XYZ data from one command; real potentials replace the reference by DFT and grow data by active learning.
 {{< /note >}}
+
+{{< quiz >}}
+- q: "Why does the training loop call `torch.autograd.grad` with `create_graph=True` when it computes the forces?"
+  options: ["To save memory during training", "Because the force is itself a gradient of the energy, and the force error must be backpropagated through that gradient to the weights", "Because it makes the forces conservative"]
+  answer: 1
+  why: "Training on forces needs the derivative of the force with respect to the weights, a second derivative of the network. Keeping the graph of the first derivative makes that possible; the forces are conservative either way, because they are the gradient of one energy."
+- q: "Radial functions 1.25–5 Å wide gave a force error of 296 meV/Å after 25 epochs; functions 0.25–0.7 Å wide gave 34 meV/Å. Why?"
+  options: ["The broad set had too few functions", "The broad functions overlap so much that they cannot tell the first, second and third neighbour shells of copper apart", "Narrow functions train faster on a CPU"]
+  answer: 1
+  why: "If the descriptor barely changes when a neighbour moves from one shell to the next, the network cannot learn how the energy depends on that move, and the forces suffer most."
+- q: "The MACE model reached 3.3 meV/atom on the test set, yet its lattice constant was 3.727 Å against 3.597 Å from the reference. What was the root cause?"
+  options: ["The training and test data contained only three cell volumes, so the test error said nothing about volumes in between", "MACE is intrinsically less accurate than a Behler–Parrinello network", "The 5 Å cutoff was too short for copper"]
+  answer: 0
+  why: "A test set drawn like the training set certifies only what the training set covers. Sampling the volume continuously, or at many strains, is the fix; physical validation is what revealed the problem."
+{{< /quiz >}}
 
 ## References and further reading
 

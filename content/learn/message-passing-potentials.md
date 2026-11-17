@@ -1,6 +1,13 @@
 ---
 title: "Message-passing and equivariant potentials"
 description: "Learned representations of atomic structure: the message-passing framework, SchNet's continuous-filter convolutions, receptive fields and locality, directional messages in DimeNet, the representation theory of rotations (spherical harmonics, irreducible representations, tensor products), equivariant networks PaiNN and NequIP, many-body messages in MACE, the strictly local Allegro, equivariant transformers, and how these models compare."
+hook: "Multiply two vectors in the right way and you get a dot product, a cross product and a five-component tensor. Equivariant networks are built on that rule, and it lets them learn accurate potentials from as few as a few hundred structures."
+objectives:
+  - "Explain the message-passing framework and SchNet's continuous-filter convolutions"
+  - "Estimate the receptive field of stacked layers and its cost for parallel simulation"
+  - "Explain irreducible representations, spherical harmonics and tensor products in equivariant networks"
+  - "Compare NequIP, MACE and Allegro by body order, locality and data efficiency"
+  - "Choose an architecture for a given data budget, system size and chemistry"
 track: mlmodels
 weight: 3
 level: Advanced

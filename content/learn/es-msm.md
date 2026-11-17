@@ -1,6 +1,13 @@
 ---
 title: "Markov state models"
 description: "Building long-time kinetics from many short simulations: the Markov approximation, discretisation into microstates, transition matrices at a lag time, eigenvalues and implied timescales, stationary distributions, metastable states and spectral clustering, validation by implied-timescale and Chapman–Kolmogorov tests, the variational principle (VAC, TICA, VAMP), transition path theory for fluxes and committors, and the software used in practice."
+hook: "Thousands of simulations, none longer than a few microseconds, can together predict kinetics on milliseconds. A Markov state model stitches them into one transition matrix, whose eigenvalues read out the slowest processes in the system."
+objectives:
+  - "Build a transition matrix from microstate counts at a chosen lag time"
+  - "Compute implied timescales from eigenvalues and choose the lag time from their plateau"
+  - "Validate a Markov model with implied-timescale and Chapman–Kolmogorov tests"
+  - "Explain why TICA and VAMP scores give better microstates than raw coordinates"
+  - "Interpret committors, reactive fluxes and pathways from transition path theory"
 track: rl-path
 weight: 2
 level: Advanced

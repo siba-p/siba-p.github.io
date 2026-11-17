@@ -1,6 +1,13 @@
 ---
 title: "Classes"
 description: "Defining your own types: the class statement, instances, attributes and the self parameter; how attribute lookup works; class versus instance attributes; special methods for operators, printing, comparison and iteration; inheritance, polymorphism and composition illustrated with interatomic potentials; data classes and properties; and a small object-oriented simulation."
+hook: "Write a + b with two NumPy arrays and Python quietly asks the first array what plus should mean. Your own classes can answer that question too, so vectors, atoms and potentials can behave like built-in types."
+objectives:
+  - "Define a class with an initialiser, attributes and methods, and explain what self is"
+  - "Predict attribute lookup through instance, class and base classes, including shared class attributes"
+  - "Implement special methods so that your objects work with operators, printing and loops"
+  - "Use inheritance and polymorphism to build interchangeable families such as interatomic potentials"
+  - "Write data classes, properties and a small object-oriented simulation"
 track: pycore
 weight: 6
 level: Core

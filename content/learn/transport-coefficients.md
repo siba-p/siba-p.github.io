@@ -1,6 +1,13 @@
 ---
 title: "Transport coefficients"
 description: "Computing how matter, momentum and charge move from equilibrium molecular dynamics: Brownian motion and Einstein's relation, the mean-squared displacement, time-correlation functions and the velocity autocorrelation, the Green–Kubo relations for diffusion, viscosity, thermal and electrical conductivity, the cage effect and long-time tails, finite-size corrections, and practical error estimation."
+hook: "A liquid in equilibrium has no net flow and no gradients, yet its viscosity, diffusion coefficient and conductivities can all be read from it: Green and Kubo showed they are written in how its spontaneous fluctuations fade."
+objectives:
+  - "Extract a diffusion coefficient from the linear regime of the mean-squared displacement"
+  - "Connect the Einstein relation to the Green–Kubo integral of the velocity autocorrelation"
+  - "Identify the flux whose autocorrelation gives viscosity, thermal or electrical conductivity"
+  - "Interpret the cage effect and hydrodynamic long-time tails in the velocity autocorrelation"
+  - "Correct diffusion coefficients for the finite size of a periodic box"
 track: analysis
 weight: 2
 level: Core

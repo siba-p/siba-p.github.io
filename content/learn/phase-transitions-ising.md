@@ -1,6 +1,13 @@
 ---
 title: "Phase transitions and the Ising model"
 description: "How collective order appears: order parameters and the classification of transitions, the Ising model and its lattice-gas and alloy interpretations, Onsager's exact solution, Monte Carlo simulation of the model, mean-field theory solved graphically, Landau theory of continuous and first-order transitions, critical exponents, universality and finite-size effects in simulations."
+hook: "Give every site of a grid one rule, agree with your neighbours, and below a sharp temperature the whole grid picks a side. The same toy model describes magnets, alloys and the critical point of a fluid."
+objectives:
+  - "Classify transitions as first-order or continuous using order parameters, latent heat and fluctuations"
+  - "Run Metropolis simulations of the 2D Ising model and interpret finite-size rounding"
+  - "Solve mean-field theory graphically and explain why it overestimates the critical temperature"
+  - "Explain metastability, hysteresis and nucleation with Landau free-energy curves"
+  - "Explain universality and how finite-size scaling extracts critical behaviour from simulations"
 track: statmech
 weight: 5
 level: Core

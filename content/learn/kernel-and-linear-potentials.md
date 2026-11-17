@@ -1,6 +1,13 @@
 ---
 title: "Kernel and linear potentials"
 description: "Machine-learned potentials built on regression with fixed descriptors: linear models in a basis of environment functions, Gaussian approximation potentials with sparse Gaussian-process regression and the SOAP kernel, the spectral neighbour analysis potential, moment tensor potentials, and the atomic cluster expansion that unifies them; with their equations, training, uncertainty, cost and a comparison of strengths."
+hook: "Several widely used potentials are fitted by solving a single linear system, with no random initialisation, no learning-rate schedule and an uncertainty estimate thrown in. The catch is that each atom's description must be fixed before the data arrive."
+objectives:
+  - "Fit a linear potential in a basis of environment functions by ridge regression"
+  - "Explain how GAP combines a SOAP kernel with sparse Gaussian-process regression"
+  - "Compare SNAP, moment tensor potentials and ACE as linear many-body bases"
+  - "Explain the density trick that makes high body-order ACE features affordable"
+  - "Recognise extrapolation and use predictive variance or extrapolation grades to flag it"
 track: mlmodels
 weight: 1
 level: Advanced

@@ -1,6 +1,13 @@
 ---
 title: "Training neural networks"
 description: "Neurons, layers and activation functions; why networks can approximate any smooth function; backpropagation derived with the chain rule; and the choices that matter when the output is an energy whose derivative is a force."
+hook: "Writing a neural network down takes one line. Training it well depends on choices the equations never mention: scale the initial weights wrongly and a ten-layer network saturates or falls silent before learning has even begun."
+objectives:
+  - "Explain how a network replaces the fixed features of a linear model with learned ones"
+  - "Implement backpropagation and gradient descent for a one-hidden-layer network in NumPy"
+  - "Choose an initial weight scale that keeps signals alive through many layers"
+  - "Run a sound training recipe with a learning-rate schedule, validation set and early stopping"
+  - "Explain why networks that predict energies need smooth activation functions"
 track: neuron
 weight: 5
 level: Core
@@ -22,6 +29,10 @@ Each term is a **neuron**: it takes a weighted sum of its inputs, adds a bias, a
 {{< widget name="nn" title="Train a small network and watch what each neuron does" caption="Press Train. The thick curve is the network; the faint curves (one hidden layer only) are the contributions of individual neurons. Try 2 neurons, then 4, then 16 on the bond-energy curve; try ReLU on the same curve and switch the view to the slope; then try the step with tanh and with ReLU." >}}
 
 With one tanh neuron the network can only draw one smooth step. Two neurons with opposite signs can draw a bump. Many bumps placed side by side can trace any curve, which is the intuition behind the theorem below. Watch the faint curves during training: the neurons move, stretch and flip until their sum matches the data.
+
+{{< note type="try" >}}
+Choose the **damped wave** with tanh, one hidden layer and 2 neurons, and train: two neurons can make one bump, not a wave. Raise the count to 4, then 8, and watch the faint curves share out the oscillations between them. Then switch to ReLU with 8 neurons and count the kinks in the fit: in a single hidden layer, each ReLU neuron contributes at most one.
+{{< /note >}}
 
 ## Layers, in matrix form
 
@@ -132,6 +143,66 @@ for step in range(2001):
 - **Standardise inputs and outputs**, for the conditioning reasons in [the gradient-descent lesson](../gradient-descent/).
 - **Monitor a validation set** and stop or decay the learning rate when it stops improving ([the lesson on generalisation](../generalisation/)).
 
+### Why the scale of the initial weights matters
+
+A neuron's pre-activation is a sum over its $d_{\text{in}}$ inputs, $z = \sum_j w_j a_j$. If the weights are independent with variance $s^2$ and the inputs have mean zero and variance $v$, the variances add:
+
+{{< eq title="How a layer scales the signal" say="The spread of a neuron's input grows with the number of inputs and with the spread of the weights." >}}
+$$ \operatorname{Var}(z) = \textcolor{#4c6ef5}{d_{\text{in}}}\;\textcolor{#12a594}{s^2}\;\textcolor{#845ef7}{v} $$
+- $\textcolor{#4c6ef5}{d_{\text{in}}}$: the number of inputs to each neuron (the fan-in)
+- $\textcolor{#12a594}{s^2}$: the variance of the initial weights
+- $\textcolor{#845ef7}{v}$: the variance of the incoming activations
+- choosing $s^2 = 1/d_{\text{in}}$ keeps the spread the same from layer to layer
+{{< /eq >}}
+
+With 200 inputs and weights of standard deviation $s = 1$, the pre-activations are spread $\sqrt{200} \approx 14$ times more widely than the inputs, and a tanh neuron fed numbers that large sits on one of its flat tails, where its slope is almost zero. With $s = 0.01$ the spread is multiplied by $0.01\sqrt{200} \approx 0.14$ in every layer, so after ten layers it is $0.14^{10} \approx 3\times10^{-9}$ of what it was. The choice $s^2 = 1/d_{\text{in}}$ makes the factor 1. That is the reasoning behind Glorot initialisation for tanh (Xavier Glorot and Yoshua Bengio, 2010) and behind He initialisation, $s^2 = 2/d_{\text{in}}$, for ReLU, where the extra factor of 2 makes up for the half of its inputs that a ReLU sets to zero (Kaiming He and colleagues, 2015).
+
+The cell sends 1000 random inputs through ten tanh layers of 200 neurons each and reports the spread of the activations and the fraction of saturated neurons, those with $|a| > 0.99$.
+
+{{< py title="Activations through ten layers" >}}
+import numpy as np
+rng = np.random.default_rng(0)
+d, depth = 200, 10                                  # 200 neurons in each of 10 layers
+x = rng.normal(size=(1000, d))                      # 1000 standardised inputs
+
+for name, std in [("std 1 (too large)", 1.0), ("std 0.01 (too small)", 0.01),
+                  ("Glorot, std 1/sqrt(d)", 1 / np.sqrt(d))]:
+    a = x
+    print(name)
+    for layer in range(1, depth + 1):
+        W = rng.normal(0, std, size=(d, d))
+        a = np.tanh(a @ W)
+        if layer in (1, 2, 5, 10):
+            sat = np.mean(np.abs(a) > 0.99)         # neurons stuck on the flat tails
+            print(f"  layer {layer:2d}: spread of activations {a.std():.4f}, saturated {sat:.0%}")
+{{< /py >}}
+
+With $s = 1$, 85 % of the neurons are saturated from the first layer on: the network produces plenty of output, but almost no gradient can pass back through the flat tails. With $s = 0.01$ the activations shrink towards zero within a few layers, and so do the gradients, which travel back through the same small weights. Only the Glorot scale keeps the signal alive, and even then it fades slowly, from 0.63 to 0.23 over ten layers, because tanh is flatter than a straight line away from zero. Multiply that scale by 5/3, the gain PyTorch recommends for tanh, and the spread settles at about 0.65. Normalisation layers, which rescale activations to zero mean and unit variance during training (batch normalisation, Sergey Ioffe and Christian Szegedy, 2015), and the residual connections described in [backpropagation](../backpropagation/) make deep networks far less sensitive to this choice, but they do not make it irrelevant.
+
+### A training recipe with typical values
+
+The defaults below are a sound starting point for a small or medium network trained on scientific data. Each is a place to start, not a law.
+
+1. **Split first.** Set aside 10 to 20 % of the data for validation, and a test set if you can afford one, before looking at anything. When samples are correlated, as frames of one trajectory are, split by trajectory, composition or structural family rather than by sample ([generalisation](../generalisation/)).
+2. **Standardise** each input to zero mean and unit variance using the training set's statistics only, and scale the targets similarly. For total energies, subtracting a reference energy per atom of each element first is common.
+3. **Initialise** with a variance proportional to $1/d_{\text{in}}$: Glorot for tanh, He for ReLU. Most frameworks use a scaling of this kind by default.
+4. **Overfit a tiny subset.** Train on ten or twenty examples. A correct network and pipeline drive the training loss almost to zero; if yours cannot, the bug is in the code, not in the data.
+5. **Optimise** with Adam at a learning rate of $10^{-3}$ and its default momentum parameters, or AdamW if you use weight decay ([gradient descent](../gradient-descent/)), with mini-batches of 16 to 256 samples. If the loss oscillates or explodes, divide the learning rate by 3 to 10.
+6. **Schedule the learning rate.** Either cut it by a factor of 2 to 10 whenever the validation loss has stopped improving for a set number of epochs ("reduce on plateau"), or let it decay along a cosine to a small fraction of its starting value over the planned run (Ilya Loshchilov and Frank Hutter, 2017). Large models often add a warm-up, a gradual increase over the first few hundred or thousand steps.
+7. **Stop early.** Evaluate the validation loss every epoch, keep a copy of the weights with the best value so far, and stop when it has not improved for a patience of, say, 10 to 50 epochs. The saved weights, not the last ones, are your model.
+8. **Report** the error on a test set that played no part in any of these choices.
+
+### Reading the loss curves
+
+Plot training and validation loss against epochs, on a logarithmic axis. Four patterns cover most situations. If both curves fall and level off together, the model is fitting as well as its capacity and features allow, and a larger network or better inputs may help. If the training loss keeps falling while the validation loss turns upwards, the model is overfitting: stop early, add weight decay, collect more data or shrink the network. If the loss jumps upwards or becomes `NaN`, the learning rate is too high or the gradients are exploding: lower the rate or clip the gradients. If the loss barely moves from the start, the learning rate may be too low, the neurons may be saturated or dead from a poor initialisation, or the data pipeline may have a bug, such as targets shuffled separately from their inputs.
+
+{{< note type="warn" >}}
+- **Standardising with statistics of the whole data set**, validation and test points included, leaks information about them into training. Compute means and variances on the training set and reuse them everywhere.
+- **Forgetting evaluation mode.** Dropout and batch normalisation behave differently in training and in evaluation; in PyTorch, call `model.eval()` before validating and `model.train()` afterwards.
+- **Choosing the stopping epoch, or anything else, on the test set** turns it into a second validation set and makes the reported error optimistic.
+- **Unshuffled data.** Mini-batches taken in the order of an MD trajectory or of a sorted database are not representative samples; shuffle the training set every epoch.
+{{< /note >}}
+
 ## When the output is an energy
 
 In molecular science a network often predicts an energy $E$, and the forces are its negative gradient with respect to atomic positions, $\mathbf F_i = -\partial E/\partial\mathbf r_i$, obtained by the same automatic differentiation. That has consequences you can see in the lab.
@@ -139,6 +210,15 @@ In molecular science a network often predicts an energy $E$, and the forces are 
 - **The activation must be smooth.** A ReLU network is piecewise linear, so its derivative is piecewise *constant* and jumps at every kink. Train ReLU on the bond-energy curve, then switch the lab to *Slope dy/dx*: the energy fit can look good, but its slope, the force, is a staircase, and molecular dynamics with such forces does not conserve energy. Interatomic potentials use tanh, SiLU or similar smooth activations.
 - **Fitting forces as well as energies** gives far more information per calculation: one DFT run of $N$ atoms yields one energy but $3N$ force components. This is the subject of [the lesson on interatomic potentials](../mlip/).
 - **The step function** is a warning in the other direction: smooth networks round off discontinuities, and a network asked to fit one will overshoot (try tanh on the step with few neurons).
+
+{{< note type="key" >}}
+- A neural network is a linear model whose features are themselves learned; nonlinear activations are what make depth worth having.
+- One hidden layer can approximate any continuous function in principle; depth makes it economical.
+- Backpropagation gives the gradient with respect to every parameter for the cost of a few forward passes.
+- Initial weights with variance about $1/d_{\text{in}}$ (Glorot) or $2/d_{\text{in}}$ (He) keep signals and gradients alive through many layers.
+- A sound default recipe: standardised data, Adam at about $10^{-3}$, a decaying learning rate, a validation set and early stopping, and a test set used once.
+- When the output is an energy, use smooth activations so that the forces are continuous.
+{{< /note >}}
 
 {{< quiz >}}
 - q: "What would a deep network be equivalent to if every activation function were removed?"
@@ -157,6 +237,14 @@ In molecular science a network often predicts an energy $E$, and the forces are 
   options: ["Nothing unusual; gradient descent breaks the symmetry", "All neurons in the layer receive identical gradients and remain identical, so the layer acts like a single neuron", "Training diverges immediately"]
   answer: 1
   why: "Identical neurons compute identical outputs and receive identical error signals, so their updates are identical forever. Random initialisation breaks this symmetry."
+- q: "A tanh layer has 200 inputs, and its weights are drawn with standard deviation 1. What goes wrong?"
+  options: ["Nothing, because tanh keeps every output between −1 and 1", "The pre-activations are spread about 14 times wider than the inputs, most neurons saturate, and little gradient passes back", "The layer becomes linear"]
+  answer: 1
+  why: "$\\mathrm{Var}(z) = d_{\\text{in}}s^2 v = 200v$, a spread of $\\sqrt{200} \\approx 14$ times the input's. Saturated tanh neurons have slopes near zero, so gradients vanish. A standard deviation of $1/\\sqrt{200}$ avoids this."
+- q: "The training loss is still falling, but the validation loss has risen for the last 30 epochs. Which weights should you keep?"
+  options: ["The final weights, which fit the training data best", "The weights saved at the epoch with the lowest validation loss", "The weights from the epoch with the lowest test loss"]
+  answer: 1
+  why: "That is early stopping: the validation loss estimates performance on new data. Choosing by test loss would make the test set a second validation set and the reported error optimistic."
 {{< /quiz >}}
 
 ## References and further reading
@@ -173,5 +261,11 @@ In molecular science a network often predicts an energy $E$, and the forces are 
 8. X. Glorot and Y. Bengio, “Understanding the difficulty of training deep feedforward neural networks,” *Proceedings of AISTATS*, 249–256 (2010).
 9. K. He, X. Zhang, S. Ren and J. Sun, “Delving deep into rectifiers: surpassing human-level performance on ImageNet classification,” *Proceedings of ICCV*, 1026–1034 (2015).
 10. S. Elfwing, E. Uchibe and K. Doya, “Sigmoid-weighted linear units for neural network function approximation in reinforcement learning,” *Neural Networks* **107**, 3–11 (2018) (SiLU).
+11. D. P. Kingma and J. Ba, “Adam: a method for stochastic optimization,” *International Conference on Learning Representations* (ICLR) (2015).
+12. I. Loshchilov and F. Hutter, “SGDR: stochastic gradient descent with warm restarts,” *International Conference on Learning Representations* (ICLR) (2017).
+13. I. Loshchilov and F. Hutter, “Decoupled weight decay regularization,” *International Conference on Learning Representations* (ICLR) (2019) (AdamW).
+14. S. Ioffe and C. Szegedy, “Batch normalization: accelerating deep network training by reducing internal covariate shift,” *Proceedings of ICML*, PMLR 37, 448–456 (2015).
+15. L. Prechelt, “Early stopping — but when?,” in G. B. Orr and K.-R. Müller (eds.), *Neural Networks: Tricks of the Trade*, Lecture Notes in Computer Science **1524**, Springer (1998).
+16. A. Karpathy, “A recipe for training neural networks,” karpathy.github.io (2019).
 
 </div>

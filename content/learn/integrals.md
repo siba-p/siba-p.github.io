@@ -1,6 +1,13 @@
 ---
 title: "Integrals"
 description: "The integral as an accumulated total: Riemann sums, signed area, the fundamental theorem of calculus that links integrals to derivatives, standard techniques and the Gaussian integral, integrals in physics such as work and averages, numerical quadrature, and Monte Carlo integration in many dimensions."
+hook: "Throw random darts at a square and count how many land inside a quarter circle: four times that fraction approaches π. The same trick, sampling instead of slicing, is how integrals over thousands of dimensions are computed."
+objectives:
+  - "Interpret a definite integral as a signed area and as an accumulated total"
+  - "Evaluate integrals with the fundamental theorem, substitution and integration by parts"
+  - "Derive the Gaussian integral √π by switching to polar coordinates"
+  - "Compare left-edge, trapezoid and Simpson rules by how their errors shrink with step size"
+  - "Explain why Monte Carlo sampling beats grids for integrals in many dimensions"
 track: calc
 weight: 3
 level: Foundation

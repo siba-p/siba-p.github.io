@@ -1,6 +1,13 @@
 ---
 title: "Thermostats and barostats"
 description: "Controlling temperature and pressure in molecular dynamics: why NVE dynamics is not enough, the kinetic temperature, velocity rescaling and the Berendsen weak-coupling scheme and why they fail to sample the canonical ensemble, the Andersen and Langevin stochastic thermostats, the Nosé–Hoover extended system and its chains, stochastic velocity rescaling, and barostats from Berendsen and Andersen to Parrinello–Rahman, MTK and stochastic cell rescaling."
+hook: "The flying ice cube is a real simulation artefact: a biomolecule freezes internally while flying through its box, its kinetic energy drained into overall motion. Its cause was velocity rescaling, a thermostat that gets the average temperature right but the ensemble wrong."
+objectives:
+  - "Explain why a thermostat must reproduce kinetic-energy fluctuations, not only their mean"
+  - "Diagnose the artefacts of velocity rescaling and Berendsen coupling"
+  - "Compare the Andersen, Langevin, Nosé–Hoover and stochastic velocity-rescaling thermostats"
+  - "Choose a barostat that samples correct volume fluctuations in production runs"
+  - "Set coupling so that thermostats leave dynamics intact when measuring transport"
 track: dyn
 weight: 3
 level: Core
@@ -68,7 +75,7 @@ $$ \mathrm dK = \big(K_0 - K\big)\frac{\mathrm dt}{\tau} + 2\sqrt{\frac{K K_0}{N
 - all velocities are rescaled by a single factor, so the dynamics is disturbed only globally
 {{< /eq >}}
 
-CSVR samples the canonical ensemble for any coupling time, is as stable as Berendsen, and perturbs dynamical properties very little because it acts only on the total kinetic energy. It is the default in GROMACS (`tcoupl = v-rescale`) and widely used elsewhere.
+CSVR samples the canonical ensemble for any coupling time, is as stable as Berendsen, and perturbs dynamical properties very little because it acts only on the total kinetic energy. It is the usual choice in GROMACS (`tcoupl = v-rescale`) and widely used elsewhere.
 
 The figure runs a small two-dimensional Lennard-Jones fluid under each thermostat and histograms the kinetic energy against the canonical gamma distribution.
 

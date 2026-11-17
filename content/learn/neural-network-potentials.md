@@ -1,6 +1,13 @@
 ---
 title: "Atomic neural-network potentials"
 description: "The high-dimensional neural-network potential in full: atomic decomposition, atom-centred symmetry functions, element-specific networks, forces by the chain rule, training on energies and forces, many-element systems, the ANI family and transfer learning to coupled-cluster accuracy, the Deep Potential embedding and DP-GEN, and the four generations of network potentials that add electrostatics and charge transfer."
+hook: "In 2007 Behler and Parrinello let one small neural network assign an energy to each silicon atom from a description of its neighbours, then added the results. Almost every machine-learned potential since is a variation on that idea."
+objectives:
+  - "Write the Behler–Parrinello energy as a sum of element-specific atomic networks"
+  - "Compute forces by the chain rule through symmetry-function descriptors"
+  - "Explain why training on forces gives far better potentials than energies alone"
+  - "Compare ANI's transfer learning with Deep Potential's learned descriptors and DP-GEN"
+  - "Recognise when third- or fourth-generation networks are needed for long-range electrostatics"
 track: mlmodels
 weight: 2
 level: Advanced

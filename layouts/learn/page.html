@@ -1,17 +1,125 @@
 {{ define "main" }}
-{{- /* Every topic is read inside its subject's book page; this URL forwards there, keeping any
-       section anchor (old #section links become #slug--section). */ -}}
+{{- /* One chapter of a book. The book's syllabus is the section page (layouts/learn/section.html). */ -}}
 {{- $order := partial "learn-order.html" . -}}
-{{- $me := . -}}{{- $cur := dict -}}
-{{- range $order }}{{ if eq .page.RelPermalink $me.RelPermalink }}{{ $cur = . }}{{ end }}{{ end -}}
+{{- $me := . -}}
 {{- $slug := .File.ContentBaseName -}}
-{{- with $cur.course }}
-{{- $target := printf "learn/%s/" .slug | relURL -}}
-<div class="wrap learn-forward">
-  <p>“{{ $me.Title }}” is a chapter of <a href="{{ $target }}#{{ $slug }}">{{ .title }}</a>.</p>
-</div>
-<script>(function () { var t = {{ $target }}, s = {{ $slug }}, h = location.hash.slice(1); location.replace(t + "#" + (h ? s + "--" + h : s)); })();</script>
-<noscript><meta http-equiv="refresh" content="0; url={{ $target }}#{{ $slug }}"></noscript>
+{{- $cur := dict -}}
+{{- range $order }}{{ if eq .page.RelPermalink $me.RelPermalink }}{{ $cur = . }}{{ end }}{{ end -}}
+{{- if $cur.course }}
+{{- $c := $cur.course -}}
+{{- $mine := where $order "course.id" $c.id -}}
+{{- $total := len $mine -}}
+{{- $n := 0 }}{{ $prev := false }}{{ $next := false -}}
+{{- range $i, $e := $mine }}{{ if eq $e.page.RelPermalink $me.RelPermalink }}{{ $n = add $i 1 }}{{ if gt $i 0 }}{{ $prev = index $mine (sub $i 1) }}{{ end }}{{ if lt (add $i 1) $total }}{{ $next = index $mine (add $i 1) }}{{ end }}{{ end }}{{ end -}}
+{{- $nextBook := false }}{{ range site.Data.learn }}{{ if eq .n (add $c.n 1) }}{{ $nextBook = . }}{{ end }}{{ end -}}
+{{- $roman := slice "I" "II" "III" "IV" "V" "VI" "VII" "VIII" -}}
+{{- $partNo := 0 }}{{ $k := 0 }}{{ range $c.parts }}{{ if where $mine "part.id" .id }}{{ $k = add $k 1 }}{{ if eq .id $cur.part.id }}{{ $partNo = $k }}{{ end }}{{ end }}{{ end -}}
+{{- $st := partialCached "learn-chstats.html" . .RelPermalink -}}
+{{- $slugs := slice }}{{ range $mine }}{{ $slugs = $slugs | append .page.File.ContentBaseName }}{{ end -}}
+{{- $leads := slice }}{{ range $order }}{{ if in (.page.Params.prereqs | default slice) $slug }}{{ $leads = $leads | append . }}{{ end }}{{ end -}}
+{{- $secs := slice }}{{ range .Fragments.Headings }}{{ range .Headings }}{{ if not (hasPrefix .ID "references") }}{{ $secs = $secs | append . }}{{ end }}{{ end }}{{ end }}
+<article class="chap tone-{{ $c.tone }}" data-learn-page="{{ $slug }}" data-learn-book="{{ $c.short }}" style="counter-reset: chap {{ $n }}">
+  <header class="chap-head">
+    <div class="wrap">
+      <nav class="crumbs" aria-label="Breadcrumb"><a href="{{ "learn/" | relURL }}">Learn</a><span aria-hidden="true">/</span><a href="{{ printf "learn/%s/" $c.slug | relURL }}">{{ $c.short }}</a><span aria-hidden="true">/</span><a href="{{ printf "learn/%s/" $c.slug | relURL }}#part-{{ $cur.part.id }}">Part {{ index $roman (sub $partNo 1) }} · {{ $cur.part.title }}</a></nav>
+      <p class="chap-kicker"><span class="chap-num">Chapter {{ $n }}</span><span aria-hidden="true">of</span><span>{{ $total }}</span><span class="chap-dots" aria-hidden="true">{{ range $i, $e := $mine }}<i class="{{ if eq (add $i 1) $n }}on{{ end }}" data-learn-slug="{{ $e.page.File.ContentBaseName }}"></i>{{ end }}</span></p>
+      <h1>{{ .Title }}</h1>
+      {{ with .Params.hook }}<p class="chap-hook">{{ . }}</p>{{ end }}
+      <ul class="chap-meta">
+        <li><span class="lvl lvl-{{ lower .Params.level }}">{{ .Params.level }}</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>{{ $st.min }} min read</li>
+        {{ with $st.live }}<li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18c3-9 5-12 8-6s5 3 8-6"/></svg>{{ . }} interactive {{ cond (eq . 1) "figure" "figures" }}</li>{{ end }}
+        {{ with $st.quiz }}<li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>{{ . }}-question quiz</li>{{ end }}
+      </ul>
+    </div>
+  </header>
+
+  <div class="wrap chap-layout">
+    <aside class="book-nav" aria-label="Contents of {{ $c.short }}">
+      <button type="button" class="bn-toggle" aria-expanded="false">Chapter {{ $n }} of {{ $total }} · Contents</button>
+      <nav class="bn-in">
+        <p class="bn-title"><a href="{{ printf "learn/%s/" $c.slug | relURL }}">{{ $c.title }}</a></p>
+        <p class="bn-prog" data-learn-slugs="{{ delimit $slugs " " }}"><span class="bn-bar"><i data-learn-bar></i></span><span><b data-learn-count>0</b> of {{ $total }} read</span></p>
+        {{- $j := 0 }}
+        {{- range $c.parts }}{{ $p := . }}{{ $ch := where $mine "part.id" $p.id }}{{ if $ch }}
+        <p class="bn-part">{{ $p.title }}</p>
+        <ol class="bn-chs">
+          {{- range $ch }}{{ $j = add $j 1 }}{{ $pg := .page }}
+          <li{{ if eq $pg.RelPermalink $me.RelPermalink }} class="on"{{ end }}><a href="{{ $pg.RelPermalink }}" data-learn-slug="{{ $pg.File.ContentBaseName }}"{{ if eq $pg.RelPermalink $me.RelPermalink }} aria-current="page"{{ end }}><span class="bn-n">{{ $j }}</span><span>{{ $pg.Title }}</span></a>
+            {{- if eq $pg.RelPermalink $me.RelPermalink }}
+            <ol class="bn-secs">{{ range $si, $s := $secs }}<li><a href="#{{ $s.ID }}"><span class="bn-sn">{{ $n }}.{{ add $si 1 }}</span>{{ $s.Title | plainify }}</a></li>{{ end }}</ol>
+            {{- end }}
+          </li>
+          {{- end }}
+        </ol>
+        {{- end }}{{ end }}
+        <p class="bn-all"><a href="{{ "learn/" | relURL }}">← All books</a></p>
+      </nav>
+    </aside>
+
+    <div class="chap-main">
+      <div class="chap-brief">
+        <section class="cb-card cb-learn" aria-labelledby="cb-learn-h">
+          <p class="cb-h" id="cb-learn-h">What you'll learn</p>
+          {{ with .Params.objectives }}
+          <ul class="cb-obj">{{ range . }}<li>{{ . }}</li>{{ end }}</ul>
+          {{ else }}
+          <ul class="cb-obj">{{ range first 5 $secs }}<li>{{ .Title | plainify }}</li>{{ end }}</ul>
+          {{ end }}
+        </section>
+        <section class="cb-card cb-before" aria-labelledby="cb-before-h">
+          <p class="cb-h" id="cb-before-h">Before you start</p>
+          {{ with .Params.prereqs }}
+          <ul class="cb-pre">
+            {{- range . }}{{ $s := . }}{{ range $order }}{{ if eq .page.File.ContentBaseName $s }}
+            <li><a class="tone-{{ .course.tone }}" href="{{ .page.RelPermalink }}" data-learn-slug="{{ $s }}"><span class="cb-tick" aria-hidden="true"></span><span class="cb-t">{{ .page.Title }}</span><small>{{ .course.short }}</small></a></li>
+            {{- end }}{{ end }}{{ end }}
+          </ul>
+          <p class="cb-note">These chapters supply the ideas used here. A tick means you have marked one as read.</p>
+          {{ else }}
+          <p class="cb-none">Nothing. This chapter is a starting point: it assumes only curiosity and a little school mathematics.</p>
+          {{ end }}
+        </section>
+      </div>
+
+      <div class="chap-body lesson-body prose">
+        {{ .Content }}
+      </div>
+
+      <div class="chap-finish">
+        <button type="button" class="btn btn-primary" data-learn-mark="{{ $slug }}">Mark this chapter as read</button>
+        <p class="muted" data-learn-slugs="{{ delimit $slugs " " }}"><b data-learn-count>0</b> of {{ $total }} chapters of {{ $c.short }} read. Progress is stored only in this browser.</p>
+      </div>
+
+      <nav class="chap-pager" aria-label="Previous and next chapter">
+        {{- if $prev }}
+        <a class="prev" href="{{ $prev.page.RelPermalink }}" rel="prev"><small>← Chapter {{ sub $n 1 }}</small><span>{{ $prev.page.Title }}</span></a>
+        {{- else }}
+        <a class="prev" href="{{ printf "learn/%s/" $c.slug | relURL }}"><small>← Book overview</small><span>{{ $c.title }}</span></a>
+        {{- end }}
+        {{- if $next }}
+        <a class="next" href="{{ $next.page.RelPermalink }}" rel="next"><small>Up next · Chapter {{ add $n 1 }} →</small><span>{{ $next.page.Title }}</span>{{ with $next.page.Params.hook }}<em>{{ . }}</em>{{ end }}</a>
+        {{- else if $nextBook }}
+        <a class="next is-end tone-{{ $nextBook.tone }}" href="{{ printf "learn/%s/" $nextBook.slug | relURL }}"><small>End of {{ $c.short }} · Next book →</small><span>{{ $nextBook.title }}</span><em>{{ $nextBook.tagline }}</em></a>
+        {{- else }}
+        <a class="next is-end" href="{{ "learn/" | relURL }}"><small>You have reached the last book →</small><span>Back to the library</span><em>Pick another path, or revisit a chapter you skimmed.</em></a>
+        {{- end }}
+      </nav>
+
+      {{ with $leads }}
+      <section class="chap-leads" aria-labelledby="leads-h">
+        <h2 id="leads-h">Where this leads</h2>
+        <p>These chapters build directly on this one.</p>
+        <ul>
+          {{- range . }}
+          <li><a class="tone-{{ .course.tone }}" href="{{ .page.RelPermalink }}" data-learn-slug="{{ .page.File.ContentBaseName }}"><small>{{ .course.short }}</small><span>{{ .page.Title }}</span></a></li>
+          {{- end }}
+        </ul>
+      </section>
+      {{ end }}
+    </div>
+  </div>
+</article>
 {{- else }}
 <div class="wrap learn-forward"><h1>{{ .Title }}</h1>{{ .Content }}</div>
 {{- end }}

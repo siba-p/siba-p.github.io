@@ -1,0 +1,8 @@
+{{- /* Reading statistics for one chapter: minutes to read, interactive figures, Python cells and quiz
+       questions. Call with partialCached "learn-chstats.html" $page $page.RelPermalink. */ -}}
+{{- $p := . -}}
+{{- $c := string $p.Content -}}
+{{- $figs := len (findRE `data-widget="` $c) -}}
+{{- $py := len (findRE `class="pycell"` $c) -}}
+{{- $qz := len (findRE `<li class="qz"` $c) -}}
+{{- return dict "min" (int (math.Ceil (div (float $p.WordCount) 130))) "figs" $figs "py" $py "quiz" $qz "live" (add $figs $py) -}}

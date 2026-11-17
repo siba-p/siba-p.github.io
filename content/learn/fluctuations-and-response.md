@@ -1,6 +1,13 @@
 ---
 title: "Fluctuations and response"
 description: "Why thermodynamic quantities fluctuate, how large the fluctuations are, and what they measure: energy fluctuations and the heat capacity, the 1/√N law and the thermodynamic limit, density fluctuations and compressibility, volume and enthalpy fluctuations at constant pressure, the fluctuation–dissipation theorem and linear response, and what all this means for simulations of small systems."
+hook: "Watch how much a system's energy jitters and you know its heat capacity without ever heating it. Fluctuations are not noise to be averaged away: they measure how matter responds when it is pushed."
+objectives:
+  - "Compute heat capacity and compressibility from energy and particle-number fluctuations"
+  - "Explain why relative fluctuations shrink as 1/√N, and why critical points are the exception"
+  - "Derive a static susceptibility as β times an equilibrium variance"
+  - "Relate transport coefficients to time-correlation functions through the fluctuation–dissipation theorem"
+  - "Diagnose thermostats and barostats that give the right averages but the wrong fluctuations"
 track: statmech
 weight: 4
 level: Core

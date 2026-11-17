@@ -1,6 +1,13 @@
 ---
 title: "Gradients and the Hessian"
 description: "Calculus for functions of many variables: contour maps, partial derivatives as slopes of slices, the gradient vector and directional derivatives, forces as negative gradients of the energy, the Hessian and the classification of minima, maxima and saddle points, steepest-descent paths, and the multivariable chain rule."
+hook: "A chemical reaction typically crosses its energy landscape at a mountain pass: a maximum along one direction and a minimum along all the others. The gradient and the Hessian are how such passes are found and told apart from valleys."
+objectives:
+  - "Compute partial derivatives and assemble them into the gradient vector"
+  - "Explain why the gradient points straight uphill and is perpendicular to contour lines"
+  - "Derive the forces on atoms as negative gradients of the potential energy"
+  - "Classify stationary points as minima, maxima or saddles from the Hessian's eigenvalues"
+  - "Diagnose why steepest descent zigzags in ill-conditioned valleys"
 track: linalg
 weight: 2
 level: Foundation

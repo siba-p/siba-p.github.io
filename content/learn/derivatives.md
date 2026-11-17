@@ -1,6 +1,13 @@
 ---
 title: "Derivatives and Taylor series"
 description: "The derivative as the slope of a curve seen up close: its definition as a limit, the derivative as a new function, the rules of differentiation, forces as derivatives of energy, optimisation, Taylor series and the harmonic approximation, and how derivatives are computed with finite differences."
+hook: "Zoom in far enough on any smooth curve and it straightens into a line. Its slope, the derivative, turns an energy into a force, locates the stable shape of a molecule and steers the training of every neural network."
+objectives:
+  - "Compute derivatives from the limit definition and with the power, product and chain rules"
+  - "Locate stationary points and classify them as minima or maxima using the second derivative"
+  - "Derive the equilibrium separation and bond stiffness of the Lennard-Jones potential"
+  - "Build Taylor polynomials and explain the harmonic approximation of a chemical bond"
+  - "Choose a finite-difference step that balances truncation error against round-off error"
 track: calc
 weight: 2
 level: Foundation

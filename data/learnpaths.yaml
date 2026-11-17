@@ -1,0 +1,103 @@
+# Guided reading paths on the Learn hub. Each path is an ordered list of chapter slugs
+# (files in content/learn/). Chapters that do not exist are skipped. Keep each chapter after
+# any of its prerequisites that also appear in the same path.
+- id: code
+  title: "New to scientific programming"
+  who: "You can do the science but your code is held together with copy and paste."
+  goal: "Write clear, fast Python for real data, with the mathematics it relies on."
+  steps:
+    - how-python-runs
+    - python-objects-and-names
+    - python-control-flow
+    - python-functions
+    - python-collections
+    - functions-and-graphs
+    - numpy-arrays
+    - vectors-and-matrices
+    - python-for-science
+    - python-classes
+    - python-performance
+- id: ml
+  title: "A scientist new to machine learning"
+  who: "You know some calculus and Python, and you keep hearing about neural networks."
+  goal: "Understand how models learn, why they fail, and the architectures used in science."
+  steps:
+    - derivatives
+    - vectors-and-matrices
+    - gradients
+    - learning-from-data
+    - gradient-descent
+    - generalisation
+    - the-neuron
+    - how-a-neuron-learns
+    - networks-bend-space
+    - backpropagation
+    - neural-networks
+    - uncertainty-gaussian-processes
+    - convolutional-networks
+    - graph-neural-networks
+- id: sim
+  title: "Already running molecular dynamics"
+  who: "You run GROMACS or LAMMPS and want to know what the settings really do."
+  goal: "Check the foundations under your simulations, then go after free energies."
+  steps:
+    - potential-energy-surfaces
+    - boltzmann-and-maxwell
+    - ensembles-and-free-energy
+    - molecular-dynamics
+    - thermostats-and-barostats
+    - trajectory-analysis
+    - es-landscapes
+    - es-rates
+    - es-collective-variables
+    - es-fep-ti
+    - es-umbrella
+    - es-metadynamics
+- id: free
+  title: "Free energy from first principles"
+  who: "You want to know where free energy comes from, not only how to compute it."
+  goal: "Go from counting microstates to modern enhanced-sampling methods."
+  steps:
+    - motion-and-phase-space
+    - quantum-energy-levels
+    - entropy-and-temperature
+    - boltzmann-and-maxwell
+    - ensembles-and-free-energy
+    - fluctuations-and-response
+    - monte-carlo
+    - es-landscapes
+    - es-rates
+    - es-collective-variables
+    - es-fep-ti
+    - es-umbrella
+    - es-metadynamics
+    - es-opes-abf
+- id: mlip
+  title: "Building a machine-learned potential"
+  who: "You want a potential with DFT accuracy at force-field cost for your material."
+  goal: "Understand MLIPs from descriptors to foundation models, and train one yourself."
+  steps:
+    - potential-energy-surfaces
+    - neural-networks
+    - history-of-interatomic-potentials
+    - mlip-foundations
+    - symmetry-descriptors
+    - kernel-and-linear-potentials
+    - neural-network-potentials
+    - mlip
+    - build-your-own-mlip
+    - active-learning
+    - universal-potentials
+- id: hpc
+  title: "Productive on a computing cluster"
+  who: "You have an account on a cluster and a terminal you do not fully trust."
+  goal: "Understand the machine, the shell and compiled code well enough to work fast."
+  steps:
+    - inside-a-computer
+    - numbers-in-a-computer
+    - linux-architecture
+    - linux-shell
+    - how-bash-works
+    - linux-for-simulation
+    - fortran
+    - python-performance

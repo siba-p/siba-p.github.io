@@ -1,6 +1,13 @@
 ---
 title: "Probability and statistics"
 description: "Probability as long-run frequency and as degree of belief; the sum and product rules; random variables, binomial, normal, Poisson and exponential distributions; expectation and variance; the central limit theorem and error bars; Bayes' theorem; and estimating averages and their uncertainty from correlated simulation data."
+hook: "A computational screen catches 90 % of good materials and wrongly flags only 10 % of bad ones. If just 5 % of candidates are good, about two in three of the materials it flags are duds."
+objectives:
+  - "Apply the sum and product rules to compute probabilities of combined events"
+  - "Compute means and variances and explain why error bars shrink as one over √n"
+  - "Explain why averages of many independent variables follow the normal distribution"
+  - "Use Bayes' theorem to update a belief and recognise the base-rate trap"
+  - "Estimate honest error bars from correlated simulation data with block averaging"
 track: chance
 weight: 1
 level: Foundation

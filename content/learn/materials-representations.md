@@ -1,6 +1,13 @@
 ---
 title: "Representing materials"
 description: "How a periodic crystal becomes model input: lattices and unit cells, composition-only models, crystal graphs with periodic images, the property databases models are trained on, and what stability on the convex hull really means."
+hook: "The primitive cell of rock salt holds just two atoms, yet each has six neighbours and most of them live in other cells. Turning an endless crystal into model input, and judging whether it can exist at all, starts here."
+objectives:
+  - "Explain why a crystal representation must not depend on the choice of unit cell"
+  - "Build a periodic crystal graph with image shifts from a neighbour list"
+  - "Compare composition-only models with structure-based crystal graph networks"
+  - "Recognise the functional and selection biases of high-throughput DFT databases"
+  - "Interpret the energy above the convex hull as a measure of stability"
 track: found
 weight: 4
 level: Advanced

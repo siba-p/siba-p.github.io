@@ -1,6 +1,13 @@
 ---
 title: "Molecular dynamics"
 description: "Newton's equations on a computer: the Verlet integrator and why it conserves energy, choosing the time step, periodic boundaries and cut-offs, thermostats and barostats, and a working MD workflow."
+hook: "Write the obvious integrator for Newton's equations and your simulated liquid slowly heats up until it boils. Loup Verlet's 1967 algorithm keeps the energy flat for millions of steps, and the reason is geometry, not raw accuracy."
+objectives:
+  - "Derive the Verlet algorithm from Taylor expansions forward and backward in time"
+  - "Explain why symplectic integrators show no systematic energy drift over long runs"
+  - "Choose a time step from the fastest vibration in the system"
+  - "Describe how periodic boundaries, cut-offs and Ewald sums mimic bulk matter"
+  - "Run a minimise, equilibrate and produce workflow and test energy conservation in NVE"
 track: dyn
 weight: 2
 level: Core
@@ -82,7 +89,7 @@ where $N_{\text{df}}$ is the number of degrees of freedom ($3N - 3$ in 3D after 
 
 - **Berendsen** rescales velocities so that $T$ relaxes exponentially to the target with time constant $\tau_T$. It is robust for equilibration but suppresses the natural fluctuations of the kinetic energy, so it does *not* generate the canonical ensemble and should not be used for production runs.
 - **Nosé–Hoover** adds a fictitious heat-bath variable with its own equation of motion. It is deterministic and samples the canonical ensemble, though a single thermostat can be non-ergodic for small or stiff systems (Nosé–Hoover chains fix this).
-- **Stochastic velocity rescaling** (Bussi, Donadio and Parrinello) is a Berendsen-like scheme with a correctly designed random term. It samples the canonical ensemble and is the default in GROMACS (`v-rescale`).
+- **Stochastic velocity rescaling** (Bussi, Donadio and Parrinello) is a Berendsen-like scheme with a correctly designed random term. It samples the canonical ensemble and is the usual choice in GROMACS (`v-rescale`).
 - **Langevin dynamics** adds friction and a random force to every atom, $m\dot{\mathbf v} = \mathbf F - \gamma m\mathbf v + \sqrt{2\gamma m k_BT}\,\boldsymbol\xi(t)$. It is canonical and very stable, but the friction slows diffusion, so dynamical properties depend on $\gamma$.
 
 **Barostats** do the same for pressure by letting the box volume (and shape) fluctuate: Parrinello–Rahman and the Martyna–Tobias–Klein (MTK) equations are canonical for production; Berendsen and the stochastic cell-rescaling method are used for equilibration or, in the latter case, also production.
@@ -95,6 +102,10 @@ where $N_{\text{df}}$ is the number of degrees of freedom ($3N - 3$ in 3D after 
 4. **Equilibrate at constant pressure** (NPT) until the density is stable.
 5. **Production**: a long run with canonical thermostat and barostat, saving coordinates every few picoseconds.
 6. **Analyse**, checking equilibration and statistical errors ([the lesson on trajectory analysis](../trajectory-analysis/)).
+
+{{< note type="practice" >}}
+For step 1, my browser tool [BoxMaker](/boxmaker/) gives the numbers of molecules and ions for a box at a target molarity, molality, mass fraction or mole fraction, with the rounding error and the matching GROMACS and Packmol commands.
+{{< /note >}}
 
 In GROMACS each stage is a preprocess-then-run pair (each `.mdp` file holds the stage's settings):
 

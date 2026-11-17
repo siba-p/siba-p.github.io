@@ -1,6 +1,13 @@
 ---
 title: "Ensembles and free energy"
 description: "The canonical ensemble in depth: the partition function as a sum of Boltzmann weights and the generator of all thermodynamics; energy, entropy, heat capacity and the Gibbs entropy formula; free energy as the competition between energy and entropy; free-energy profiles and the potential of mean force; the classical partition function, the ideal gas and the Sackur–Tetrode entropy; and the isothermal–isobaric and grand canonical ensembles."
+hook: "Rubber pulls harder when you heat it, and oil and water separate, for the same reason a broad, shallow valley can beat a deep, narrow one: free energy counts room as well as depth."
+objectives:
+  - "Explain what an ensemble is and why ensembles agree for large systems"
+  - "Compute energy, entropy, free energy and heat capacity from a partition function"
+  - "Predict state populations from free-energy differences and turn histograms into free-energy profiles"
+  - "Derive the ideal gas law and the Sackur–Tetrode entropy from the classical partition function"
+  - "Choose between canonical, isothermal–isobaric and grand canonical ensembles for a given problem"
 track: statmech
 weight: 3
 level: Core

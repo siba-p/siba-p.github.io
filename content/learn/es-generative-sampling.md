@@ -1,6 +1,13 @@
 ---
 title: "Generative models for equilibrium sampling"
 description: "Sampling the Boltzmann distribution without following dynamics: importance sampling and the effective sample size, normalizing flows and the change-of-variables formula, coupling layers, Boltzmann generators trained by energy and by example, mode collapse, free energies by reweighting, exact sampling with a generator as a Monte Carlo proposal, equivariant and continuous flows, flow matching, and diffusion models for molecular ensembles."
+hook: "Feed random numbers into a neural network and get back configurations from both sides of a barrier, with no transitions to wait for. Reweighting then removes the network's remaining errors, provided it never misses a state entirely."
+objectives:
+  - "Compute importance weights and the effective sample size for an approximate sampler"
+  - "Derive the density of a normalizing flow from the change-of-variables formula"
+  - "Explain why affine coupling layers have cheap inverses and Jacobian determinants"
+  - "Compare training by energy and by example, and recognise mode collapse"
+  - "Estimate free-energy differences by reweighting generated samples or by independence Metropolis"
 track: rl-ml
 weight: 2
 level: Advanced

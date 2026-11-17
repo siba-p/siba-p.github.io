@@ -1,6 +1,13 @@
 ---
 title: "Control flow"
 description: "How a Python program decides and repeats: blocks and indentation, comparisons and Boolean logic with short-circuit evaluation, if/elif/else, while loops for iterating to convergence, for loops and the iterator protocol, range, enumerate and zip, break, continue and the loop else clause, comprehensions and generators, and exceptions as a form of control flow."
+hook: "Python's for loop never counts. It asks an object for its next value until told there are none left, and that one rule lets the same loop walk through a list, a file or a trajectory too large for memory."
+objectives:
+  - "Write conditions with chained comparisons and short-circuit evaluation that guard against errors"
+  - "Write while loops that converge, with an achievable tolerance and an iteration limit"
+  - "Explain the iterator protocol behind for loops and use range, enumerate and zip"
+  - "Build lists with comprehensions and stream large files with generators"
+  - "Handle and raise specific exceptions instead of letting errors pass silently"
 track: pycore
 weight: 3
 level: Foundation

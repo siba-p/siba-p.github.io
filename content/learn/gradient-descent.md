@@ -1,6 +1,13 @@
 ---
 title: "Gradient descent"
 description: "How models with thousands to billions of parameters are fitted: follow the slope downhill, choose the step size, and why momentum and Adam help on badly shaped surfaces."
+hook: "Cauchy proposed walking downhill in 1847, and the idea still trains almost every neural network. On a loss surface with a condition number of ten thousand, though, even the best fixed step removes only 0.02 percent of the error per iteration."
+objectives:
+  - "Derive the stability limit η < 2/λmax from the quadratic model of a minimum"
+  - "Explain how the condition number of the Hessian sets the speed of gradient descent"
+  - "Compare momentum, stochastic gradients and Adam on badly conditioned loss surfaces"
+  - "Diagnose a learning rate that is too large or too small from the loss curve"
+  - "Choose Levenberg–Marquardt or L-BFGS when a problem has only a few parameters"
 track: ml
 weight: 2
 level: Foundation

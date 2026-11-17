@@ -1,6 +1,13 @@
 ---
 title: "Collections"
 description: "Python's built-in collections and how they are implemented: lists as over-allocated dynamic arrays of references, slicing and the cost of each operation, tuples and unpacking, dictionaries and sets as hash tables with constant-time lookup, Counter and defaultdict, nested data and JSON, and how to choose the right structure using the idea of algorithmic complexity."
+hook: "Asking whether a value is in a list of 100 000 numbers can take thousands of times longer than asking a set. The difference is a hash table, and picking the right container can turn an hour-long script into a one-second one."
+objectives:
+  - "Estimate how the cost of an operation scales with size using big-O notation"
+  - "Explain why list appends are amortised constant time while front insertions are linear"
+  - "Explain how dictionaries and sets use hashing, and why their keys must be immutable"
+  - "Use tuples, unpacking, Counter and defaultdict to write shorter, clearer code"
+  - "Choose a list, tuple, dictionary, set or NumPy array to match the question asked"
 track: pycore
 weight: 5
 level: Foundation

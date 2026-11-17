@@ -1,6 +1,13 @@
 ---
 title: "Collective variables"
 description: "The coordinates in which rare events are described: what a collective variable is, common choices (distances, angles, coordination numbers, dihedrals, RMSD, path variables, Steinhardt order parameters), the free-energy surface as a marginal probability, Jacobian terms, the mean force and the blue-moon ensemble, what makes a collective variable good, the committor test, and how PLUMED implements them."
+hook: "Look along the wrong direction and a free-energy barrier vanishes from the profile, although nothing in the system has changed. Choosing that direction, the collective variable, is the most consequential decision in a rare-event study."
+objectives:
+  - "Recognise common collective variables, from distances and dihedrals to path variables and Steinhardt parameters"
+  - "Explain why a free-energy profile depends on the chosen variable, including Jacobian terms"
+  - "Diagnose hidden barriers in degrees of freedom orthogonal to a collective variable"
+  - "Interpret a committor histogram to judge whether a variable is a good reaction coordinate"
+  - "Relate the mean force along a variable to the slope of its free-energy profile"
 track: rl-land
 weight: 3
 level: Core
@@ -38,7 +45,7 @@ $$ \textcolor{#f08c2e}{F}(s) = -k_BT \ln \textcolor{#4c6ef5}{P}(s) + C, \qquad \
 
 Because $F(s)$ is a marginal of the full distribution, it depends on the choice of CV in a way the energy does not. Two consequences are worth knowing. First, a coordinate transformation contributes a **Jacobian** term: the free energy as a function of the distance $r$ between two particles includes $-2k_BT\ln r$, because the volume of the shell at distance $r$ grows as $r^2$; even two non-interacting particles have a free energy that decreases with distance. Comparing free energies along different CVs, or converting a distance profile into a binding free energy, requires accounting for such terms. Second, free-energy differences between states are independent of the CV only when the states are defined by regions that do not depend on it; barrier heights depend on the CV and are physically meaningful only for good CVs.
 
-The derivative of the free energy is the **mean force**, the average force along the CV with all other coordinates in equilibrium. For a CV that is a combination of Cartesian coordinates it is simply the average of $-\partial U/\partial \xi$ at fixed $\xi$; in general, as Emily Carter, Giovanni Ciccotti, James Hynes and Raymond Kapral showed in 1989 for simulations with the CV held fixed by a constraint (the **blue-moon ensemble**), it contains geometric correction terms. Integrating the mean force along the CV gives $F(s)$: this is **thermodynamic integration** along a CV, and it is also the principle behind the adaptive biasing force method of [the chapter on adaptive biasing](../es-metadynamics/).
+The derivative of the free energy is the **mean force**, the average force along the CV with all other coordinates in equilibrium. For a CV that is a combination of Cartesian coordinates it is simply the average of $-\partial U/\partial \xi$ at fixed $\xi$; in general, as Emily Carter, Giovanni Ciccotti, James Hynes and Raymond Kapral showed in 1989 for simulations with the CV held fixed by a constraint (the **blue-moon ensemble**), it contains geometric correction terms. Integrating the mean force along the CV gives $F(s)$: this is **thermodynamic integration** along a CV, and it is also the principle behind the adaptive biasing force method of [the chapter on adaptive biasing](../es-opes-abf/).
 
 ## What makes a collective variable good
 

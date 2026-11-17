@@ -1,6 +1,13 @@
 ---
 title: "How Python runs"
 description: "What happens between typing a Python program and the processor doing the work: interpreters and compilers, the CPython implementation, tokenising, parsing into a syntax tree, compiling to bytecode, the stack-based virtual machine and its frames, objects on the heap, and why this design makes Python flexible but slower than C or Fortran."
+hook: "A missing bracket on line 40 means that line 1 of a Python script never runs. The reason is that Python is compiled after all, into bytecode for a machine that exists only in software."
+objectives:
+  - "Explain how CPython combines compilation to bytecode with interpretation by a virtual machine"
+  - "Trace source code through tokens, a syntax tree and bytecode with tokenize, ast and dis"
+  - "Distinguish syntax errors caught before running from errors raised during execution"
+  - "Interpret stack-machine bytecode, frames and the call stack behind a traceback"
+  - "Explain why each Python operation costs far more than its compiled equivalent"
 track: pycore
 weight: 1
 level: Foundation

@@ -1,6 +1,13 @@
 ---
 title: "A history of interatomic potentials"
 description: "How the problem of computing forces between atoms has been attacked for a century: pair potentials from Mie and Lennard-Jones, many-body potentials for metals and covalent solids, reactive force fields, ab initio molecular dynamics, and the arrival of machine learning, from the first neural-network surfaces of the 1990s through Behler–Parrinello, Gaussian approximation potentials, message passing, equivariant networks and universal models."
+hook: "In 1924 Lennard-Jones fitted a two-term formula to the behaviour of gases. A century later, networks trained on millions of quantum calculations cover most of the periodic table, and nearly every step between them repaired a failure of the step before."
+objectives:
+  - "Explain why pair potentials fail for metals and covalent solids"
+  - "Recognise the shared structure of the embedded atom method and Behler–Parrinello networks"
+  - "Trace the path from symmetry functions and GAP to ACE, message passing and equivariant networks"
+  - "Compare classical, ab initio and machine-learned potentials by cost, accuracy and transferability"
+  - "Name the three principles every modern potential inherits from this history"
 track: found
 weight: 1
 level: Foundation
@@ -28,7 +35,7 @@ $$ E = \sum_{i<j} \textcolor{#4c6ef5}{V}(r_{ij}), \qquad r_{ij} = |\mathbf r_j -
 - exact for an ideal gas of point particles; an approximation for everything else
 {{< /eq >}}
 
-Gustav Mie proposed in 1903 that the force between molecules combines a short-range repulsion and a longer-range attraction, each an inverse power of distance. In 1924 John Lennard-Jones, then at Bristol, fitted such potentials to the measured equation of state and viscosity of gases, and the form with exponents 12 and 6 that carries his name became standard:
+Gustav Mie proposed in 1903 that the force between molecules combines a short-range repulsion and a longer-range attraction, each an inverse power of distance. In 1924 John Lennard-Jones fitted such potentials to the measured equation of state and viscosity of gases, and the form with exponents 12 and 6 that carries his name became standard:
 
 {{< eq title="The Lennard-Jones potential" say="A steep wall where electron clouds overlap, a gentle well from fluctuating dipoles." >}}
 $$ V_{\text{LJ}}(r) = 4\textcolor{#d4a017}{\varepsilon}\left[\left(\frac{\textcolor{#845ef7}{\sigma}}{r}\right)^{12} - \left(\frac{\textcolor{#845ef7}{\sigma}}{r}\right)^{6}\right] $$

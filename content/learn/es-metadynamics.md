@@ -1,6 +1,13 @@
 ---
 title: "Metadynamics"
 description: "History-dependent biasing that fills free-energy wells: the origins in local elevation and conformational flooding, the metadynamics algorithm of Laio and Parrinello, its parameters and convergence problems, well-tempered metadynamics and the bias factor, reweighting to unbiased averages, infrequent metadynamics for rates, multiple-walker, bias-exchange, parallel-bias and funnel variants, and a PLUMED input."
+hook: "Pour sand into every valley you have already visited and sooner or later you are pushed over the mountain pass. That is metadynamics, and the sand it leaves behind is a map of the free energy."
+objectives:
+  - "Explain how Gaussian hills deposited along a collective variable fill free-energy wells"
+  - "Compare plain and well-tempered metadynamics and the role of the bias factor γ"
+  - "Compute a free-energy surface from a converged well-tempered bias"
+  - "Write a PLUMED input for well-tempered metadynamics with sensible hill parameters"
+  - "Recognise when reweighting, infrequent metadynamics or multiple walkers are the right extension"
 track: rl-bias
 weight: 1
 level: Advanced
@@ -16,7 +23,7 @@ Umbrella sampling needs the bias to be designed in advance. A more adaptive idea
 
 ### Origins
 
-Versions of this idea appeared several times. Thomas Huber, Andrew Torda and Wilfred van Gunsteren's **local elevation** (1994) penalised conformations already visited in conformational searches; Helmut Grubmüller's **conformational flooding** (1995) filled a potential-energy well with a Gaussian to accelerate escape; and the **Wang–Landau** algorithm (Fugao Wang and David Landau, 2001) built up a flat histogram in energy by adaptively modifying the density of states in Monte Carlo. In 2002 Alessandro Laio and Michele Parrinello formulated **metadynamics** for collective variables in molecular dynamics, in a form that has since become one of the most widely used enhanced-sampling methods in chemistry, biophysics and materials science. Laio and Parrinello described it as filling the free-energy wells with "computational sand".
+Versions of this idea appeared several times. Thomas Huber, Andrew Torda and Wilfred van Gunsteren's **local elevation** (1994) penalised conformations already visited in conformational searches; Helmut Grubmüller's **conformational flooding** (1995) filled a potential-energy well with a Gaussian to accelerate escape; and the **Wang–Landau** algorithm (Fugao Wang and David Landau, 2001) built up a flat histogram in energy by adaptively modifying the density of states in Monte Carlo. In 2002 Alessandro Laio and Michele Parrinello formulated **metadynamics** for collective variables in molecular dynamics, in a form that has since become one of the most widely used enhanced-sampling methods in chemistry, biophysics and materials science. The method is often pictured as filling the free-energy wells with computational sand.
 
 ## The algorithm
 

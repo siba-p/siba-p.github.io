@@ -1,19 +1,32 @@
 ---
 title: "Graph neural networks"
 description: "Molecules and crystals as graphs; the message-passing framework that learns its own descriptors; why sum aggregation gives permutation invariance; receptive fields; and the line from SchNet to equivariant networks."
+hook: "Aspirin's 13 heavy atoms can be numbered in over six billion ways, and a model must give the same answer for every one. Graph networks guarantee it: every atom adds up messages from its neighbours, using rules shared by all atoms."
+objectives:
+  - "Compute one round of message passing by hand on a four-atom molecule"
+  - "Explain why sum aggregation makes predictions independent of how atoms are numbered"
+  - "Estimate a network's receptive field from its depth and cut-off radius"
+  - "Compare distance-only networks such as SchNet with equivariant ones such as NequIP and MACE"
+  - "Recognise where graph networks are used for property prediction, potentials and materials discovery"
 track: arch
 weight: 2
 level: Core
 minutes: 50
 lab: "Pass messages across aspirin"
-prereqs: ["symmetry-descriptors"]
+prereqs: ["symmetry-descriptors", "convolutional-networks"]
 ---
 
 ## From hand-made descriptors to learned ones
 
-The descriptors of the [previous lesson](../symmetry-descriptors/) are designed by hand and then fixed. **Graph neural networks** (GNNs) keep the same symmetries but *learn* the description of each atom's environment, end to end, from the training data. Since about 2017 they have become the dominant architecture for molecular and materials property prediction and for machine-learned interatomic potentials.
+The descriptors of [the lesson on symmetry descriptors](../symmetry-descriptors/) are designed by hand and then fixed. **Graph neural networks** (GNNs) keep the same symmetries but *learn* the description of each atom's environment, end to end, from the training data. Since about 2017 they have become the dominant architecture for molecular and materials property prediction and for machine-learned interatomic potentials.
+
+Graph networks are also the natural sequel to [convolutional networks](../convolutional-networks/). A convolutional layer applies one small set of shared weights to every pixel and its fixed ring of neighbours on a grid; a graph network applies one small set of shared weights to every atom and its neighbours, however many there are and wherever they sit. Locality and weight sharing survive the move from pixels to atoms; the grid does not.
 
 A **graph** $\mathcal G = (\mathcal V, \mathcal E)$ has nodes and edges. A molecule is a graph with atoms as nodes and bonds as edges; for 3D models the edges usually connect every pair of atoms closer than a cut-off radius, labelled with their distance (and, in periodic crystals, connecting atoms to periodic images of their neighbours, see [the lesson on crystal graphs](../materials-representations/)). Each node $i$ carries a feature vector $\mathbf h_i$, initially an embedding of the element, and each edge may carry features $\mathbf e_{ij}$ such as the distance expanded in radial basis functions.
+
+{{< note type="story" >}}
+Graph networks are older than their fame. Franco Scarselli, Marco Gori and colleagues described a "graph neural network model" in 2009, in which node states were updated repeatedly until they stopped changing. In chemistry the closest relative is the extended-connectivity fingerprint (ECFP; Rogers and Hahn, 2010), which repeatedly replaces each atom's identifier by a hash of its own and its neighbours' identifiers: message passing with a fixed hash in place of learned functions. David Duvenaud and colleagues (2015) swapped the hash for a small neural network and called the result neural fingerprints. Kipf and Welling's graph convolutional network and the message-passing framework of Gilmer et al. followed in 2017.
+{{< /note >}}
 
 ## The message-passing framework
 
@@ -31,19 +44,88 @@ where $M_t$ and $U_t$ are small neural networks shared by all nodes and edges. A
 
 {{< widget name="mpnn" title="Message passing on aspirin" caption="The heavy-atom graph of aspirin. Select an atom and step through the layers: the shaded receptive field grows by one bond per layer, and the feature strips change as information flows in. Renumbering the atoms changes nothing in the computed readout." >}}
 
+{{< note type="try" >}}
+Click one of the two oxygens of the carboxylic acid group and step the layers from 0 to 4. After four layers, nine of the thirteen atoms can influence it; the ring carbon opposite the acid group and the three atoms of the acetyl group are five or six bonds away and stay outside its receptive field. Then press *Renumber the atoms* a few times and watch the two readout values stay equal.
+{{< /note >}}
+
+## One round of message passing, by hand
+
+Formaldehyde, H₂C=O, is small enough to follow every number. Its graph has four nodes, a carbon, an oxygen and two hydrogens, and three edges labelled by bond order: 2 for C=O and 1 for each C–H. Give each element a two-number embedding, as if training had already chosen them: $\mathbf h_{\mathrm C} = (0, 1)$, $\mathbf h_{\mathrm O} = (1, 1)$, $\mathbf h_{\mathrm H} = (1, 0)$. Take the simplest message that still uses the edge, the neighbour's state times the bond order, $\mathbf m_{ij} = b_{ij}\,\mathbf h_j$, and the update $\mathbf h_i' = \operatorname{ReLU}(\mathbf h_i + \mathbf A\,\mathbf m_i)$ with the "learned" matrix
+
+$$
+\mathbf A = \begin{pmatrix} 0 & 1 \\ -1 & 1 \end{pmatrix}.
+$$
+
+**Aggregate.** Carbon hears from all three neighbours: $\mathbf m_{\mathrm C} = 2(1,1) + (1,0) + (1,0) = (4,2)$. Oxygen hears only from carbon, through the double bond: $\mathbf m_{\mathrm O} = 2(0,1) = (0,2)$. Each hydrogen hears only from carbon: $\mathbf m_{\mathrm H} = (0,1)$.
+
+**Update.** For carbon, $\mathbf A\,\mathbf m_{\mathrm C} = (2,-2)$, so $\mathbf h_{\mathrm C}' = \operatorname{ReLU}\big((0,1) + (2,-2)\big) = \operatorname{ReLU}(2,-1) = (2,0)$: the ReLU cuts the negative component to zero. For oxygen, $\mathbf h_{\mathrm O}' = \operatorname{ReLU}\big((1,1) + (2,2)\big) = (3,3)$, and for each hydrogen, $\mathbf h_{\mathrm H}' = \operatorname{ReLU}\big((1,0) + (1,1)\big) = (2,1)$.
+
+**Read out.** Summing the four states gives $(2,0) + (3,3) + (2,1) + (2,1) = (9,5)$, the molecule's representation after one layer.
+
+These few numbers show the whole architecture at work. The two hydrogens end up with identical states, because they have the same element and the same surroundings; the network cannot tell them apart, and should not. Carbon's new state depends on all three neighbours, but each hydrogen's depends only on carbon: after one layer, a hydrogen knows nothing about the oxygen. Numbering the atoms differently only reorders the terms of each sum, so the readout stays (9, 5). And the edge label matters: the double bond doubles oxygen's contribution to carbon's message.
+
+Think of message passing as gossip in a village where people talk only to their neighbours. After one round you know what your neighbours knew; after two, what their neighbours knew. The cell below repeats the calculation, renumbers the atoms, and then changes only the oxygen's embedding. The hydrogen's state does not move after one layer and changes after the second, once the news has passed through the carbon.
+
+{{< py title="message passing on formaldehyde" >}}
+import numpy as np
+# formaldehyde, H2C=O: atom 0 = C, 1 = O, 2 = H, 3 = H
+h0 = np.array([[0, 1], [1, 1], [1, 0], [1, 0]], dtype=float)   # element embeddings
+bonds = [(0, 1, 2), (0, 2, 1), (0, 3, 1)]                    # (i, j, bond order)
+A = np.array([[0, 1], [-1, 1]], dtype=float)                 # the 'learned' update matrix
+
+def layer(h, bonds):
+    m = np.zeros_like(h)
+    for i, j, b in bonds:              # a message flows each way along every bond
+        m[i] += b * h[j]
+        m[j] += b * h[i]
+    return np.maximum(0, h + m @ A.T)  # update: ReLU(h_i + A m_i)
+
+h1 = layer(h0, bonds)
+print("states after one layer:\n", h1, "\nreadout:", h1.sum(0))
+new = [2, 3, 1, 0]                     # renumber: old atom k becomes atom new[k]
+h0p = np.zeros_like(h0); h0p[new] = h0
+bonds_p = [(new[i], new[j], b) for i, j, b in bonds]
+print("readout after renumbering:", layer(h0p, bonds_p).sum(0))
+h0x = h0.copy(); h0x[1] = [3, 0]       # change only the oxygen's embedding
+a, b = h0, h0x
+for T in (1, 2):
+    a, b = layer(a, bonds), layer(b, bonds)
+    print(f"after {T} layer(s), hydrogen: {a[2]} versus {b[2]}")
+{{< /py >}}
+
 ## Why it respects permutation symmetry
 
 Every operation above is either applied identically to each node or edge, or is a **sum over neighbours**, and a sum does not depend on the order of its terms. Renumbering the atoms therefore renumbers the node states in exactly the same way (the layer is **permutation-equivariant**), and summing over nodes in the readout makes the prediction **permutation-invariant**. The lab recomputes the whole network in the new atom order when you press *Renumber the atoms*; the readout agrees to machine precision. Sum aggregation is also what makes an energy extensive. Mean or max aggregation also respect permutations but lose information about how many neighbours there are; Xu et al. (2019) showed that sum aggregation gives the most expressive networks of this family.
 
 If the edge features depend only on distances, the network is also invariant to rotations and translations. That is the design of **SchNet** (Schütt et al., 2018), whose message uses a learned "continuous filter" of the interatomic distance, $\mathbf m_{ij} = \mathbf h_j \odot W\big(\text{rbf}(r_{ij})\big)$. **DimeNet** adds bond angles to the messages, gaining three-body information.
 
+{{< note type="warn" title="Conformers and mirror images" >}}
+Check that the representation can tell apart the structures your property tells apart. A model of the bond graph alone, with no coordinates, gives one prediction for every conformer of a molecule, and the same prediction for cis and trans isomers unless stereochemistry is added as a feature. A model built only on distances, like SchNet, sees conformers but not handedness: a molecule and its mirror image have identical sets of interatomic distances, so the two enantiomers get identical predictions. That is right for the energy of an isolated molecule and wrong for anything that depends on chirality, such as binding to a chiral receptor.
+{{< /note >}}
+
 ## Receptive field and the cost of depth
 
 After $T$ layers, a node's state can depend on atoms up to $T$ edges away: its **receptive field**, shaded in the lab. With a geometric cut-off $r_c$ the receptive field is roughly $T r_c$; four layers with $r_c = 5$ Å see 20 Å, which is useful for capturing longer-range effects but makes the energy less local (and harder to parallelise across processors in large MD runs). Very deep message passing also suffers from **over-smoothing**: repeated averaging makes all node states similar. Practical models use three to six layers, residual connections and, where long-range physics matters, explicit electrostatic or dispersion terms.
 
+{{< note type="practice" >}}
+Typical settings for molecular and materials models: a cut-off of 4 to 6 Å; the distance expanded in a handful of radial basis functions (Gaussians or Bessel functions) and multiplied by a smooth envelope that falls to zero at the cut-off; 64 to 256 features per atom; two to six message-passing layers. For potentials the smooth envelope is not optional: with a hard cut-off the energy jumps whenever an atom crosses it, and molecular dynamics stops conserving energy.
+{{< /note >}}
+
 ## Equivariant message passing
 
 Invariant networks throw away directional information early: once the messages see only distances, the network has to rebuild angular information indirectly. **Equivariant** networks carry vector and tensor features that rotate with the structure. Node features are organised by their angular momentum $l$ (scalars $l = 0$, vectors $l = 1$, rank-2 tensors $l = 2$, …), edge directions enter through spherical harmonics $Y_{lm}(\hat{\mathbf r}_{ij})$, and features are combined with Clebsch–Gordan tensor products, which are guaranteed to produce correctly rotating outputs. **NequIP** showed that such networks reach a given accuracy with one to three orders of magnitude less training data than invariant ones. **MACE** combines equivariant messages with the many-body structure of ACE, so that each layer captures high body-order correlations and only two layers are needed. **PaiNN** and **Allegro** are other widely used designs. These are the architectures behind most current interatomic potentials, the subject of [the lesson on interatomic potentials](../mlip/).
+
+## Graph networks in materials science
+
+Graph networks have become the default model for structure–property problems in materials science, in three main roles.
+
+- **Property prediction.** CGCNN (Xie and Grossman, 2018) built each crystal's graph from atoms and their periodic neighbours ([crystal graphs](../materials-representations/)) and learned formation energies, band gaps and elastic moduli from DFT data in the Materials Project. MEGNet (Chen et al., 2019) added a global state, such as temperature or pressure, updated alongside the nodes and edges; ALIGNN (Choudhary and DeCost, 2021) also passes messages on the line graph, whose nodes are bonds, so that bond angles enter explicitly. Such a model screens thousands of candidate structures in the time one DFT calculation takes.
+- **Interatomic potentials.** The equivariant networks of the previous section, trained on the energies and forces of one chemical system, run molecular dynamics with close to DFT accuracy at a small fraction of the cost ([message-passing potentials](../message-passing-potentials/)).
+- **Universal potentials.** Trained on the relaxation trajectories stored in the Materials Project, M3GNet (Chen and Ong, 2022), CHGNet (Deng et al., 2023) and MACE-MP-0 cover most of the periodic table with a single model ([universal potentials](../universal-potentials/)).
+
+{{< note type="fun" >}}
+In 2023 a team at Google DeepMind used graph networks to rank enormous numbers of candidate crystals, checked the most promising with DFT, and fed the results back into training, round after round. The search produced about 2.2 million structures predicted to be stable relative to previously known materials, some 380,000 of them on the updated convex hull, which the authors described as an order-of-magnitude expansion of the stable materials known (Merchant et al., 2023). Predicted stability at zero kelvin is not the same as a material that can be made, and later analyses questioned how many of the structures are genuinely new, but a search on this scale would have been unthinkable with DFT alone.
+{{< /note >}}
 
 ## In practice
 
@@ -89,6 +171,14 @@ summed readout unchanged: True
 Message passing with sum aggregation is at most as powerful as the Weisfeiler–Lehman graph-isomorphism test: two different graphs that the test cannot distinguish (for example two six-rings against one twelve-ring, when all atoms look alike) get the same prediction from any such network. Geometric features (distances, angles) break most of these ties in practice, which is one reason 3D models outperform purely topological ones.
 {{< /note >}}
 
+{{< note type="key" >}}
+- A molecule or crystal is a graph; each message-passing layer updates every atom from its neighbours, with functions shared by all atoms.
+- Sum aggregation and a summed readout make the prediction independent of atom numbering and extensive in system size.
+- After $T$ layers an atom sees $T$ hops, roughly $T r_c$ in space; depth trades range against locality and over-smoothing.
+- Distance-only networks are invariant to rotations; equivariant networks carry directional features and need far less data.
+- Graph networks are now standard for materials property prediction, interatomic potentials and large-scale screening.
+{{< /note >}}
+
 {{< quiz >}}
 - q: "After three message-passing layers on a molecular graph with bonds as edges, which atoms can influence the state of atom $i$?"
   options: ["Only its direct neighbours", "Atoms up to three bonds away", "Every atom in the molecule"]
@@ -106,6 +196,18 @@ Message passing with sum aggregation is at most as powerful as the Weisfeiler–
   options: ["The same energy", "Twice the energy", "It depends on the node numbering"]
   answer: 1
   why: "Separated copies do not exchange messages, so each atom's state is unchanged and the sum doubles. The architecture is extensive by construction."
+- q: "In the formaldehyde example, why do the two hydrogens have identical states after every layer?"
+  options: ["Their embeddings were initialised to zero", "The ReLU removes the differences between them", "They have the same element and equivalent surroundings, so they receive identical messages"]
+  answer: 2
+  why: "Message passing sees only elements, edges and neighbours. Two atoms related by the molecule's symmetry receive the same messages and stay identical, which is the correct behaviour."
+- q: "A crystal-graph network has three message-passing layers and a 5 Å cut-off. Roughly how far away can an atom be and still influence another atom's final state?"
+  options: ["5 Å", "About 15 Å", "Any distance, because the crystal is periodic"]
+  answer: 1
+  why: "Each layer carries information one cut-off further, so the receptive field is about 3 × 5 Å = 15 Å."
+- q: "A distance-only network such as SchNet predicts a property for both mirror-image forms of a chiral molecule. What does it predict?"
+  options: ["Identical values, because mirror images have identical interatomic distances", "Different values, because the coordinates differ", "Nothing; it cannot handle chiral molecules"]
+  answer: 0
+  why: "Reflection preserves every distance, so a network that sees only distances cannot tell enantiomers apart. That is correct for the energy of an isolated molecule but not for chirality-dependent properties."
 {{< /quiz >}}
 
 ## References and further reading
@@ -123,5 +225,14 @@ Message passing with sum aggregation is at most as powerful as the Weisfeiler–
 9. M. Geiger and T. Smidt, “e3nn: Euclidean neural networks,” arXiv:2207.09453 (2022).
 10. W. L. Hamilton, *Graph Representation Learning*, Morgan & Claypool (2020), free online.
 11. P. Reiser, M. Neubert, A. Eberhard, L. Torresi, C. Zhou, C. Shao, H. Metni, C. van Hoesel, H. Schopmans, T. Sommer and P. Friederich, “Graph neural networks for materials science and chemistry,” *Communications Materials* **3**, 93 (2022).
+12. F. Scarselli, M. Gori, A. C. Tsoi, M. Hagenbuchner and G. Monfardini, “The graph neural network model,” *IEEE Transactions on Neural Networks* **20**, 61–80 (2009).
+13. D. Rogers and M. Hahn, “Extended-connectivity fingerprints,” *Journal of Chemical Information and Modeling* **50**, 742–754 (2010).
+14. D. K. Duvenaud et al., “Convolutional networks on graphs for learning molecular fingerprints,” *Advances in Neural Information Processing Systems* **28** (2015).
+15. T. Xie and J. C. Grossman, “Crystal graph convolutional neural networks for an accurate and interpretable prediction of material properties,” *Physical Review Letters* **120**, 145301 (2018).
+16. C. Chen, W. Ye, Y. Zuo, C. Zheng and S. P. Ong, “Graph networks as a universal machine learning framework for molecules and crystals,” *Chemistry of Materials* **31**, 3564–3572 (2019).
+17. K. Choudhary and B. DeCost, “Atomistic line graph neural network for improved materials property predictions,” *npj Computational Materials* **7**, 185 (2021).
+18. C. Chen and S. P. Ong, “A universal graph deep learning interatomic potential for the periodic table,” *Nature Computational Science* **2**, 718–728 (2022).
+19. B. Deng, P. Zhong, K. Jun, J. Riebesell, K. Han, C. J. Bartel and G. Ceder, “CHGNet as a pretrained universal neural network potential for charge-informed atomistic modelling,” *Nature Machine Intelligence* **5**, 1031–1041 (2023).
+20. A. Merchant, S. Batzner, S. S. Schoenholz, M. Aykol, G. Cheon and E. D. Cubuk, “Scaling deep learning for materials discovery,” *Nature* **624**, 80–85 (2023).
 
 </div>

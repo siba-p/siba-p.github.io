@@ -1,6 +1,13 @@
 ---
 title: "Functions and modules"
 description: "Writing and calling functions; positional, keyword, default and variable arguments and the mutable-default trap; local, enclosing, global and built-in scope; frames, the call stack, recursion and tracebacks; functions as values, lambdas, closures and decorators; and organising code into modules and packages, with environments and the standard library."
+hook: "Give a Python function an empty list as its default argument and the list can come back already holding items from earlier calls. It was created once, when def ran, and every call since has shared it."
+objectives:
+  - "Write functions with positional, keyword, default and keyword-only arguments and clear docstrings"
+  - "Diagnose the mutable-default trap and UnboundLocalError using the LEGB scope rule"
+  - "Trace frames on the call stack through recursion and read a traceback from the bottom up"
+  - "Pass functions as values with lambdas, closures and decorators"
+  - "Organise code into modules and environments, and test functions against known answers"
 track: pycore
 weight: 4
 level: Foundation

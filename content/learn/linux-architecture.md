@@ -1,6 +1,13 @@
 ---
 title: "The Linux system"
 description: "What an operating system is for, how Linux is built from hardware up to your programs, what a process, a system call, virtual memory and a file really are, and how the directory tree is organised."
+hook: "Type ls and press Enter, and your shell first makes a copy of itself, then the copy turns into ls. That odd two-step, fork then exec, is how new programs start on Linux."
+objectives:
+  - "Explain what the kernel does and why programs reach hardware only through system calls"
+  - "Describe how processes are created with fork and exec and controlled with signals"
+  - "Explain how virtual memory isolates processes and why swapping slows a machine"
+  - "Recognise file descriptors 0, 1 and 2 behind every redirection and pipe"
+  - "Find your way around the Linux directory tree and inspect a machine's hardware"
 track: toolbox
 weight: 1
 level: Foundation

@@ -1,6 +1,13 @@
 ---
 title: "Differentiable simulation"
 description: "Treating a whole simulation as a differentiable function: forward- and reverse-mode automatic differentiation through a trajectory, fitting force-field parameters to observables, the adjoint method, reweighting, and why chaos limits it all."
+hook: "Nudge σ in a Lennard-Jones simulation and the exact derivative of the outcome can be carried through every time step. Over a short run it fits parameters in a few iterations; over a long, chaotic one the same exact derivative becomes useless."
+objectives:
+  - "Compare forward- and reverse-mode differentiation through a trajectory by cost and memory"
+  - "Implement tangent propagation to fit a Lennard-Jones parameter by gradient descent"
+  - "Explain why chaos makes gradients of long trajectories explode, and how to cope"
+  - "Estimate the memory of backpropagation through time and the saving from checkpointing"
+  - "Write the derivative of an ensemble average as a covariance over Boltzmann samples"
 track: ai4mat
 weight: 2
 level: Advanced
@@ -28,6 +35,10 @@ $$
 
 Every number becomes a pair (value, derivative), a **dual number**, and each operation updates both by the ordinary rules of calculus. The memory cost is constant, but one pass gives the derivative with respect to *one* parameter. The lab below does exactly this, in a few dozen lines of JavaScript.
 
+{{< note type="fun" >}}
+Dual numbers were introduced by the mathematician William Kingdon Clifford in 1873. They have the form $a + b\varepsilon$, with a new symbol obeying $\varepsilon^2 = 0$, and their whole usefulness here is one line of Taylor series: $f(x + \varepsilon) = f(x) + f'(x)\,\varepsilon$ exactly, because every higher power of $\varepsilon$ vanishes. Run any program on $\sigma + \varepsilon$ and the coefficient of $\varepsilon$ in the answer is the derivative.
+{{< /note >}}
+
 **Reverse mode (backpropagation through time).** Run the trajectory forward, store it, then propagate the sensitivity $\bar{\mathbf s}_n = \partial O/\partial\mathbf s_n$ backwards from the end:
 
 $$
@@ -37,13 +48,96 @@ $$
 
 One backward pass gives the gradient with respect to *all* parameters at once, which is what you need for a neural-network potential with a million weights. The price is memory proportional to the trajectory length (reduced by checkpointing). The continuous-time version is the **adjoint method**, familiar from optimal control and from neural ordinary differential equations.
 
+{{< note type="story" >}}
+Reverse-mode differentiation has been discovered more than once. Seppo Linnainmaa described it in his 1970 master's thesis in Helsinki, as a way to compute how rounding errors accumulate through a long calculation. The adjoint equations of optimal control, from Lev Pontryagin's school in the 1950s, are the same idea in continuous time. Paul Werbos applied it to neural networks and dynamical systems, and his 1990 paper *Backpropagation through time: what it does and how to do it* became the standard account of differentiating through many steps of a recurrence, which is exactly what an MD trajectory is.
+{{< /note >}}
+
 {{< widget name="diffmd" title="Gradient of a whole trajectory with respect to σ" caption="Seven Lennard-Jones atoms evolve for the chosen number of steps; the observable is the radius of gyration of the final frame. The derivative is propagated through every step (forward mode) and checked against a finite difference. Press Optimise to fit σ to the target. Then switch to energy-conserving MD and lengthen the trajectory." >}}
+
+{{< note type="try" >}}
+Start in *Damped relaxation* and press *Optimise*: σ walks steadily downhill along a smooth loss curve towards the target. Then switch to *Energy-conserving MD* and raise the trajectory length from 600 to 1500 steps, then to 4000. Watch the loss curve on the right turn from smooth to jagged and, at the longest lengths, the agreement readout fail. Which number is wrong? Neither: the forward-mode value is the exact slope at that σ, while the finite difference, with its step of 10⁻⁵, now straddles the wiggles of a jagged function.
+{{< /note >}}
 
 ## What to notice in the lab
 
 - **The derivative is exact.** Forward-mode AD agrees with the finite difference to many digits. It is not an approximation like the finite difference, which needs a carefully chosen step and two extra simulations per parameter.
 - **Fitting works.** With damped dynamics (a relaxation) the observable depends smoothly on $\sigma$, the loss is a clean parabola-like curve, and a few gradient steps find the $\sigma$ that gives the target size.
 - **Chaos breaks it.** In energy-conserving MD, nearby trajectories separate exponentially, at a rate set by the largest **Lyapunov exponent** $\lambda$: a perturbation grows like $e^{\lambda t}$. So does the derivative. For long trajectories the loss curve becomes rugged and the exact gradient becomes enormous and erratic. It is the correct derivative of *that* trajectory, but useless for optimisation, because what we care about is the *ensemble average*, which is smooth. Metz et al. (2021) analysed this failure of naive gradients through chaotic dynamics in general.
+
+## Worked example: fitting σ through a short trajectory
+
+The smallest system that shows the whole idea is a Lennard-Jones dimer ($\varepsilon = 1$, two unit masses, so a reduced mass $\mu = \tfrac12$). Start the bond stretched to $r = 1.6$ at rest, and relax it with damped velocity Verlet: time step $\Delta t = 0.01$, friction $\gamma = 3$, 500 steps. The observable is the final bond length $r_T$, and the target property is a bond length of 1.25. A fully relaxed dimer sits at the minimum of the potential, $r_{\min} = 2^{1/6}\sigma$, so we know the answer in advance: $\mathrm dr_T/\mathrm d\sigma \to 2^{1/6} = 1.12246$, and the fitted $\sigma$ should be close to $1.25/2^{1/6}$. That is what makes it a good test.
+
+Forward mode needs one extra line for every line of the integrator. Writing dots for derivatives with respect to $\sigma$, one step of velocity Verlet and its tangent read
+
+$$
+\begin{aligned}
+v &\leftarrow v + \frac{\Delta t}{2\mu}F(r;\sigma), &\qquad \dot v &\leftarrow \dot v + \frac{\Delta t}{2\mu}\Big(\frac{\partial F}{\partial r}\,\dot r + \frac{\partial F}{\partial\sigma}\Big),\\
+r &\leftarrow r + \Delta t\,v, &\qquad \dot r &\leftarrow \dot r + \Delta t\,\dot v,
+\end{aligned}
+$$
+
+followed by a second half-kick of the same form, after which both $v$ and $\dot v$ are multiplied by the damping factor $e^{-\gamma\Delta t}$. The tangents start at zero, because the initial state does not depend on $\sigma$. The only physics needed beyond the force itself are its two partial derivatives, $\partial F/\partial r$ and $\partial F/\partial\sigma$, which for Lennard-Jones are one line each.
+
+{{< py title="forward-mode fit of a Lennard-Jones parameter" >}}
+import numpy as np
+def force(r, s):              # F = -dV/dr for V = 4(s¹²/r¹² − s⁶/r⁶), with ∂F/∂r and ∂F/∂s
+    a, b = s**12 / r**13, s**6 / r**7
+    return 24 * (2*a - b), 24 * (7*b - 26*a) / r, 24 * (24*a - 6*b) / s
+def run(s, steps=500, dt=0.01, gamma=3.0, mu=0.5):
+    """Damped velocity Verlet for an LJ dimer; (dr, dv) carry d(state)/dσ alongside (r, v)."""
+    r, v, dr, dv, damp = 1.6, 0.0, 0.0, 0.0, np.exp(-gamma * dt)
+    F, Fr, Fs = force(r, s)
+    for _ in range(steps):
+        v, dv = v + 0.5*dt*F/mu, dv + 0.5*dt*(Fr*dr + Fs)/mu
+        r, dr = r + dt*v, dr + dt*dv
+        F, Fr, Fs = force(r, s)
+        v, dv = damp * (v + 0.5*dt*F/mu), damp * (dv + 0.5*dt*(Fr*dr + Fs)/mu)
+    return r, dr
+r, g = run(1.0)
+fd = (run(1.0 + 1e-6)[0] - run(1.0 - 1e-6)[0]) / 2e-6
+print(f"σ = 1: final bond {r:.6f}, dr/dσ forward mode {g:.6f}, finite difference {fd:.6f}")
+s, target = 1.0, 1.25
+for it in range(8):
+    r, g = run(s)
+    print(f"step {it}: σ = {s:.6f}  bond = {r:.6f}  loss = {(r - target)**2:.2e}  gradient = {2*(r - target)*g:+.4f}")
+    s -= 0.3 * 2 * (r - target) * g
+print(f"fitted σ = {s:.6f}; a fully relaxed dimer would need target / 2^(1/6) = {target / 2**(1/6):.6f}")
+{{< /py >}}
+
+```text
+σ = 1: final bond 1.122576, dr/dσ forward mode 1.123164, finite difference 1.123164
+step 0: σ = 1.000000  bond = 1.122576  loss = 1.62e-02  gradient = -0.2862
+step 1: σ = 1.085871  bond = 1.218996  loss = 9.61e-04  gradient = -0.0696
+step 2: σ = 1.106738  bond = 1.242394  loss = 5.79e-05  gradient = -0.0171
+step 3: σ = 1.111853  bond = 1.248128  loss = 3.51e-06  gradient = -0.0042
+step 4: σ = 1.113112  bond = 1.249539  loss = 2.13e-07  gradient = -0.0010
+step 5: σ = 1.113423  bond = 1.249886  loss = 1.29e-08  gradient = -0.0003
+step 6: σ = 1.113499  bond = 1.249972  loss = 7.84e-10  gradient = -0.0001
+step 7: σ = 1.113518  bond = 1.249993  loss = 4.76e-11  gradient = -0.0000
+fitted σ = 1.113523; a fully relaxed dimer would need target / 2^(1/6) = 1.113623
+```
+
+Read it step by step. At $\sigma = 1$ the dimer ends at 1.122576, a hair above $2^{1/6} = 1.122462$ because 500 damped steps have not quite killed the vibration, and the derivative carried through all 500 steps is 1.123164, matching the central finite difference to every printed digit and close to the expected $2^{1/6}$. The loss is $(r_T - 1.25)^2$ and its gradient is $2(r_T - 1.25)\,\mathrm dr_T/\mathrm d\sigma = 2 \times (-0.1274) \times 1.1232 = -0.2862$, so a step with learning rate 0.3 raises $\sigma$ by 0.0859. Each step then shrinks the error by a factor of about $1 - 0.6\,(\mathrm dr_T/\mathrm d\sigma)^2 \approx 0.24$, so the loss falls by a factor of about 17 per step, exactly as the column shows.
+
+The last line holds the most useful lesson. The fitted $\sigma = 1.113523$ differs from the relaxed-dimer answer, 1.113623, by $10^{-4}$. That is not a bug: the gradient is exact for the simulation actually run, in which the dimer has not completely relaxed after 500 steps. Gradient-based fitting optimises the protocol you wrote down, including its length, time step and thermostat, not the physics you had in mind. Fitting to a property computed from too short a run builds the shortness into the parameters.
+
+## Why long trajectories are hard
+
+The dimer is the friendly case: one degree of freedom, strong damping and an observable that relaxes to a fixed point. Production problems differ in three ways, each of which gets worse as the trajectory grows.
+
+**Exploding gradients.** In chaotic dynamics the tangent $\dot{\mathbf s}_n$ grows like $e^{\lambda t}$, and so does the gradient. To see what that means, suppose $\lambda = 1$ per unit of time, an illustrative value. After 10 time units the amplification is $e^{10} \approx 2\times10^{4}$; after 50 it is $e^{50} \approx 5\times10^{21}$; and single-precision numbers, whose largest value is about $3.4\times10^{38}$, overflow once $\lambda t$ passes about 88. Long before overflow, the gradient has stopped being informative. The usual remedies are to differentiate only through short windows (**truncated backpropagation**), to clip gradients, to average gradients over many short trajectories from different starting points, or to avoid differentiating the trajectory at all, as the next section explains.
+
+**Memory.** Reverse mode must keep, or be able to recompute, every intermediate state. For 10,000 atoms, positions and velocities in double precision take $10^4 \times 6 \times 8$ bytes = 480 kB per step, so 100,000 steps need 48 GB, before counting the intermediate values of the potential at every step, which for a neural-network potential usually dominate. **Checkpointing** stores only every $k$-th state and recomputes the steps in between during the backward pass. The memory then scales as $T/k + k$ states, smallest at $k = \sqrt T$: for $T = 100{,}000$ steps, about 630 stored states instead of 100,000, roughly 300 MB in the example, for the price of one extra forward pass. Griewank's binomial checkpointing (1992) reduces the memory further, to a logarithmic growth, at a modest additional cost. It is tempting to avoid storage altogether by running the time-reversible Verlet integrator backwards, but in floating point a chaotic trajectory run backwards amplifies its own rounding errors at the same rate $e^{\lambda t}$, so this works only for short runs. Levesque and Verlet (1993) showed that an integrator written in integer arithmetic can be reversed bit for bit, but damping or a thermostat destroys reversibility anyway.
+
+**Chaos and what the derivative means.** Picture a pinball machine. Over the first few centimetres, before the ball meets a bumper, its position depends smoothly on the launch speed. After a dozen bumpers, the final score jumps whenever the launch speed changes in the fifth decimal place: the derivative exists almost everywhere and is worthless. Yet the *average* score over many launches varies smoothly with the launch speed. A long MD trajectory is the pinball, and the equilibrium property we want is the average. The exact derivative of a single long trajectory answers a question nobody asked.
+
+{{< note type="warn" title="Common mistakes in differentiable simulation" >}}
+- **Forgetting that the force is a gradient.** In PyTorch, computing forces without `create_graph=True` cuts the path from the parameters through the forces into the dynamics. The code runs, and the gradient is silently wrong.
+- **Re-seeding a stochastic thermostat.** A Langevin trajectory is a differentiable function of the parameters only if its random numbers are held fixed. A finite-difference check whose two runs use different noise compares two unrelated trajectories.
+- **Wrapping coordinates inside the differentiated loop.** Putting atoms back into the box makes positions jump by a box length. Keep unwrapped positions and apply the minimum-image convention to distances only.
+- **Fitting the endpoint of one long chaotic run.** The gradient is exact and useless. Shorten the window, average over trajectories, or reweight.
+{{< /note >}}
 
 ## Differentiating ensemble averages properly
 
@@ -125,6 +219,21 @@ fitted sigma = 0.9652, Rg = 1.0000
 
 Note the `create_graph=True` when computing the forces: the force is itself a gradient, and the outer gradient must flow through it. JAX MD expresses the same idea more compactly with `jax.grad` around a simulation loop, and TorchMD provides differentiable MD for neural-network potentials in PyTorch.
 
+{{< note type="practice" title="Rules of thumb" >}}
+- **Check before you trust.** Compare the automatic derivative with a central finite difference on a short trajectory in double precision, as the lab and the worked example do. Agreement to many digits means the code is right; it says nothing yet about whether the gradient is useful.
+- **Keep windows short.** Differentiate through hundreds to a few thousand steps, not through a whole production run. In the lab, energy-conserving trajectories turn rugged somewhere between 600 and 1500 steps.
+- **Save memory deliberately.** Use forward mode for a handful of parameters; for many parameters use reverse mode with checkpointing (`jax.checkpoint` in JAX, `torch.utils.checkpoint` in PyTorch).
+- **Reweight for equilibrium targets.** Densities, radial distribution functions and pressures are ensemble averages: differentiate them with the covariance formula or with differentiable trajectory reweighting rather than through the dynamics.
+{{< /note >}}
+
+{{< note type="key" >}}
+- A simulation is a differentiable function from parameters to observables; automatic differentiation gives exact derivatives of the trajectory actually computed.
+- Forward mode carries tangents alongside the state at constant memory, one parameter per pass; reverse mode gives all parameter gradients in one backward pass, at a memory cost reduced by checkpointing.
+- Through a short, damped trajectory the gradient fits parameters in a few steps, but it optimises the protocol as written, including its length and thermostat.
+- In chaotic dynamics derivatives grow like $e^{\lambda t}$: exact, erratic and useless for long runs. Use short windows, averages over trajectories, or reweighting.
+- Equilibrium averages have derivatives $-\beta\,\mathrm{cov}(O, \partial U/\partial\theta)$ computable from ordinary samples, the basis of training potentials against experiment.
+{{< /note >}}
+
 {{< quiz >}}
 - q: "When is forward-mode differentiation (dual numbers) the better choice over reverse mode?"
   options: ["When there are millions of parameters", "When there are only a few parameters and memory for storing the trajectory is limited", "Never; reverse mode is always better"]
@@ -138,6 +247,18 @@ Note the `create_graph=True` when computing the forces: the force is itself a gr
   options: ["It cannot", "As a covariance between the observable and $\\partial U/\\partial\\theta$ over Boltzmann samples, or equivalently by reweighting", "By finite differences only"]
   answer: 1
   why: "Differentiating the Boltzmann average gives $-\\beta\\,\\mathrm{cov}(O, \\partial U/\\partial\\theta)$. This underlies reweighting-based training of potentials against experimental data."
+- q: "In the worked example, the fitted σ differs from the relaxed-dimer answer, target divided by $2^{1/6}$, by $10^{-4}$. Why?"
+  options: ["Forward-mode differentiation is only approximate", "Rounding error in the finite-difference check", "The gradient is exact for the simulation actually run, in which the dimer has not fully relaxed after 500 steps"]
+  answer: 2
+  why: "Gradient-based fitting optimises the protocol as written. A slightly unrelaxed final bond length is part of that protocol, so the fitted parameter absorbs it."
+- q: "Reverse-mode differentiation through $T$ steps with checkpoints every $\\sqrt T$ steps stores about how many states?"
+  options: ["$T$", "About $2\\sqrt T$, for the price of roughly one extra forward pass", "One"]
+  answer: 1
+  why: "It keeps $T/k$ checkpoints plus the $k$ states of the segment being recomputed; with $k = \\sqrt T$ that is about $2\\sqrt T$, or about 630 states for 100,000 steps."
+- q: "Why does a single-precision gradient through a long chaotic trajectory eventually overflow?"
+  options: ["Because the tangent grows like $e^{\\lambda t}$, and single precision cannot represent numbers above about $3.4\\times10^{38}$", "Because the forces become infinite", "Because the time step is too small"]
+  answer: 0
+  why: "Overflow comes once $\\lambda t$ passes about 88. Long before that, the gradient has stopped carrying useful information about the ensemble average."
 {{< /quiz >}}
 
 ## References and further reading
@@ -154,5 +275,8 @@ Note the `create_graph=True` when computing the forces: the force is itself a gr
 8. A. G. Baydin, B. A. Pearlmutter, A. A. Radul and J. M. Siskind, “Automatic differentiation in machine learning: a survey,” *Journal of Machine Learning Research* **18**(153), 1–43 (2018).
 9. A. Griewank and A. Walther, *Evaluating Derivatives: Principles and Techniques of Algorithmic Differentiation*, 2nd ed., SIAM (2008).
 10. M. Z. Miskin, G. Khaira, J. J. de Pablo and H. M. Jaeger, “Turning statistical physics models into materials design engines,” *Proceedings of the National Academy of Sciences* **113**, 34–39 (2016).
+11. P. J. Werbos, “Backpropagation through time: what it does and how to do it,” *Proceedings of the IEEE* **78**, 1550–1560 (1990).
+12. A. Griewank, “Achieving logarithmic growth of temporal and spatial complexity in reverse automatic differentiation,” *Optimization Methods and Software* **1**, 35–54 (1992).
+13. T. Chen, B. Xu, C. Zhang and C. Guestrin, “Training deep nets with sublinear memory cost,” arXiv:1604.06174 (2016).
 
 </div>

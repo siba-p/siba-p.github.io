@@ -1,6 +1,13 @@
 ---
 title: "Performance"
 description: "A systematic approach to slow scientific Python: measure with timeit and cProfile, choose better algorithms, vectorise, cache, compile hot loops with Numba, Cython or Fortran, manage memory, and run in parallel with processes, MPI, threads and GPUs, with Amdahl's law and the global interpreter lock explained."
+hook: "If 5 % of a program must run serially, no number of cores can make it more than 20 times faster, and 128 cores give only about 17. Fast Python starts with finding where the time really goes."
+objectives:
+  - "Profile a slow program with timeit and cProfile to find the code that dominates"
+  - "Choose algorithmic fixes such as neighbour lists, sets and caching before tuning constants"
+  - "Speed up hot loops by vectorising with NumPy or compiling with Numba"
+  - "Estimate the limit on parallel speed-up with Amdahl's law"
+  - "Choose between threads, processes, MPI and GPUs given the global interpreter lock"
 track: pysci
 weight: 3
 level: Core

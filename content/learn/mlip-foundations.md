@@ -1,6 +1,13 @@
 ---
 title: "Learning a potential energy surface"
 description: "The physics an MLIP has to respect before any architecture is chosen: the electronic-structure reference and its errors, energies, forces and stresses as targets, locality and the nearsightedness of electronic matter, translation, rotation, reflection and permutation symmetry, invariance versus equivariance, smoothness at the cutoff, and body order and completeness of descriptions."
+hook: "A perfect machine-learned copy of PBE water would still freeze well above 0 °C, because PBE water does. Before choosing any architecture, you need to know what a potential learns and which symmetries it must never break."
+objectives:
+  - "Explain why a potential inherits the accuracy and the errors of its reference method"
+  - "Derive forces and stresses from a learned energy and explain why they conserve energy"
+  - "Justify the local atomic decomposition and recognise where locality fails"
+  - "Distinguish invariant from equivariant outputs under rotation, reflection and permutation"
+  - "Explain body order and why low-order descriptions of environments are incomplete"
 track: found
 weight: 2
 level: Core

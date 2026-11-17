@@ -1,6 +1,13 @@
 ---
 title: "Generalisation and regularisation"
 description: "Why a model that fits your data perfectly can be useless, the bias–variance trade-off, how penalties tame flexible models, and how to measure performance honestly, including the traps specific to materials data."
+hook: "A degree-11 polynomial can pass exactly through twelve noisy points and still predict nonsense between them. Flexibility is not the same as understanding, and a random split of materials data can hide the difference."
+objectives:
+  - "Diagnose underfitting and overfitting from training and validation error curves"
+  - "Derive the bias–variance decomposition of the expected squared error"
+  - "Explain ridge regression as a penalty on large weights and as a Gaussian prior"
+  - "Run k-fold cross-validation with the penalty chosen inside each training fold"
+  - "Choose data splits that avoid leakage from near-duplicates and trajectory frames"
 track: ml
 weight: 3
 level: Foundation

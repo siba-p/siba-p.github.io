@@ -1,6 +1,13 @@
 ---
 title: "Reaction rates"
 description: "How fast transitions happen: first-order kinetics and waiting times, the Arrhenius and Eyring equations and their history, transition-state theory derived from the flux through a dividing surface, harmonic TST and the Vineyard prefactor, recrossing and the transmission coefficient, variational TST, Kramers' theory of friction-controlled rates, and how rates are measured in simulations and used in kinetic Monte Carlo."
+hook: "Every 5.7 kJ/mol of activation free energy makes a reaction ten times slower at room temperature. Transition-state theory explains why, and turns one saddle-point calculation into a rate far too slow to watch directly."
+objectives:
+  - "Derive the transition-state theory rate as the equilibrium flux through a dividing surface"
+  - "Compute harmonic TST rates from a barrier and a vibrational prefactor at several temperatures"
+  - "Explain recrossing, the transmission coefficient and why TST is an upper bound on the rate"
+  - "Interpret Kramers' turnover: how friction first raises and then lowers the escape rate"
+  - "Estimate an activation energy from the slope of an Arrhenius plot"
 track: rl-land
 weight: 2
 level: Core

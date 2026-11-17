@@ -1,6 +1,13 @@
 ---
 title: "Training data and validation"
 description: "The practice that decides whether an MLIP works: designing and sampling the training set, consistent reference calculations, the loss and its weights, learning curves and data efficiency, ensemble and Gaussian-process uncertainty, validation by physical properties and stable dynamics rather than test errors alone, and the common ways potentials fail."
+hook: "A potential can reproduce its test set to a few tens of meV/Å and still crash after 50 picoseconds of molecular dynamics. What it was shown in training, and how it is tested, decide whether it can be trusted."
+objectives:
+  - "Design a training set covering phases, strains, defects, surfaces, liquids and close contacts"
+  - "Choose loss weights for energies, forces and stresses to suit the application"
+  - "Interpret learning curves and ensemble uncertainty, including the limits of calibration"
+  - "Validate a potential with stable dynamics, elastic constants, phonons and defect energies"
+  - "Diagnose common failures such as repulsive-wall holes, extrapolation and data leakage"
 track: practice
 weight: 1
 level: Advanced

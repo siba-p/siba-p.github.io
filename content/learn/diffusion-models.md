@@ -1,6 +1,13 @@
 ---
 title: "Generative models for crystals and molecules"
 description: "From predicting properties to proposing materials: the generative modelling problem, VAEs and autoregressive models in brief, then diffusion models in depth (forward noising, score matching, the reverse process, guidance) and how MatterGen-style models generate crystals."
+hook: "Add noise to a crystal until nothing of it is left, then train a network to undo one small step of the damage at a time. Run it from pure noise and new structures appear, which is how models such as MatterGen propose materials."
+objectives:
+  - "Describe the forward noising process and sample it in closed form at any noise level"
+  - "Explain why predicting the added noise is equivalent to learning the score"
+  - "Implement denoising training and DDPM sampling for a two-dimensional point distribution"
+  - "Interpret the guidance weight as a trade-off between adherence to a condition and diversity"
+  - "Recognise what a crystal diffusion model must handle: discrete types, periodic coordinates, lattices"
 track: ai4mat
 weight: 1
 level: Advanced

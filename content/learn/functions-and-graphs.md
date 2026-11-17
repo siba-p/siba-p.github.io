@@ -1,6 +1,13 @@
 ---
 title: "Functions and their graphs"
 description: "What a function is, how a graph encodes one, and the families of functions that appear throughout physical science: linear, power, exponential, logarithmic, periodic and Gaussian. Includes logarithmic axes and how to read a law of nature from data."
+hook: "Plot each planet's orbital period against the size of its orbit and you get an unremarkable curve. Put both axes on a logarithmic scale and the eight points fall on a straight line of slope 1.5: Kepler's third law."
+objectives:
+  - "Read intercepts, roots, extrema and asymptotes from a function's graph"
+  - "Predict how shifting and stretching a formula moves and reshapes its graph"
+  - "Compute half-lives and doubling times from an exponential rate constant"
+  - "Extract a power-law exponent or rate constant by straightening data on logarithmic axes"
+  - "Interpret the amplitude, period, centre and width parameters of sinusoids and Gaussians"
 track: calc
 weight: 1
 level: Foundation
@@ -100,7 +107,7 @@ $$
 
 This is a straight line, not in $y$ against $x$ but in $\log y$ against $\log x$, with slope $n$. Plotting data on **log–log axes**, where both axes are spaced logarithmically, turns every power law into a straight line, and the slope of the line reveals the power. Similarly, taking the logarithm of an exponential, $y = A e^{kx}$, gives $\ln y = \ln A + kx$, which is a straight line on **semi-logarithmic axes** with only the vertical axis logarithmic.
 
-The figure below contains real data on the orbits of the eight planets: the size of each orbit (its semi-major axis, in units of the Earth's) and the time it takes to go round the Sun (in years). On ordinary axes the points form a curve. Switch to log–log axes and they fall on a straight line with slope 1.5. This is Kepler's third law, $T \propto a^{3/2}$, found by Kepler in 1619 by exactly this kind of search for a pattern in numbers, and explained seventy years later by Newton's law of gravitation. The second data set is a simulated radioactive sample, whose counts fall on a straight line only on semi-log axes, as an exponential should. The third is the repulsive part of the Lennard-Jones potential, a pure power law with slope $-12$.
+The figure below contains real data on the orbits of the eight planets: the size of each orbit (its semi-major axis, in units of the Earth's) and the time it takes to go round the Sun (in years). On ordinary axes the points form a curve. Switch to log–log axes and they fall on a straight line with slope 1.5. This is Kepler's third law, $T \propto a^{3/2}$, found by Kepler in 1618 and published in 1619 by exactly this kind of search for a pattern in numbers, and explained seventy years later by Newton's law of gravitation. The second data set is a simulated radioactive sample, whose counts fall on a straight line only on semi-log axes, as an exponential should. The third is the repulsive part of the Lennard-Jones potential, a pure power law with slope $-12$.
 
 {{< widget name="loglog" title="Straight lines hiding in curved data" caption="The dashed line is a least-squares straight-line fit in the axes currently shown; it turns teal when the data really are straight (R² above 0.995). Find the axes that straighten each data set, and read the law from the slope." >}}
 

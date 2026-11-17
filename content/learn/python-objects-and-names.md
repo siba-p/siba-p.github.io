@@ -1,6 +1,13 @@
 ---
 title: "Objects, types and names"
 description: "Python's data model from the ground up: every value is an object with an identity, a type and a value; names are references bound to objects; integers of unlimited size, IEEE floats, strings, Booleans and None; mutable and immutable objects, aliasing and copying; identity versus equality; reference counting and garbage collection; and dynamic typing with optional type hints."
+hook: "Build a 3 × 3 grid in Python by repeating one row, change a single entry, and a whole column changes with it. The culprit is that names and lists hold references to objects, not the values themselves."
+objectives:
+  - "Explain the difference between binding a name, modifying an object and copying it"
+  - "Predict when aliasing makes a change through one name visible through another"
+  - "Recognise how integers, floats and strings behave, including floor division and rounding"
+  - "Choose correctly between == and is, and between shallow and deep copies"
+  - "Estimate the memory cost of Python objects and explain why NumPy arrays are smaller"
 track: pycore
 weight: 2
 level: Foundation

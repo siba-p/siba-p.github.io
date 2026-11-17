@@ -1,6 +1,13 @@
 ---
 title: "Path sampling"
 description: "Sampling the rare transitions themselves instead of the states: the transition path ensemble, transition path sampling with shooting and shifting moves, rate constants from transition interface sampling and forward-flux sampling, milestoning, weighted-ensemble simulation, finite-temperature and swarms-of-trajectories string methods, transition path theory, and how path ensembles reveal mechanisms and reaction coordinates."
+hook: "If a transition takes picoseconds but happens once a second, a simulation spends almost all its time waiting. Path sampling skips the wait and samples the rare reactive trajectories themselves, mechanisms and rates included."
+objectives:
+  - "Explain the transition path ensemble and why sampling it needs no reaction coordinate"
+  - "Implement the logic of a TPS shooting move and its acceptance rule"
+  - "Compute a rate as an outgoing flux times a product of interface-crossing probabilities"
+  - "Compare TIS, forward-flux sampling, milestoning and weighted ensemble for a given problem"
+  - "Relate finite-temperature strings and transition path theory to the committor"
 track: rl-path
 weight: 1
 level: Advanced

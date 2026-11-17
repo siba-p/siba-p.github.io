@@ -1,6 +1,13 @@
 ---
 title: "Inside a computer"
 description: "What a processor actually does, one clock tick at a time: the stored-program idea, fetch–decode–execute, registers and memory, why caches exist, how fast a modern CPU or GPU can compute, and what limits real scientific codes."
+hook: "A 64-core server chip can peak at 2.6 trillion floating-point operations a second, yet adding two long arrays reaches only a few percent of that. The bottleneck is not the arithmetic but fetching the numbers from memory."
+objectives:
+  - "Trace the fetch–decode–execute cycle of a stored-program computer"
+  - "Estimate a processor's peak FLOP rate from its cores, clock and vector width"
+  - "Explain how caches, cache lines and locality hide the cost of memory"
+  - "Classify a calculation as memory-bound or compute-bound with the roofline model"
+  - "Match each level of hardware parallelism to the tool that exploits it"
 track: machine
 weight: 1
 level: Foundation

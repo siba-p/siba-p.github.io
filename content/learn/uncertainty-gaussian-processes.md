@@ -1,6 +1,13 @@
 ---
 title: "Kernels and Gaussian processes"
 description: "A prediction without an error bar cannot guide an experiment. Gaussian processes give principled uncertainties: the prior over functions, the posterior in closed form, kernels, marginal likelihood, and how uncertainty is estimated for neural networks."
+hook: "A predicted formation energy of −0.21 eV/atom means little until you know whether it is good to 0.01 or to 0.3. Gaussian processes give that error bar in closed form, and it widens wherever you have not measured."
+objectives:
+  - "Distinguish aleatoric from epistemic uncertainty and say which one more data removes"
+  - "Derive the Gaussian process posterior mean and variance by conditioning a joint Gaussian"
+  - "Interpret how the kernel length-scale controls smoothness and the growth of uncertainty"
+  - "Fit kernel hyperparameters by maximising the log marginal likelihood"
+  - "Compare deep ensembles, Monte Carlo dropout and conformal prediction for neural networks"
 track: ml
 weight: 4
 level: Core

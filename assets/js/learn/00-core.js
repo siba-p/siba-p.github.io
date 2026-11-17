@@ -318,7 +318,7 @@
   const KEY = "learn.done";
   const doneSet = () => new Set(LW.store.get(KEY, []));
   function markDone(slug, on) {
-    const s = doneSet(); on ? s.add(slug) : s.delete(slug); LW.store.set(KEY, [...s]); paintProgress();
+    const s = doneSet(); on ? s.add(slug) : s.delete(slug); LW.store.set(KEY, [...s]); paintProgress(); document.dispatchEvent(new CustomEvent("learn:progress"));
   }
   function paintProgress() {
     const s = doneSet();

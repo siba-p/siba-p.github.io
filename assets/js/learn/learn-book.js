@@ -1,34 +1,76 @@
-/* Book pages: contents scroll-spy, mobile contents drawer, and same-page links between chapters. */
+/* Learn navigation.
+   Chapter pages: contents drawer on small screens, section scroll-spy, reading-progress bar, and a note of the
+   last chapter opened. Book pages and reading paths: "Continue" buttons that point at the first unread chapter.
+   Library: "Continue where you left off" and the remembered reading path. */
 (function () {
   "use strict";
-  function init() {
-    const book = document.querySelector(".book"); if (!book) return;
-    const nav = book.querySelector(".book-nav"), toggle = nav && nav.querySelector(".bn-toggle");
-    if (toggle) { toggle.addEventListener("click", () => { const o = nav.classList.toggle("open"); toggle.setAttribute("aria-expanded", String(o)); }); nav.addEventListener("click", e => { if (e.target.closest(".bn-in a") && matchMedia("(max-width: 1100px)").matches) { nav.classList.remove("open"); toggle.setAttribute("aria-expanded", "false"); } }); }
-    // links written as ../slug/ or /learn/slug/#frag inside chapters: keep them on this page when possible
-    book.querySelectorAll(".book-body a[href]").forEach(a => {
-      let u; try { u = new URL(a.getAttribute("href"), location.href); } catch (e) { return; }
-      if (u.origin !== location.origin) return; const m = u.pathname.match(/\/learn\/([a-z0-9-]+)\/?$/); if (!m || !document.getElementById(m[1]) || !document.getElementById(m[1]).classList.contains("chapter")) return;
-      const frag = u.hash.slice(1); a.setAttribute("href", "#" + (frag ? m[1] + "--" + frag : m[1]));
-    });
-    // scroll-spy
-    const items = [...book.querySelectorAll(".bn-chs > li")], secLinks = [...book.querySelectorAll(".bn-secs a")];
-    const chapters = [...book.querySelectorAll(".chapter")], heads = [...book.querySelectorAll(".ch-body > h3[id]")];
-    let ticking = false;
-    const bar = document.createElement("div"); bar.className = "book-progress"; bar.setAttribute("aria-hidden", "true"); bar.innerHTML = "<i></i>"; book.append(bar);
-    const body = book.querySelector(".book-body");
-    function progress() { const r = body.getBoundingClientRect(), span = r.height - innerHeight; bar.firstChild.style.transform = "scaleX(" + Math.min(1, Math.max(0, span > 0 ? -r.top / span : 0)) + ")"; }
-    function spy() { ticking = false; const y = 120; progress();
-      let ch = chapters[0]; for (const c of chapters) { if (c.getBoundingClientRect().top - y <= 0) ch = c; else break; }
-      let hd = null; for (const h of heads) { if (h.getBoundingClientRect().top - y <= 0) hd = h; else break; }
-      items.forEach(li => li.classList.toggle("on", ch && li.dataset.ch === ch.id));
-      secLinks.forEach(a => a.classList.toggle("on", !!hd && a.getAttribute("href") === "#" + hd.id && hd.closest(".chapter") === ch));
-      const on = book.querySelector(".bn-chs > li.on"); if (on && !matchMedia("(max-width: 1100px)").matches) { const n = nav.querySelector(".bn-in"), box = nav.getBoundingClientRect(), r = on.getBoundingClientRect(); if (r.top < box.top + 40 || r.bottom > box.bottom - 40) nav.scrollTop += r.top - box.top - 80; void n; }
-    }
-    window.addEventListener("scroll", () => { if (!ticking) { ticking = true; requestAnimationFrame(spy); } }, { passive: true });
-    spy();
-    // an anchor may point into a chapter whose figures change height while mounting: re-scroll once
-    if (location.hash) { const t = document.getElementById(decodeURIComponent(location.hash.slice(1))); if (t) { t.scrollIntoView({ behavior: "instant" }); setTimeout(() => t.scrollIntoView({ behavior: "instant" }), 400); } }
+  const DONE = "learn.done", LAST = "learn.last", PATH = "learn.path";
+  const get = (k, d) => { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } };
+  const put = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* storage unavailable */ } };
+  const narrow = () => matchMedia("(max-width: 1100px)").matches;
+
+  function drawer(nav) {
+    const toggle = nav && nav.querySelector(".bn-toggle"); if (!toggle) return;
+    const close = () => { nav.classList.remove("open"); toggle.setAttribute("aria-expanded", "false"); };
+    toggle.addEventListener("click", () => { const o = nav.classList.toggle("open"); toggle.setAttribute("aria-expanded", String(o)); });
+    nav.addEventListener("click", e => { if (e.target.closest(".bn-in a") && narrow()) close(); });
+    document.addEventListener("keydown", e => { if (e.key === "Escape") close(); });
   }
+
+  function chapter() {
+    const art = document.querySelector(".chap"); if (!art) return;
+    const nav = art.querySelector(".book-nav"), body = art.querySelector(".chap-body");
+    drawer(nav);
+    const h1 = art.querySelector(".chap-head h1");
+    put(LAST, { s: art.dataset.learnPage, t: h1 ? h1.textContent.trim() : "", b: art.dataset.learnBook || "", u: location.pathname });
+
+    const bar = document.createElement("div"); bar.className = "book-progress"; bar.setAttribute("aria-hidden", "true"); bar.innerHTML = "<i></i>"; document.body.append(bar);
+    const heads = body ? [...body.querySelectorAll(":scope > h2[id]")] : [];
+    const links = nav ? [...nav.querySelectorAll(".bn-secs a")] : [];
+    let ticking = false;
+    function spy() {
+      ticking = false;
+      if (body) { const r = body.getBoundingClientRect(), span = r.height - innerHeight * 0.6; bar.firstChild.style.transform = "scaleX(" + Math.min(1, Math.max(0, span > 0 ? -r.top / span : 0)) + ")"; }
+      let cur = null; for (const h of heads) { if (h.getBoundingClientRect().top - 120 <= 0) cur = h; else break; }
+      links.forEach(a => a.classList.toggle("on", !!cur && a.getAttribute("href") === "#" + cur.id));
+    }
+    addEventListener("scroll", () => { if (!ticking) { ticking = true; requestAnimationFrame(spy); } }, { passive: true });
+    spy();
+    // keep the current chapter in view inside a long sidebar
+    const on = nav && nav.querySelector(".bn-chs > li.on");
+    if (on && !narrow() && on.offsetTop + on.offsetHeight > nav.clientHeight - 60) nav.scrollTop = Math.max(0, on.offsetTop - 140);
+    // figures change height while they mount, so a deep link is re-applied once they have settled
+    if (location.hash) { const t = document.getElementById(decodeURIComponent(location.hash.slice(1))); if (t) setTimeout(() => t.scrollIntoView({ behavior: "instant" }), 450); }
+  }
+
+  function continues() {
+    const s = new Set(get(DONE, []));
+    document.querySelectorAll("[data-learn-continue]").forEach(btn => {
+      if (!btn.dataset.start) btn.dataset.start = btn.textContent;
+      const scope = btn.closest("[data-learn-slugs]"); if (!scope) return;
+      const list = scope.dataset.learnSlugs.trim().split(/\s+/).filter(Boolean); if (!list.length) return;
+      const link = slug => scope.querySelector('a[data-learn-slug="' + slug + '"]:not([data-learn-continue])');
+      const read = list.filter(x => s.has(x)).length, next = list.find(x => !s.has(x));
+      if (!read) { btn.textContent = btn.dataset.start; const a = link(list[0]); if (a) btn.href = a.getAttribute("href"); return; }
+      if (!next) { btn.textContent = "All read. Start again"; const a = link(list[0]); if (a) btn.href = a.getAttribute("href"); return; }
+      const a = link(next); if (!a) return;
+      const t = a.querySelector(".syl-t, .ls-t, .cb-t");
+      btn.href = a.getAttribute("href");
+      btn.textContent = "Continue: " + (t ? t.textContent : a.textContent).trim();
+    });
+  }
+
+  function library() {
+    const r = document.querySelector("[data-learn-resume]"), last = get(LAST, null);
+    if (r && last && last.u) { const a = r.querySelector("a"); a.href = last.u; a.textContent = last.t + (last.b ? " (" + last.b + ")" : ""); r.hidden = false; }
+    const radios = [...document.querySelectorAll(".lpath-r")];
+    if (radios.length) {
+      const want = get(PATH, null), hit = radios.find(x => x.id === "lp-" + want);
+      if (hit) hit.checked = true;
+      radios.forEach(x => x.addEventListener("change", () => { if (x.checked) put(PATH, x.id.slice(3)); }));
+    }
+  }
+
+  function init() { chapter(); library(); continues(); document.addEventListener("learn:progress", continues); }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(init, 0)); else setTimeout(init, 0);
 })();

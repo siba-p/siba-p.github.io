@@ -1,6 +1,13 @@
 ---
 title: "Free-energy perturbation and thermodynamic integration"
 description: "Computing free-energy differences between two states: Zwanzig's free-energy perturbation and why phase-space overlap matters, Kirkwood's thermodynamic integration, alchemical transformations and thermodynamic cycles, Bennett's acceptance ratio and MBAR as optimal estimators, and Jarzynski's equality and Crooks' theorem, which extract equilibrium free energies from irreversible pulling."
+hook: "Free energy is not an average of anything a simulation records, yet it can be computed exactly, even from molecules pulled apart far from equilibrium. In every method the deciding factor is the overlap between two states."
+objectives:
+  - "Derive Zwanzig's free-energy perturbation formula and explain why it needs phase-space overlap"
+  - "Compute a free-energy difference by thermodynamic integration over a coupling parameter λ"
+  - "Design a thermodynamic cycle for the relative binding free energy of two ligands"
+  - "Explain why BAR and MBAR outperform one-sided exponential averages"
+  - "Interpret Jarzynski's equality and Crooks' theorem for irreversible pulling"
 track: rl-free
 weight: 1
 level: Advanced

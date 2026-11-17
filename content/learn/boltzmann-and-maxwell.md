@@ -1,6 +1,13 @@
 ---
 title: "The Boltzmann distribution"
 description: "From counting microstates to the most useful formula in statistical mechanics: the Boltzmann factor and the partition function, the Maxwell–Boltzmann distribution of speeds, equipartition of energy, and pressure from molecular collisions, all watched emerging in a simulated gas."
+hook: "The nitrogen molecules you are breathing average about 1,700 kilometres an hour, faster than the sound they carry. A single exponential, the Boltzmann factor, sets that speed, how energy is shared, and how simulations measure temperature."
+objectives:
+  - "Derive the Boltzmann factor by counting the microstates of a large reservoir"
+  - "Compute energy, free energy and heat capacity from the partition function"
+  - "Compute most probable, mean and rms molecular speeds for any gas at any temperature"
+  - "Explain equipartition and use it to define and measure temperature in molecular dynamics"
+  - "Derive the ideal gas law from momentum transfer and recognise the virial correction"
 track: statmech
 weight: 2
 level: Core
@@ -32,6 +39,16 @@ $$ P(s) = \frac{e^{-\textcolor{#d4a017}{E_s}/k_B\textcolor{#e64980}{T}}}{\textco
 
 This is the **canonical ensemble** (fixed $N$, $V$, $T$), the ensemble a thermostatted MD run samples (NVT). Its consequences are everywhere: [vibrational populations](../quantum-energy-levels/), the Arrhenius law $k \propto e^{-E_a/k_BT}$ for reaction rates, vacancy concentrations in crystals, the exponential thinning of the atmosphere with height.
 
+### A check by counting
+
+The derivation can be checked against the exact counts of [the previous chapter](../entropy-and-temperature/). Let the small system be one oscillator, and the reservoir an Einstein solid of $N$ oscillators holding $q$ quanta. Every quantum the small oscillator takes away reduces the reservoir's multiplicity by the factor
+
+$$
+\frac{\Omega(N, q-1)}{\Omega(N, q)} = \frac{q}{q + N - 1} \approx \frac{q}{q + N},
+$$
+
+and because the reservoir is large, this factor hardly changes from one quantum to the next. The probability of finding $n$ quanta in the small oscillator therefore falls geometrically, $P(n) \propto \left(q/(q+N)\right)^n$, an exponential in its energy $n\varepsilon$. The previous chapter found $k_BT = \varepsilon/\ln(1 + N/q)$ for the Einstein solid, so $q/(q+N) = e^{-\varepsilon/k_BT}$: the factor is exactly the Boltzmann factor for one quantum. With $N = q = 1000$, for example, it is 0.5003, so the small oscillator is empty half of the time, holds one quantum a quarter of the time, two an eighth of the time, and so on.
+
 ## The partition function knows everything
 
 $Z$ looks like a mere normalising constant, but all of thermodynamics can be extracted from it by differentiation. With $\beta = 1/k_BT$:
@@ -61,6 +78,62 @@ Maxwell derived this in 1860 from symmetry arguments alone, before anyone could 
 
 Restart and look at the histogram. At first every particle has the same speed, a single spike. Within a few hundred collisions the spike spreads into exactly the Maxwell–Boltzmann shape, though nothing in the program knows that curve: collisions conserve energy and momentum, and the distribution is simply the one with the most microstates. This is the second law happening in front of you. Boltzmann's **H-theorem** (1872) proved that collisions drive any initial distribution towards this one.
 
+{{< note type="try" >}}
+Press **Heat ×1.5** a few times. Each press scales every velocity by $\sqrt{1.5}$, so $k_BT$ in the readout rises by half and the measured pressure climbs with it, as the ideal gas law below predicts. The histogram keeps its shape while the speed axis stretches, because the distribution depends on speed only through $v/\sqrt{k_BT/m}$: one curve, rescaled, fits every gas at every temperature.
+{{< /note >}}
+
+### Worked example: nitrogen and argon at 300 K
+
+Three speeds summarise the distribution. Setting $\mathrm df/\mathrm dv = 0$ gives the peak, and averaging $v$ and $v^2$ over $f_{3\mathrm D}(v)$ gives the other two:
+
+{{< eq title="Three characteristic speeds" say="The peak, the average and the root-mean-square speed all grow as the square root of temperature over mass, in fixed proportions." >}}
+$$ \textcolor{#4c6ef5}{v_{\text p}} = \sqrt{\frac{2k_B\textcolor{#e64980}{T}}{\textcolor{#845ef7}{m}}}, \qquad \textcolor{#12a594}{\langle v\rangle} = \sqrt{\frac{8k_B\textcolor{#e64980}{T}}{\pi\textcolor{#845ef7}{m}}}, \qquad \textcolor{#f08c2e}{v_{\text{rms}}} = \sqrt{\langle v^2\rangle} = \sqrt{\frac{3k_B\textcolor{#e64980}{T}}{\textcolor{#845ef7}{m}}} $$
+- $\textcolor{#4c6ef5}{v_{\text p}}$: the most probable speed, where $f_{3\mathrm D}(v)$ peaks
+- $\textcolor{#12a594}{\langle v\rangle}$: the mean speed, which sets how often molecules collide
+- $\textcolor{#f08c2e}{v_{\text{rms}}}$: fixes the mean kinetic energy, $\tfrac12 m v_{\text{rms}}^2 = \tfrac32 k_BT$
+- in every three-dimensional gas they stand in the ratio $1 : 1.128 : 1.225$
+{{< /eq >}}
+
+Now put in numbers. At 300 K, $k_BT = (1.381 \times 10^{-23}\ \text{J K}^{-1})(300\ \text{K}) = 4.14 \times 10^{-21}$ J. A nitrogen molecule has a mass of $28.01\ \text{u} \times 1.661 \times 10^{-27}\ \text{kg u}^{-1} = 4.65 \times 10^{-26}$ kg, and an argon atom $39.95\ \text{u} = 6.63 \times 10^{-26}$ kg. For nitrogen, $v_{\text p} = \sqrt{2 \times 4.14 \times 10^{-21}\ \text{J}/4.65 \times 10^{-26}\ \text{kg}} = \sqrt{1.78 \times 10^{5}}\ \text{m s}^{-1} = 422$ m s⁻¹, and the other speeds follow from the fixed ratios:
+
+| at 300 K | N₂ (28.01 u) | Ar (39.95 u) |
+|---|---|---|
+| most probable speed $v_{\text p}$ | 422 m s⁻¹ | 353 m s⁻¹ |
+| mean speed $\langle v\rangle$ | 476 m s⁻¹ | 399 m s⁻¹ |
+| root-mean-square speed $v_{\text{rms}}$ | 517 m s⁻¹ | 433 m s⁻¹ |
+| fraction faster than 1000 m s⁻¹ | 1.05 % | 0.11 % |
+| mean kinetic energy $\tfrac32 k_BT$ | $6.21 \times 10^{-21}$ J | $6.21 \times 10^{-21}$ J |
+
+Argon is heavier by a factor 39.95/28.01 = 1.43, so all its speeds are smaller by $\sqrt{1.43} = 1.19$, but its mean kinetic energy, $6.21 \times 10^{-21}$ J or 38.8 meV, is identical. The fraction of very fast molecules is far more sensitive to mass than the averages are, because it lives in the exponential tail: it differs tenfold between two gases whose mean speeds differ by 19 %. For every gas, 4.6 % of the molecules move faster than twice the most probable speed, and only 0.04 % faster than three times it.
+
+{{< note type="story" >}}
+The first direct measurement of molecular speeds came in 1920, when Otto Stern sent a beam of silver atoms through a rotating apparatus and worked out their speed from how far the apparatus had turned while they were in flight. A precise test of the whole distribution came in 1955, when Robert Miller and Polykarp Kusch at Columbia University sorted potassium and thallium atoms by speed with a rapidly spinning cylinder cut with helical slots, and found the predicted shape in detail, 95 years after Maxwell had derived it.
+{{< /note >}}
+
+Sampling makes the same point. Each velocity component of a molecule in equilibrium is an independent Gaussian with variance $k_BT/m$, so drawing three Gaussian numbers per molecule produces a perfect Maxwell–Boltzmann gas. That is exactly how MD codes assign initial velocities.
+
+{{< py title="Sampling molecular speeds" >}}
+import numpy as np
+kB, u, T = 1.380649e-23, 1.66053907e-27, 300.0
+rng = np.random.default_rng(42)
+for gas, M in [("N2", 28.014), ("Ar", 39.948)]:
+    m = M * u                                   # molecular mass, kg
+    sigma = np.sqrt(kB * T / m)                 # spread of each velocity component
+    v = rng.normal(0.0, sigma, size=(200_000, 3))
+    s = np.linalg.norm(v, axis=1)               # speeds
+    ke = 0.5 * m * (v**2).sum(axis=1).mean() / (kB * T)
+    print(f"{gas}: sampled mean {s.mean():5.1f}  rms {np.sqrt((s**2).mean()):5.1f} m/s,"
+          f"  <KE> = {ke:.3f} kBT,  faster than 1000 m/s: {(s > 1000).mean():.2%}")
+    print(f"    formula mean {np.sqrt(8*kB*T/(np.pi*m)):5.1f}  rms {np.sqrt(3*kB*T/m):5.1f} m/s,"
+          f"  most probable {np.sqrt(2*kB*T/m):5.1f} m/s")
+{{< /py >}}
+
+With 200 000 molecules per gas, the sampled mean and rms speeds agree with the formulas to within a few tenths of a per cent, the mean kinetic energy comes out at 1.50 $k_BT$ for both gases, and the fractions above 1000 m s⁻¹ reproduce the table.
+
+{{< note type="fun" >}}
+Sound in nitrogen at 300 K travels at about 353 m s⁻¹, slower than the average molecule. That is no coincidence: sound is a pressure wave handed from molecule to molecule by collisions, so it cannot outrun the molecules that carry it. For an ideal gas the speed of sound is $\sqrt{\gamma k_BT/m}$, with $\gamma = C_P/C_V = 1.4$ for a diatomic gas, which is 68 % of the rms speed.
+{{< /note >}}
+
 ## Equipartition
 
 Now tick "two species". The orange particles are four times heavier but start with the same speed, so each carries four times the kinetic energy of a light particle. Watch the readout of mean kinetic energy: within a short time the two species have the **same** average kinetic energy, and the heavy particles move half as fast. This is the **equipartition theorem**:
@@ -72,6 +145,14 @@ $$ \left\langle \tfrac12 \textcolor{#845ef7}{m} v_x^2 \right\rangle = \tfrac12 k
 {{< /eq >}}
 
 Equipartition is how MD codes **measure** temperature. They compute the instantaneous kinetic temperature $T = \frac{2\langle K \rangle}{N_{\text{df}}\,k_B}$, with $N_{\text{df}}$ the number of degrees of freedom (about $3N$, less any constraints), and a thermostat nudges velocities to keep it near the target. It also explains the classical-MD error discussed earlier: equipartition gives every vibration $k_BT$, even those that quantum mechanics would freeze.
+
+{{< note type="practice" >}}
+MD codes start a run by drawing every velocity component from a Gaussian of variance $k_BT/m$, and then usually subtract the centre-of-mass velocity so that the system does not drift. Both choices change the count of degrees of freedom in $T = 2K/(N_{\text{df}}k_B)$: removing the centre-of-mass motion takes away 3, and each holonomic constraint takes away 1. A rigid water molecule has 9 coordinates and 3 constraints, hence 6 degrees of freedom, so 50 rigid waters with the drift removed have $N_{\text{df}} = 50 \times 6 - 3 = 297$. Get the count wrong and the reported temperature is wrong by the same ratio, and a thermostat working from it holds the system at the wrong temperature.
+{{< /note >}}
+
+{{< note type="warn" >}}
+Equipartition is a property of equilibrium, and a thermostat can quietly break it. Rescaling all velocities by a common factor to hit the target kinetic energy, as the simplest thermostats do, slowly drains energy from high-frequency vibrations into the slowest motions, the overall translation and rotation of the system. Run long enough and the molecules freeze internally while the whole system sails through the box, an artefact that Harvey, Tan and Cheatham named the **flying ice cube** in 1998. Removing the centre-of-mass motion and using a thermostat that samples the canonical ensemble properly, such as Langevin dynamics, Nosé–Hoover chains or the stochastic velocity rescaling of Bussi, Donadio and Parrinello (2007), avoids it ([the chapter on thermostats](../thermostats-and-barostats/)).
+{{< /note >}}
 
 ## Pressure from collisions
 
@@ -87,6 +168,7 @@ The lab measures pressure by adding up the momentum transferred to the walls. Co
 {{< note type="key" >}}
 - A system at temperature $T$ visits microstate $s$ with probability $e^{-E_s/k_BT}/Z$; the partition function $Z$ yields energy, free energy, entropy and heat capacity.
 - Speeds in a gas follow the Maxwell–Boltzmann distribution, which collisions produce from any starting point.
+- The most probable, mean and rms speeds scale as $\sqrt{k_BT/m}$ in the ratio $1 : 1.128 : 1.225$; for N₂ at 300 K they are 422, 476 and 517 m s⁻¹.
 - Classically every quadratic degree of freedom holds $\tfrac12 k_BT$ (equipartition). This is how MD defines its temperature, and pressure follows from the momentum flux and the virial.
 {{< /note >}}
 
@@ -107,6 +189,14 @@ The lab measures pressure by adding up the momentum transferred to the walls. Co
   options: ["From the potential energy", "From the kinetic energy, $T = 2K/(N_{\\text{df}} k_B)$", "From the pressure"]
   answer: 1
   why: "Equipartition links the average kinetic energy to $T$, with $\\tfrac12 k_BT$ per degree of freedom."
+- q: "The most probable speed of N₂ (28 u) at 300 K is 422 m/s. What is it for argon (40 u) at the same temperature?"
+  options: ["422 m/s, because the temperature is the same", "About 353 m/s", "About 600 m/s"]
+  answer: 1
+  why: "Speeds scale as $1/\\sqrt m$: $422 \\times \\sqrt{28/40} \\approx 353$ m/s. The mean kinetic energy is the same for both gases."
+- q: "A simulation holds 50 rigid water molecules, with the centre-of-mass motion removed. How many degrees of freedom enter the kinetic temperature?"
+  options: ["450", "297", "300"]
+  answer: 1
+  why: "Each rigid water has 9 coordinates minus 3 constraints, so 6 degrees of freedom; removing the centre-of-mass motion subtracts 3 more: $50 \\times 6 - 3 = 297$."
 {{< /quiz >}}
 
 ## References and further reading
@@ -119,5 +209,8 @@ The lab measures pressure by adding up the momentum transferred to the walls. Co
 4. D. Chandler, *Introduction to Modern Statistical Mechanics*, Oxford University Press (1987), chapter 3.
 5. D. Frenkel and B. Smit, *Understanding Molecular Simulation*, 3rd ed., Academic Press (2023), chapter 2 (statistical mechanics for simulation: temperature and pressure estimators).
 6. M. P. Allen and D. J. Tildesley, *Computer Simulation of Liquids*, 2nd ed., Oxford University Press (2017), chapter 2.
+7. R. C. Miller and P. Kusch, "Velocity distributions in potassium and thallium atomic beams", *Physical Review* **99**, 1314 (1955).
+8. S. C. Harvey, R. K.-Z. Tan and T. E. Cheatham, "The flying ice cube: velocity rescaling in molecular dynamics leads to violation of energy equipartition", *Journal of Computational Chemistry* **19**, 726 (1998).
+9. G. Bussi, D. Donadio and M. Parrinello, "Canonical sampling through velocity rescaling", *Journal of Chemical Physics* **126**, 014101 (2007).
 
 </div>
