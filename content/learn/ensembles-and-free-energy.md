@@ -8,6 +8,14 @@ objectives:
   - "Predict state populations from free-energy differences and turn histograms into free-energy profiles"
   - "Derive the ideal gas law and the Sackur–Tetrode entropy from the classical partition function"
   - "Choose between canonical, isothermal–isobaric and grand canonical ensembles for a given problem"
+cover: "cover.svg"
+milestones:
+  - year: 1877
+    text: "Ludwig Boltzmann relates the entropy of a gas to its number of microstates"
+  - year: 1902
+    text: "Josiah Willard Gibbs defines ensembles in Elementary Principles in Statistical Mechanics"
+  - year: 1912
+    text: "Hugo Tetrode, independently of Otto Sackur, derives the absolute entropy of a gas"
 track: statmech
 weight: 3
 level: Core
@@ -22,6 +30,8 @@ An experiment never controls the microscopic state of a sample. It controls a fe
 [The chapter on entropy](../entropy-and-temperature/) used the **microcanonical ensemble**, which describes an isolated system with fixed number of particles $N$, volume $V$ and energy $E$, and in which every accessible microstate is equally likely. [The chapter on the Boltzmann distribution](../boltzmann-and-maxwell/) derived the **canonical ensemble** for a system at fixed $N$, $V$ and temperature $T$, in contact with a heat bath, and showed that a microstate of energy $E_s$ occurs with probability proportional to $e^{-E_s/k_BT}$. This chapter develops the canonical ensemble fully, because it is the ensemble of most experiments and of most simulations, and then introduces the ensembles at constant pressure and at constant chemical potential.
 
 Different ensembles describe different experimental conditions, but for large systems they give the same thermodynamics, because the fluctuations that distinguish them are tiny compared with the averages; this is called the **equivalence of ensembles**. The choice is therefore a matter of convenience: one picks the ensemble in which the calculation is easiest or the simulation most natural.
+
+A simulation does not generate an ensemble of copies. Molecular dynamics and Monte Carlo produce one long sequence of microstates, and using it in place of the ensemble assumes **ergodicity**: that a single trajectory, run long enough, visits microstates with the ensemble's probabilities, so that time averages equal ensemble averages. The assumption fails whenever the trajectory is trapped. A glass below its glass transition, a protein that does not unfold within a 100 ns run, and a crystal that never meets its competing polymorph all give averages over the basin they started in. The error bars are then misleadingly small, because the trajectory has sampled that one basin well. Running from several independent starting structures and comparing the averages is the cheapest test; [enhanced-sampling methods](../es-umbrella/) are the remedy when the averages disagree.
 
 ## The partition function
 
@@ -41,6 +51,10 @@ The figure below makes this concrete. Each energy level contributes a weight $g_
 
 Partition functions factorise in a way that makes them practical. If a system consists of independent parts, its energy is a sum of their energies, so each Boltzmann factor is a product and $Z = z_1 z_2 \cdots$. A molecule's partition function factorises approximately into translational, rotational, vibrational and electronic parts, $z = z_{\text{trans}}\,z_{\text{rot}}\,z_{\text{vib}}\,z_{\text{elec}}$, each computed separately; this is how thermodynamic tables of gases are calculated from spectroscopic data. For $N$ identical, non-interacting molecules, $Z = z^N/N!$, where the $N!$ corrects for the fact that exchanging identical molecules does not produce a new microstate.
 
+{{< note type="practice" title="Back of the envelope: the states of a nitrogen molecule" >}}
+Take N₂ at 298 K and 1 bar and evaluate each factor of $z$ for one molecule. **Translation**: each molecule has a volume $k_BT/P = 41\ \text{nm}^3$ to itself, and its thermal wavelength (defined below) is $\Lambda = 0.191$ Å, so there are $V/(N\Lambda^3) \approx 6\times10^6$ translational states per molecule. **Rotation**: the rotational temperature is $\theta_{\text{rot}} = 2.88$ K and the symmetry number of a homonuclear molecule is 2, so $z_{\text{rot}} \approx T/(2\theta_{\text{rot}}) \approx 52$. **Vibration**: the vibrational temperature is about 3400 K, so only a fraction $e^{-\theta_{\text{vib}}/T} \approx 10^{-5}$ of the molecules is in the first excited state, and $z_{\text{vib}} \approx 1$ when energy is counted from the ground state. **Electronic**: the first excited state lies more than 6 eV up, so $z_{\text{elec}} = 1$. Translation and rotation are classical and vibration is frozen, so the molar heat capacity at constant volume is $\tfrac32R + R = \tfrac52R = 20.8$ J mol⁻¹ K⁻¹, which is the measured value. The missing vibrational $R$ is the freezing-out of [the chapter on quantum energy levels](../quantum-energy-levels/).
+{{< /note >}}
+
 ## Thermodynamics from the partition function
 
 Every thermodynamic quantity follows from $\ln Z$ by differentiation. The derivations are short, and they explain what each quantity means.
@@ -55,6 +69,8 @@ The mean energy formula follows because differentiating $Z = \sum e^{-\beta E_s}
 
 The entropy formula $S = -k_B\sum p_s \ln p_s$, the **Gibbs entropy**, generalises Boltzmann's $S = k_B \ln \Omega$. If all $\Omega$ accessible states are equally likely, each $p_s = 1/\Omega$ and the sum reduces to $k_B \ln\Omega$. If the probabilities are uneven, the entropy is lower, because the system is effectively confined to fewer states. The same expression, without $k_B$, is Shannon's measure of information, which is why entropy is often described as missing information about the microstate.
 
+The Gibbs form is also the one used in practice whenever probabilities are known but states are not equally likely. The configurational entropy of a binary alloy with site fractions $x$ and $1-x$ randomly distributed is $-k_B[x\ln x + (1-x)\ln(1-x)]$ per site, the ideal entropy of mixing that appears in every CALPHAD phase diagram and in the high-entropy-alloy literature, where five equimolar components give $R\ln 5 = 13.4$ J mol⁻¹ K⁻¹. The same formula applied to the populations of conformers along a molecular dynamics trajectory gives a conformational entropy, with the caveat that it only counts the states the trajectory has visited.
+
 The figure's bottom panel shows these quantities for each system. For the two-level system, the heat capacity rises from zero, peaks and falls again. This **Schottky anomaly** occurs because at low temperature the excited level is out of reach, and at high temperature both levels are already equally populated, so further heating changes nothing; only in between can the system absorb energy. The peak lies at $k_BT \approx 0.42\,\Delta$ for a level spacing $\Delta$, and such peaks are measured in magnetic materials and used to determine their energy levels. For the harmonic oscillator, the heat capacity rises from zero to the classical value $k_B$, the freezing-out of vibrations described in [the chapter on quantum energy levels](../quantum-energy-levels/).
 
 ## Free energy: energy against entropy
@@ -67,13 +83,44 @@ The cleanest way to see this is a system with two states, A and B. The probabili
 $$ \frac{P_B}{P_A} = \frac{Z_B}{Z_A} = e^{-\beta\,\Delta F}, \qquad \Delta F = F_B - F_A = \underbrace{\Delta U}_{\text{energy}} - \underbrace{T\Delta S}_{\text{entropy}} $$
 - a state can be favoured despite higher energy if its entropy is large enough
 - at room temperature $k_BT \approx 2.5$ kJ/mol, so a free-energy difference of 5.7 kJ/mol shifts the population ratio tenfold
+
 {{< /eq >}}
+
+{{< note type="try" title="Pause and predict" >}}
+State B lies 10 kJ/mol above state A in energy but has 40 J mol⁻¹ K⁻¹ more entropy. Below what temperature is A the majority state, and what is the ratio $P_B/P_A$ at 300 K? Decide before reading on. The populations are equal when $\Delta F = \Delta U - T\Delta S = 0$, at $T^* = \Delta U/\Delta S = 250$ K, so A dominates only below 250 K. At 300 K, $\Delta F = 10 - 300\times0.040 = -2$ kJ/mol, and $P_B/P_A = e^{2000/(8.314\times300)} = 2.2$: the higher-energy state holds about two thirds of the population.
+{{< /note >}}
 
 The figure below samples a particle moving in a one-dimensional potential with two wells by the Metropolis Monte Carlo method ([its own chapter](../monte-carlo/)). Well A is deep and narrow; well B is shallower but much broader. At low temperature the particle stays almost entirely in A, the state of lower energy. Raise the temperature and B gains, until above some temperature the particle spends more time in the shallow well than in the deep one. Nothing about the energies has changed. B wins because it offers more room: its larger entropy, multiplied by the higher temperature, outweighs its energy penalty. The readout decomposes the exact free-energy difference into its energy and entropy parts.
 
 {{< widget name="pmf" title="Energy against entropy in a two-well system" caption="Top: the potential energy (blue), and the free energy F(x) = −kT ln P(x) reconstructed from the sampled histogram (orange), with a violet bar showing the size of kT. Bottom: the histogram of positions visited and the exact Boltzmann density. Raise the temperature or widen well B and watch the population shift from A to B." >}}
 
+{{< note type="warn" title="Myth" >}}
+**Entropy means disorder, so the ordered state always has the lower entropy.** Entropy counts microstates, and the ordered arrangement sometimes has more of them. Hard spheres, which have no energy at all apart from forbidding overlap, crystallise when compressed beyond a packing fraction of 0.494: at that density a sphere in a face-centred cubic lattice has more room to rattle than a sphere jammed in a disordered packing, so the crystal has the higher entropy ([the chapter on liquids](../liquids-and-structure/) returns to this). The depletion attraction between large colloids in a solution of small polymers, which drives colloidal crystallisation and is exploited in protein crystallography with polyethylene glycol, is entropic in the same way: pushing two large particles together frees volume for the small ones.
+{{< /note >}}
+
 This is not a toy effect. Rubber contracts when heated because a stretched polymer chain has fewer conformations than a coiled one, so the entropic force pulling it back grows with temperature. Water and oil separate largely because water molecules next to an oily surface lose orientational freedom, an entropic penalty; this hydrophobic effect drives protein folding and the self-assembly of surfactants and nanoparticle ligands. And every first-order phase transition, from ice melting to a crystal changing its structure, is the point where the free energies of two phases cross.
+
+### Worked example: the entropic spring
+
+The rubber example can be made quantitative. Model one strand of a rubber network as an ideal chain of $N$ freely jointed segments of length $b$, with no energy cost for bending. A random walk of $N$ steps ends at a displacement $\mathbf R$ from its start with a Gaussian probability, $P(\mathbf R) \propto \exp(-3R^2/2Nb^2)$, and since every conformation has the same energy, the number of conformations with end-to-end distance $R$ is proportional to $P(\mathbf R)$. The entropy is $S(R) = S_0 - 3k_BR^2/(2Nb^2)$, and because the energy does not depend on $R$, the free energy is purely entropic:
+
+$$
+F(R) = F_0 + \frac{3k_BT}{2Nb^2}R^2, \qquad f = \frac{\mathrm dF}{\mathrm dR} = \frac{3k_BT}{Nb^2}\,R .
+$$
+
+The chain is a Hookean spring whose stiffness is proportional to the absolute temperature. For $N = 100$ segments of $b = 1$ nm at 300 K the stiffness is $3k_BT/Nb^2 = 0.12$ pN/nm, so pulling the ends 10 nm apart takes 1.2 pN. At large extension the Gaussian form fails because the chain runs out of contour length, and the exact force–extension curve of the freely jointed chain is the inverse Langevin function, $x/Nb = \coth(fb/k_BT) - k_BT/fb$. At half the contour length the tension is 7.4 pN at 300 K; at 90 % it is 41 pN and rising steeply.
+
+{{< fig src="rubber-chain.svg" alt="Left: a tangled teal chain and a nearly straight orange chain. Right: tension against extension for a 100-segment freely jointed chain at 280 K and 350 K, with the Gaussian straight-line approximation dashed" caption="A stretched chain has fewer conformations than a coiled one, so pulling it lowers its entropy and costs free energy. At every extension the tension scales with $T$: heating from 280 K to 350 K raises it by 25 %. The dashed line is the Gaussian approximation, valid at small extension." >}}
+
+Two consequences follow. A rubber band held at fixed length pulls harder when heated, in proportion to $T$, and a band held at fixed load contracts. And stretching rubber quickly, so that no heat escapes, lowers its conformational entropy, which must be compensated by an increase in the thermal entropy of the vibrations: the band warms up. Single-molecule experiments test the same physics on one chain. Smith, Finzi and Bustamante stretched single DNA molecules with magnetic beads in 1992, and the force–extension curve below about 5 pN follows an entropic worm-like chain model with a persistence length of about 50 nm.
+
+{{< note type="story" >}}
+John Gough, a blind natural philosopher in Kendal, reported in 1805 that a strip of natural rubber warms when stretched quickly, which he detected by holding it against his lips, and that a stretched strip shortens when warmed. James Joule repeated the measurements with thermometers in 1859. The Gough–Joule effect was explained only in the 1930s, when Werner Kuhn, Eugene Guth and Herman Mark treated rubber as a network of randomly coiled chains whose elasticity is entropic.
+{{< /note >}}
+
+{{< note type="practice" title="From the lab: protein melting curves" >}}
+Differential scanning calorimetry and thermal-shift assays measure the fraction of a protein that is unfolded as the temperature rises. For a two-state protein, $P_U/P_F = e^{-\Delta G/RT}$ with $\Delta G = \Delta H - T\Delta S$, and the melting temperature $T_m$ is where $\Delta G = 0$. Take a small protein with an unfolding enthalpy of 200 kJ/mol and $T_m = 60$ °C. Then $\Delta S = \Delta H/T_m = 600$ J mol⁻¹ K⁻¹; at 25 °C, $\Delta G = 21$ kJ/mol and only 2 molecules in 10 000 are unfolded; at 50 °C the fraction is 10 %; at 70 °C it is 89 %. The sharpness of the transition measures $\Delta H$, which is how the van 't Hoff enthalpy is extracted from a melting curve. Real proteins also raise their heat capacity on unfolding, so $\Delta H$ and $\Delta S$ themselves depend on temperature and $\Delta G(T)$ is curved; for some proteins it crosses zero again at low temperature, which is cold denaturation.
+{{< /note >}}
 
 ## Free-energy profiles and the potential of mean force
 
@@ -107,11 +154,27 @@ $$
 
 For argon at 298.15 K and 1 bar, the thermal wavelength is 0.16 Å, $V/(N\Lambda^3) \approx 10^7$, and the formula gives a molar entropy of 154.8 J mol⁻¹ K⁻¹, which matches the value measured calorimetrically. That an absolute entropy can be calculated from Planck's constant and the mass of an atom, and agree with experiment, was one of the early triumphs of quantum statistical mechanics: the factor $h^{3N}$ and the $N!$ both matter.
 
+### When is the classical partition function enough?
+
+The classical integral replaces a sum over quantum states by an integral, and the replacement is accurate when the quantum states are closely spaced compared with $k_BT$. For translation the criterion has a direct geometric reading: the thermal wavelength $\Lambda$, the typical de Broglie wavelength of a particle at temperature $T$, must be short compared with the distances over which the potential changes, which in condensed matter is the spacing between neighbouring atoms, about 3 Å.
+
+{{< fig src="thermal-wavelength.svg" alt="Log-log plot of thermal wavelength against temperature from 1 to 1000 K for hydrogen atoms, helium and argon, with a band at 3 to 4 angstrom for interatomic spacing and a rising dashed line for the mean spacing in a gas at 1 bar" caption="$\Lambda = h/\sqrt{2\pi mk_BT}$ falls as $T^{-1/2}$ and $m^{-1/2}$. Argon is classical everywhere it is liquid or gas; liquid helium at 4.2 K has $\Lambda$ longer than its interatomic spacing and is a quantum liquid; hydrogen nuclei in water at 300 K have $\Lambda \approx 1$ Å, comparable to the O–H bond." >}}
+
+For argon, $\Lambda = 0.30$ Å at its boiling point of 87 K, a tenth of the interatomic spacing, so liquid argon is a classical liquid and classical molecular dynamics with a good pair potential reproduces its properties. For liquid helium at 4.2 K, $\Lambda = 4.3$ Å exceeds the 3.8 Å spacing between atoms: the wave packets overlap, the classical partition function is meaningless, and below 2.17 K helium-4 becomes a superfluid. Liquid hydrogen at 20 K ($\Lambda = 2.7$ Å) is similarly quantum.
+
+The case that matters most in chemistry and materials science is the hydrogen atom at room temperature. Its thermal wavelength is 1.0 Å, about the length of an O–H bond, so the positions of protons in water, in hydrated oxides and in hydrogen-bonded crystals are delocalised by zero-point motion. These **nuclear quantum effects** shift hydrogen-bond lengths, raise proton-transfer rates, and cause isotope effects that classical statistical mechanics cannot produce: in a classical simulation, the equilibrium structure does not depend on atomic mass at all, yet heavy water melts at 3.8 °C rather than 0 °C. Path-integral molecular dynamics recovers them by replacing each quantum nucleus with a ring polymer of $P$ classical beads joined by harmonic springs; for water at 300 K, 16 to 32 beads are typically needed, at 16 to 32 times the cost of a classical run.
+
 ## Other ensembles
 
 Experiments are more often done at constant pressure than at constant volume. In the **isothermal–isobaric ensemble** (NPT), the volume fluctuates as the system exchanges work with a barostat, a microstate with energy $E_s$ and volume $V$ has weight $e^{-\beta(E_s + PV)}$, and the corresponding free energy is the **Gibbs free energy** $G = F + PV$, minimised at constant temperature and pressure. Phase equilibria, reaction equilibria and solubilities at ordinary conditions are governed by $G$. Molecular dynamics simulations of liquids and solids are usually run in this ensemble, with a thermostat and a barostat ([the chapter on thermostats](../thermostats-and-barostats/)).
 
 In the **grand canonical ensemble** ($\mu VT$), the system exchanges particles as well as energy with a reservoir at fixed **chemical potential** $\mu$, the free-energy cost of adding one particle. A microstate with $N$ particles and energy $E_s$ has weight $e^{-\beta(E_s - \mu N)}$, and the grand potential $\Omega = -k_BT\ln\Xi = -PV$ follows from the grand partition function $\Xi$. This is the natural ensemble for adsorption: grand canonical Monte Carlo simulations of gases in porous materials such as zeolites and metal–organic frameworks predict adsorption isotherms by letting molecules be inserted and deleted at a chemical potential fixed by the gas pressure.
+
+{{< note type="practice" title="From the lab: adsorption isotherms by grand canonical Monte Carlo" >}}
+To predict how much CO₂ a metal–organic framework takes up at 1 bar and 298 K, the framework is held rigid and grand canonical Monte Carlo attempts four kinds of move: translations, rotations, insertions at random positions and deletions of random molecules. The insertion and deletion acceptance probabilities contain $e^{\beta\mu}$, and $\mu$ is set from the gas-phase fugacity, computed from an equation of state such as Peng–Robinson rather than the ideal-gas pressure at high loading. Repeating at a series of pressures gives the isotherm, and codes such as RASPA automate the workflow. Two common sources of disagreement with experiment are the definition of uptake (experiments report the excess adsorbed amount, simulations the absolute amount) and the framework model: a rigid framework cannot capture gate-opening or breathing materials. At high loading, random insertions are almost always rejected because they overlap existing molecules, and configurational-bias or continuous fractional component moves are used to restore acceptance.
+{{< /note >}}
+
+{{< fig src="ensemble-family.svg" alt="Four boxes of particles: an isolated box, a box exchanging energy with a bath, a box with a piston, and a box with a dashed permeable wall, each labelled with what is fixed, what is exchanged, its Boltzmann weight and its thermodynamic potential" caption="The four standard ensembles. Each exchange with the surroundings adds a term to the Boltzmann weight, and the matching thermodynamic potential is minimised at equilibrium under that ensemble's constraints." >}}
 
 The pattern is always the same. Each ensemble has a weight for each microstate, a partition function that normalises the weights, and a thermodynamic potential equal to $-k_BT$ times its logarithm. The potentials are related by **Legendre transforms**, $F = U - TS$, $G = F + PV$, $\Omega = F - \mu N$, each swapping a controlled extensive variable for its conjugate intensive one, and each minimised at equilibrium under its own constraints.
 
@@ -144,6 +207,10 @@ The pattern is always the same. Each ensemble has a weight for each microstate, 
   options: ["Momenta are always zero", "The kinetic energy is a sum of squares of momenta, so the integrals are Gaussian", "Because of the N! factor"]
   answer: 1
   why: "Each momentum component contributes a Gaussian integral, producing the thermal wavelength Λ."
+- q: "At 300 K the thermal wavelength of a hydrogen atom is about 1 Å. What does this imply for a classical simulation of water?"
+  options: ["Nothing; classical mechanics is exact at 300 K", "Proton positions are delocalised on the scale of an O–H bond, so nuclear quantum effects such as isotope shifts are missed", "Water must be treated as an ideal gas"]
+  answer: 1
+  why: "When Λ approaches the distance over which the potential varies, the classical configurational integral is inaccurate; path-integral MD corrects it."
 {{< /quiz >}}
 
 ## References and further reading
@@ -157,5 +224,6 @@ The pattern is always the same. Each ensemble has a weight for each microstate, 
 5. D. V. Schroeder, *An Introduction to Thermal Physics*, Addison-Wesley (2000), chapters 6–7, including the Schottky anomaly and the Sackur–Tetrode equation.
 6. O. Sackur, "Die Anwendung der kinetischen Theorie der Gase auf chemische Probleme", *Annalen der Physik* **36**, 958–980 (1911); H. Tetrode, "Die chemische Konstante der Gase und das elementare Wirkungsquantum", *Annalen der Physik* **38**, 434–442 (1912).
 7. D. Chandler, "Interfaces and the driving force of hydrophobic assembly", *Nature* **437**, 640–647 (2005).
+8. S. B. Smith, L. Finzi and C. Bustamante, "Direct mechanical measurements of the elasticity of single DNA molecules by using magnetic beads", *Science* **258**, 1122–1126 (1992).
 
 </div>

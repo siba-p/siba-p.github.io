@@ -8,6 +8,16 @@ objectives:
   - "Recognise the terms of a classical force field and estimate their sizes at 300 K"
   - "Explain where fixed-charge force fields fail and which models replace them"
   - "Verify analytic forces against finite differences using a well-chosen step size"
+cover: "cover.svg"
+milestones:
+  - year: 1924
+    text: "John Lennard-Jones (then J. E. Jones) fits inverse-power potentials to gas data"
+  - year: 1927
+    text: "Max Born and J. Robert Oppenheimer separate electronic and nuclear motion"
+  - year: 1984
+    text: "Murray Daw and Michael Baskes introduce the embedded-atom method for metals"
+  - year: 1995
+    text: "Cornell, Kollman and co-workers publish the AMBER ff94 protein force field"
 track: models
 weight: 1
 level: Foundation
@@ -28,11 +38,19 @@ $$
 
 Everything else follows from $E(\mathbf R)$. **Minima** are stable structures: molecules, crystals, adsorption geometries. **First-order saddle points** connect minima and are transition states; their height sets reaction rates. The **curvature** at a minimum, the Hessian $\partial^2 E/\partial\mathbf r_i\partial\mathbf r_j$, gives vibrational frequencies and phonons. Molecular dynamics moves the atoms across the surface under these forces.
 
+The smallest system with a landscape worth drawing is three argon atoms. Hold two of them at their equilibrium separation, 3.82 Å, and move the third through the plane: the energy is then a function of two coordinates and can be drawn as a contour map. With the Lennard-Jones parameters used later in this chapter it has two minima, the equilateral triangles above and below the pair, each at $E = -3\varepsilon = -2.99$ kJ/mol, three bonds' worth of attraction. Between them lie two first-order saddles, the linear chains at 5.73 Å from the centre of the pair, at $-2.03\varepsilon = -2.02$ kJ/mol: the two bonds of the chain plus the weak attraction ($-0.03\varepsilon$) between its end atoms.
+
+{{< fig src="landscape.svg" alt="Contour map of the energy of a third argon atom moving in the plane of a fixed argon pair, with two deep minima above and below the pair, saddle points at both ends, white repulsive cores around the pair, an orange minimum energy path curling round one end and pink arrows pointing downhill" caption="The landscape of an argon trimer, seen by the third atom while the other two are held 3.82 Å apart. The equilateral minima lie 0.97 kJ/mol below the linear saddles; the minimum energy path (orange) is the route a slow, cold atom would take from one minimum to the other." >}}
+
+The Hessian classifies every stationary point. At the equilateral minimum both of its eigenvalues are positive, 2.46 and 7.37 kJ mol⁻¹ Å⁻²: the energy rises in every direction. At the linear saddle one eigenvalue is positive (5.0 kJ mol⁻¹ Å⁻², along the chain) and one is negative, but only just: −0.003 kJ mol⁻¹ Å⁻² for swinging the end atom sideways. The saddle is a broad, almost flat plateau, because the end atom's only lever on the far atom is the 3 % tail of a Lennard-Jones well. Flat saddles of this kind are common in clusters and soft matter, and they are why saddle searches converge slowly there. The line of steepest descent connecting minima through a saddle is the **minimum energy path**; the figure shows one computed with the string method of Weinan E, Weiqing Ren and Eric Vanden-Eijnden (2002), and [the chapter on energy landscapes](../es-landscapes/) treats it and the nudged elastic band in detail. In a real system the same objects live in $3N - 6$ dimensions, and their number grows roughly exponentially with $N$: even small Lennard-Jones clusters of a few dozen atoms have many thousands of distinct minima.
+
 Computing $E(\mathbf R)$ from quantum mechanics, typically with density functional theory (DFT), is accurate but expensive: the cost grows roughly as $N^3$ with the number of electrons, which limits routine DFT molecular dynamics to a few hundred atoms for tens of picoseconds. A **force field** or **interatomic potential** replaces the quantum calculation with a cheap analytic function of the positions. This lesson is about the classical forms; [the lesson on interatomic potentials](../mlip/) replaces them with machine-learned ones.
 
 ## Why the electrons can be left behind
 
 Every method in this book inherits the Born–Oppenheimer approximation, and its justification is a mass ratio. A proton is 1836 times heavier than an electron, and a carbon nucleus about 21,900 times. Electrons and nuclei feel Coulomb forces of similar size, so the light electrons respond far faster. In Bohr's semiclassical picture the electron of a hydrogen atom circles its nucleus in about 150 attoseconds, while the fastest nuclear motion in organic matter, a C–H stretch near 3000 cm⁻¹, takes about 11 femtoseconds. The electrons complete some seventy "orbits" per vibration: to them the nuclei look frozen.
+
+{{< fig src="timescales.svg" alt="A logarithmic time axis from 10 attoseconds to 10 picoseconds marking the electron's orbital period in hydrogen at 152 as, a 1 fs MD time step, the 11 fs C–H stretch period, the 200 fs retinal isomerisation and the 1.3 ps Ar₂ vibration" caption="Electrons and nuclei live on different clocks. Seventy-three Bohr orbits fit into one C–H vibration, so the electrons follow the nuclei adiabatically; MD time steps of about 1 fs are set by the fastest nuclear motion, not the electronic one." >}}
 
 Max Born and J. Robert Oppenheimer made this quantitative in 1927 by expanding the energy of a molecule in powers of $\kappa = (m/M)^{1/4}$, the fourth root of the electron-to-nucleus mass ratio. Electronic energies appear at zeroth order, vibrational energies at order $\kappa^2$ (about 0.02 for hydrogen) and rotational energies at order $\kappa^4$. That is why electronic excitations cost electronvolts, vibrational quanta tenths of an electronvolt and rotational quanta millielectronvolts.
 
@@ -123,6 +141,8 @@ $$
 
 The first line, the **bonded** terms, holds the covalent skeleton together. The second, the **non-bonded** terms, acts between all atoms not closely bonded: van der Waals interactions and electrostatics between fixed partial charges. Parameters for unlike pairs usually come from **combining rules**, for example Lorentz–Berthelot: $\sigma_{ij} = (\sigma_i + \sigma_j)/2$, $\varepsilon_{ij} = \sqrt{\varepsilon_i\varepsilon_j}$.
 
+{{< fig src="forcefield.svg" alt="Schematic of a four-site butane chain next to a water molecule: a spring on the first bond for bond stretching, an arc at the second site for angle bending, a curved arrow around the central bond for torsion, and a dashed line from the chain to the water for non-bonded Lennard-Jones and Coulomb interactions with partial charges on the water" caption="The four kinds of term in a class I force field, drawn on united-atom butane beside a water molecule. Bonded terms act along the covalent skeleton; non-bonded terms act between molecules and between atoms at least three bonds apart, with the 1–4 pair scaled." >}}
+
 Non-bonded terms are not applied to every pair. Atoms joined by a bond (1–2 pairs) or by a common neighbour (1–3 pairs) are **excluded**, because the bond and angle terms already describe their interaction. Pairs at the two ends of a dihedral (1–4 pairs) feel scaled non-bonded interactions, with factors that differ between families: AMBER divides 1–4 electrostatics by 1.2 and 1–4 Lennard-Jones by 2, OPLS-AA halves both, and CHARMM leaves the electrostatics unscaled. The torsion parameters were fitted together with these factors, so neither can be changed on its own.
 
 ### A sense of scale
@@ -140,6 +160,24 @@ The terms differ in stiffness by orders of magnitude. The table gives typical va
 Equipartition turns force constants into fluctuations. Each harmonic term holds on average $\tfrac12 k_BT$, so the root-mean-square deviation is $\sqrt{k_BT/k}$: about 0.003 nm for the C–C bond, 2 % of its length, and about 5° for the angle. Bonds and angles are stiff. They fix the shape of a molecule but carry almost none of its conformational freedom.
 
 The soft terms decide everything else. Torsions, with barriers of a few $k_BT$, set which conformers are populated, from the trans and gauche states of butane to the backbone of a protein. A single Lennard-Jones pair is bound by less than $k_BT$, but an atom in a liquid has hundreds of neighbours within the cut-off, and these small terms add up to heats of vaporisation. Coulomb terms between individual sites are large (two unit charges 0.3 nm apart in vacuum interact with 463 kJ/mol) but largely cancel within neutral molecules, leaving net interactions such as the roughly 20 kJ/mol of a hydrogen bond between two water molecules. This is where force-field developers spend most of their effort: an error of 1 kJ/mol, less than half of $k_BT$, shifts a conformational equilibrium by a factor of 1.5.
+
+### Worked example: the butane torsion
+
+Butane, CH₃–CH₂–CH₂–CH₃, is the textbook case of a torsional equilibrium and the shortest alkane with one. In the united-atom model of Jean-Paul Ryckaert and André Bellemans, each CH₂ or CH₃ group is a single site and the rotation about the central bond is governed by a cosine series in $\psi = \phi - 180°$,
+
+$$
+V(\psi) = \sum_{n=0}^{5} C_n \cos^n\psi ,
+$$
+
+with $C_0, \dots, C_5 = 9.28,\ 12.16,\ -13.12,\ -3.06,\ 26.24,\ -31.5$ kJ/mol, the values tabulated in the GROMACS manual. Evaluating it at a few angles gives the whole conformational story. The trans state ($\phi = 180°$) is the zero of energy. The two gauche states ($\phi = 60°$ and $300°$) lie 2.93 kJ/mol higher, $1.17\,k_BT$ at 300 K. The trans–gauche barriers at $120°$ and $240°$ are 12.35 kJ/mol, about $5\,k_BT$, and the eclipsed cis state is 44.8 kJ/mol up, $18\,k_BT$, and essentially never visited.
+
+{{< fig src="butane.svg" alt="Top: the Ryckaert–Bellemans torsion energy of butane against dihedral angle, with the trans minimum at 180 degrees, gauche minima at 60 and 300 degrees, barriers of 12.4 kJ/mol and a cis maximum of 44.8 kJ/mol. Bottom: the Boltzmann probability at 300 K with a tall trans peak holding 65 percent and two gauche peaks holding 17.5 percent each" caption="The butane torsion and the populations it produces at 300 K. The gauche wells are only 1.2 $k_BT$ above trans, so a third of the molecules are gauche at any instant; the trans well is also wider, which adds a little entropy in its favour." >}}
+
+A first estimate of the populations treats each well as a single state: the trans fraction is $1/(1 + 2e^{-2.93/2.494}) = 0.62$. Integrating the Boltzmann factor $e^{-V(\phi)/k_BT}$ over the whole circle instead gives 0.65 trans and 0.175 for each gauche well. The difference is entropic. The curvature of the trans well, 76 kJ mol⁻¹ rad⁻², is smaller than that of a gauche well, 105 kJ mol⁻¹ rad⁻², so the trans well is wider (an rms spread of 10.4° against 8.8°) and holds more states. Cooling to 200 K raises the trans fraction to 0.77; heating to 400 K lowers it to 0.58. The barrier of $5\,k_BT$ also sets the time scale: with an attempt frequency of order $10^{12}$ s⁻¹ and a Boltzmann factor $e^{-4.95} \approx 0.007$, a given molecule leaves the trans well roughly once every 100 ps, which is why a nanosecond of MD samples butane's torsion thoroughly while a protein backbone, with many coupled torsions, needs microseconds or more.
+
+{{< note type="warn" title="Myth" >}}
+**Myth:** the torsion parameter $k_\phi$ is the barrier to rotation. **Reality:** the barrier you would measure is the sum of the torsion term, the scaled 1–4 Lennard-Jones and Coulomb terms, and the relaxation of bonds and angles as the molecule turns. Torsion parameters are fitted last, as the difference between a quantum-chemical scan and everything else in the force field, so they absorb the errors of the other terms. That is the reason a torsion cannot be transplanted from one force field into another.
+{{< /note >}}
 
 ### Domains of validity
 

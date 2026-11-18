@@ -1,17 +1,15 @@
 ---
 title: "Foundations of computational materials science"
-lead: "Long-form notes on the mathematics, programming, physics, simulation methods and machine learning that modern atomistic research is built on. Each subject is written as a single book: it starts from first principles, follows the ideas through the people and papers that introduced them, and works through them with models that run in the browser."
-description: "Long-form notes with interactive figures on mathematics, computing and Python, machine learning, statistical mechanics, molecular simulation, enhanced sampling and machine learning for materials, written from first principles with references to the original literature."
+lead: "Methods notes for atomistic simulation and machine learning in materials science, covering the material that sits in methods sections, supplementary information and software manuals rather than in textbooks: how WHAM stitches umbrella windows together and where its error bars come from, why a well-tempered bias converges and a plain one does not, what an equivariant message carries between atoms, and why universal potentials systematically soften the energy surface. Each method is followed from the paper that introduced it to current practice, with the derivation, typical parameter values, known failure modes and code that runs in the page."
+description: "Methods notes for atomistic simulation and machine learning in materials science: statistical mechanics, molecular dynamics, free-energy and enhanced-sampling methods, and machine-learned interatomic potentials, each followed from the original paper to current practice with derivations, parameter choices, failure modes and runnable code."
 covers: |
-  The notes run from the foundations to current research methods, in eight subjects.
+  Eight books, in three stages.
 
-  **Mathematics, computing and Python** provide the working tools: calculus, linear algebra and probability; how a processor, the Linux shell and compiled code work; and Python from the interpreter and its object model up to NumPy and performance.
+  **Mathematics, Computing and Python** are the tools: calculus, linear algebra and probability; processors, floating point, the Linux shell, Slurm and Fortran; and Python from its object model to NumPy and profiling.
 
-  **Machine learning** and **physics and statistical mechanics** provide the two theories that everything else depends on. The first covers learning from data, from a single artificial neuron to deep networks. The second covers microstates and entropy, the Boltzmann distribution, ensembles, free energy, fluctuations, phase transitions and the structure of liquids.
+  **Physics and statistical mechanics, Molecular simulation and Machine learning** are the theory. Entropy, ensembles, free energy and fluctuations; force fields, Monte Carlo, integrators, thermostats and error analysis; and learning from data from least squares to graph networks and transformers.
 
-  **Molecular simulation** and **enhanced sampling** turn the physics into practice: molecular dynamics and Monte Carlo, thermostats and barostats, transport coefficients and trajectory analysis, then energy landscapes and rate theory, free-energy perturbation, umbrella sampling, metadynamics, OPES, replica exchange, path sampling and Markov state models.
-
-  **Machine learning for materials** brings the threads together: symmetry and descriptors, the history and theory of machine-learned interatomic potentials from Behler–Parrinello networks to MACE and the universal models, generative models for crystals and differentiable simulation. It includes a complete tutorial that builds, trains and validates an interatomic potential.
+  **Enhanced sampling and Machine learning for materials** are current methods. Rate theory, FEP and TI, umbrella sampling, metadynamics, OPES, replica exchange, path sampling and Markov state models; and machine-learned interatomic potentials from Behler–Parrinello networks to MACE and the universal models, with a tutorial that builds, trains and validates one from scratch.
 author_note: |
   I came to molecular simulation from materials engineering, and to machine learning through my PhD research. Almost every method here I first learned the hard way: from textbooks written for physicists, papers that skipped the steps I needed, and software manuals that assumed I already knew why a setting mattered.
 

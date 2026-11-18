@@ -8,6 +8,16 @@ objectives:
   - "Draw and interpret phase portraits for the spring, the double well and the pendulum"
   - "Explain Liouville's theorem and why MD integrators are built to be symplectic"
   - "Estimate a bond's vibration period, amplitude and phase-space area from spectroscopic data"
+cover: "cover.svg"
+milestones:
+  - year: 1687
+    text: "Newton publishes the Principia, stating his three laws of motion"
+  - year: 1834
+    text: "Hamilton recasts mechanics in terms of positions, momenta and one energy function"
+  - year: 1838
+    text: "Liouville proves that Hamiltonian flow preserves phase-space volume"
+  - year: 1967
+    text: "Verlet simulates liquid argon with the integration scheme now named after him"
 track: physics
 weight: 1
 level: Foundation
@@ -51,6 +61,10 @@ $$ \textcolor{#f08c2e}{F}(x) = -\frac{\mathrm d\textcolor{#4c6ef5}{V}}{\mathrm d
 
 Three landscapes appear in the lab. A **spring**, $V = \tfrac12 kx^2$, gives a force $F = -kx$ that always pulls back towards the centre (Hooke's law), the model of a chemical bond near equilibrium. A **double well** has two valleys separated by a barrier, the simplest model of a chemical reaction, a conformational change or a phase transition. A **pendulum**, $V = 1 - \cos x$, is a model of a rotating chemical group with a periodic barrier.
 
+{{< note type="practice" title="Back of the envelope" >}}
+Simulation codes report forces in eV/Å, and 1 eV/Å is $1.60 \times 10^{-9}$ N, a typical force on an atom in a strained bond or a dense liquid. On a carbon atom of mass $1.99 \times 10^{-26}$ kg it produces an acceleration of $8.0 \times 10^{16}$ m s⁻², almost $10^{16}$ times the acceleration due to gravity. In 1 fs this changes the velocity by 80 m s⁻¹ and displaces the atom by only $4 \times 10^{-4}$ Å, while the thermal velocity of carbon at 300 K, about 460 m s⁻¹ along each axis, carries it 0.005 Å. Over 10 fs the same force changes the velocity by 800 m s⁻¹, more than the thermal velocity itself. Interatomic forces reverse atomic motion on a timescale of 10 fs, and this sets the femtosecond time step of molecular dynamics.
+{{< /note >}}
+
 {{< widget name="phasespace" title="A particle in a potential, and its path in phase space" caption="Left: the landscape V(x), the particle, its force (orange arrow) and velocity (teal arrow), and a bar showing kinetic (K) and potential (V) energy. Right: phase space, momentum against position. Click in the phase plane to start a new motion; add friction and watch the trajectory spiral inwards." >}}
 
 {{< note type="try" >}}
@@ -83,6 +97,20 @@ Since energy is conserved, the trajectory stays on a curve of constant $E$: the 
 
 For $N$ atoms in three dimensions phase space has $6N$ dimensions, three positions and three momenta per atom, and a molecular dynamics run traces one trajectory through it. Statistical mechanics, the subject of [the chapters after next](../entropy-and-temperature/), is the art of saying what fraction of that enormous space a system visits.
 
+### Fixed points, separatrices and slow crossings
+
+Two kinds of fixed point organise every phase portrait. At the bottom of a valley the force vanishes and nearby orbits circle the resting point, which is called a **centre**. At the top of a barrier the force also vanishes, but nearby orbits approach along two directions and leave along two others, forming an X; this point is a **saddle**. The separatrix consists of the orbits that run into and out of the saddles, and it divides phase space into regions of qualitatively different motion: trapped in the left well, trapped in the right well, or circulating over both. In a molecule with many degrees of freedom the same structure persists in higher dimension, and the saddles of the potential energy surface are the transition states searched for by methods such as the nudged elastic band ([the chapter on energy landscapes](../es-landscapes/)).
+
+{{< note type="try" title="Pause and predict" >}}
+A pendulum is released from rest at 90°, then at 179°, then exactly upside down at 180°. How do the three periods compare with the period of a very small swing? Decide before reading on.
+{{< /note >}}
+
+The period of a spring, $2\pi\sqrt{m/k}$, is the same at every amplitude, because the larger restoring force at large stretch exactly compensates the longer path. A pendulum is softer than a spring at large angles, since $\sin x < x$, so its period grows with amplitude. The exact period follows from the complete elliptic integral of the first kind, $T = 4K(\sin^2(x_0/2))/\omega_0$, and gives 1.18 times the small-swing period at 90° and 3.90 times at 179°. Released exactly at 180° the pendulum is balanced on the saddle and never falls. Near a saddle the potential is an inverted parabola, $V \approx V_b - \tfrac12 k_b x^2$, and the distance from the saddle grows or shrinks exponentially in time, so the time spent near it grows as the logarithm of $1/(E_b - E)$: slowly, but without bound.
+
+{{< fig src="period.svg" alt="Period of a pendulum divided by its small-swing period, plotted against energy from 0 to 4; the curve rises from 1 and diverges at the separatrix energy 2, then falls on the rotating side; a flat dashed line at 1 marks the spring" caption="The period of a pendulum grows with amplitude (1.18 times the small-swing value for a 90° swing) and diverges at the separatrix, where the motion stalls at the top. Above the separatrix the pendulum rotates, and its period falls as the energy rises. A harmonic spring keeps the same period at every energy." >}}
+
+Molecules that only just have the energy to cross a barrier also linger near the top, where collisions with their neighbours can turn them back. These recrossings are why the true crossing rate is lower than the rate at which trajectories arrive at the top, a correction that [rate theory](../es-rates/) calls the transmission coefficient and that the Bennett–Chandler method computes from short trajectories started at the barrier.
+
 ## A worked example: one chemical bond in phase space
 
 Numbers make the phase portrait concrete. Take a carbon monoxide molecule and treat its bond as a spring. Two atoms vibrating against each other behave like a single particle with the **reduced mass** $\mu = m_\mathrm{C} m_\mathrm{O}/(m_\mathrm{C} + m_\mathrm{O}) = 6.86$ u $= 1.14 \times 10^{-26}$ kg, moving in the potential $\tfrac12 kx^2$, where $x$ is the stretch of the bond. Infrared spectroscopy gives the vibration's wavenumber, about 2170 cm⁻¹, and that fixes everything else.
@@ -93,6 +121,8 @@ Numbers make the phase portrait concrete. Take a carbon monoxide molecule and tr
 4. The orbit in phase space is an ellipse with these two semi-axes, so it encloses an area $\pi x_{\max} p_{\max} = 2\pi E/\omega = 6.4 \times 10^{-35}$ J s.
 
 The last number has the units of Planck's constant, $h = 6.63 \times 10^{-34}$ J s, and is about a tenth of it. That comparison is decisive. In quantum mechanics the levels of an oscillator correspond to orbits enclosing areas of exactly $(n + \tfrac12)h$, so even the ground state occupies half of $h$. A thermal orbit of a tenth of $h$ is smaller than the smallest one nature allows: the CO vibration cannot be described classically at room temperature, as [the next chapter](../quantum-energy-levels/) shows. By contrast, an argon atom crossing a 1 nm cage at 400 m s⁻¹, close to its mean thermal speed, has a product of distance and momentum of $2.65 \times 10^{-32}$ J s, forty times $h$, and classical mechanics describes it very well.
+
+{{< fig src="co-orbit.svg" alt="Two phase-space panels. Left: a small teal ellipse for the thermal CO orbit inside an orange ellipse for the quantum ground state and a dashed violet ellipse for the first excited state. Right: a blue rectangle for an argon atom crossing a 1 nanometre cage, filled with closely spaced grey lines" caption="Left: the thermal orbit of the CO stretch at 300 K encloses 0.10 $h$ and fits inside the orbit of the quantum ground state, of area $h/2$, so a classical description fails. Right: an argon atom crossing a 1 nm cage at 400 m s⁻¹ traces a rectangle of area 2Lp ≈ 80$h$; the quantum orbits, one every $h/2L$ in momentum, are so close that they merge into a grey band." >}}
 
 {{< note type="practice" >}}
 The period of the fastest motion sets the time step of a molecular dynamics run. Bonds to hydrogen are the fastest: a C–H stretch near 3000 cm⁻¹ has a period of about 11 fs, and an integrator needs ten or more steps per period to follow it stably. Hence the standard choices: 0.5 to 1 fs when every bond is flexible, 2 fs when bonds to hydrogen are held rigid by constraint algorithms such as SHAKE or LINCS, and up to 4 fs with hydrogen mass repartitioning, which makes each hydrogen heavier at the expense of the atom it is bonded to.
@@ -123,6 +153,10 @@ $$ \frac{\partial \dot x}{\partial x} + \frac{\partial \dot p}{\partial p} = \fr
 
 Three consequences run through the rest of this volume. First, a density that depends on position and momentum only through the energy, $\rho = f(H)$, does not change in time at all: every point slides along its own energy contour, and the density it brings is the same as the density it replaces. That is why the equilibrium distributions of statistical mechanics, from the uniform microcanonical one to Boltzmann's $e^{-H/k_BT}$, are all functions of the energy. Second, an incompressible flow has no attractors: a cloud of states cannot shrink onto a point. In a system of many interacting atoms the motion is chaotic, and the cloud is drawn out into ever finer filaments that wind through the whole energy surface, like cream stirred into coffee. Its area is unchanged, yet on any coarse scale it looks evenly spread, and this is how a system obeying reversible laws comes to look as if it has reached equilibrium. Third, friction is exactly what breaks the theorem, which is why the friction slider in the figure turns closed loops into spirals that crowd into the minimum.
 
+Filamentation does not need many atoms; a single pendulum shows its mechanism. Take a disc of 6,000 states centred at $x = 0$, $p = 1.15$ with radius 0.4, and follow each state with a very small time step. The states nearest the centre of the portrait have the lowest energy and, as the period plot above shows, the shortest period, so they run ahead of the states near the separatrix. The disc is sheared along the energy contours, and after 30 time units, about five small-swing periods, it has become a thin spiral arm wrapped once around the centre. The shoelace area of its boundary is 0.5027 at every time to four digits.
+
+{{< fig src="filament.svg" alt="Phase portrait of a pendulum with grey energy contours and a dashed separatrix; a blue disc of states at time 0, a violet crescent at time 5 and a thin orange spiral filament at time 30" caption="A disc of pendulum states carried by the exact Hamiltonian flow. Inner states have shorter periods than outer ones, so the disc shears into a spiral filament, but its area stays 0.503 at every time, as Liouville's theorem requires. In a chaotic many-atom system the same stretching folds the cloud through the whole energy surface." >}}
+
 The theorem is also why molecular dynamics uses the integrators it does. A numerical method replaces the exact flow by a sequence of finite steps, and nothing guarantees that those steps preserve area. The cell below follows a small disc of 400 initial conditions of a harmonic oscillator for about ten periods with two methods: the explicit Euler method, which updates position and momentum from their old values, and velocity Verlet, the workhorse of [molecular dynamics](../molecular-dynamics/), which splits each step into a half kick, a drift and a half kick.
 
 {{< py title="Euler against velocity Verlet" >}}
@@ -150,8 +184,26 @@ for name, step in [("Euler", euler), ("Verlet", verlet)]:
 
 For this oscillator each Euler step multiplies every area in phase space by exactly $1 + \Delta t^2$, so after 630 steps with $\Delta t = 0.1$ the disc is 528 times larger, and so is its energy: the orbit spirals outwards. Velocity Verlet is **symplectic**. Each of its three sub-steps is a shear of phase space with determinant one, so the area comes back unchanged to the last printed digit, and the mean energy of the disc stays at 0.505.
 
+### Why velocity Verlet keeps areas
+
+The difference between the two methods can be read off a single step. For the oscillator with $m = k = 1$, Euler's update is the linear map
+
+$$
+\begin{pmatrix} x' \\ p' \end{pmatrix} = \begin{pmatrix} 1 & \Delta t \\ -\Delta t & 1 \end{pmatrix}\begin{pmatrix} x \\ p \end{pmatrix},
+$$
+
+and a linear map multiplies every area by its determinant, here $1 + \Delta t^2$. For a general force the Jacobian determinant of an Euler step is $1 - \Delta t^2 F'(x)/m$, which exceeds one wherever the force pulls the particle back towards a minimum, so the method inflates phase space near every stable structure.
+
+Velocity Verlet is built from different pieces. A half kick, $p \to p + \tfrac12\Delta t\,F(x)$, changes each momentum by an amount that depends only on position, so it slides every vertical line of phase space up or down without changing its length, as a deck of cards slides when pushed sideways. A drift, $x \to x + \Delta t\,p/m$, does the same to horizontal lines. Each sub-step is a **shear** with Jacobian determinant exactly one, for any force however anharmonic, and a product of shears is again area-preserving. The argument applies to every coordinate–momentum pair of a many-atom system, and it extends to the RATTLE algorithm for constrained bonds (Andersen, 1983) and to the multiple-time-step r-RESPA scheme (Tuckerman, Berne and Martyna, 1992), which split the step into kicks and drifts in the same way.
+
+{{< fig src="shears.svg" alt="Top row: a blue square of states transformed by a half kick, a drift and a second half kick into three parallelograms, each labelled area 1.00. Bottom row: an orange square transformed by one Euler step into a larger rotated square labelled area 1.64" caption="One step of each method applied to a square of states of the harmonic oscillator with Δt = 0.8. The three sub-steps of velocity Verlet shear the square vertically, horizontally and vertically again, and its area stays exactly 1. One Euler step rotates and inflates it by 1 + Δt² = 1.64." >}}
+
 {{< note type="warn" >}}
 A symplectic integrator does not conserve the energy exactly. It conserves a slightly different “shadow” energy, so the total energy in a constant-energy (NVE) run fluctuates around a fixed value, with an amplitude that grows as $\Delta t^2$, but does not drift. A steady drift is therefore a symptom, not a feature of the method. The usual culprits are a time step too long for the fastest vibration, forces that are not the exact derivative of the energy (an abruptly truncated cut-off, or loosely converged electronic structure in ab initio MD), and round-off accumulated in single precision over very long runs.
+{{< /note >}}
+
+{{< note type="warn" title="Myth" >}}
+**Myth:** a molecular dynamics run reproduces the path the atoms would actually take. **Reality:** the motion of many interacting atoms is chaotic. Two trajectories that start a rounding error apart separate exponentially, and long before a typical run ends the computed trajectory has nothing in common with the exact one from the same starting point. Rerunning an identical input on a different number of processors gives a different path, because floating-point sums are accumulated in a different order. What survives is statistical: each step of a symplectic integrator is, to high accuracy, an exact step of a slightly modified shadow Hamiltonian, so the run samples the states of a system very close to the intended one. Averages such as the radial distribution function, the diffusion coefficient or the heat capacity converge; individual paths do not. This is why MD results are reported as averages with statistical error bars, and why reproducibility is checked by comparing averages from independent runs rather than coordinates.
 {{< /note >}}
 
 {{< note type="story" >}}
@@ -198,6 +250,10 @@ Liouville's theorem has a startling consequence, proved by Henri Poincaré in 18
   options: ["It stays exactly constant", "It grows steadily, because each step enlarges phase-space areas by a factor $1 + \\Delta t^2$", "It fluctuates without drifting"]
   answer: 1
   why: "Euler is not symplectic. Velocity Verlet preserves area, and its energy fluctuates without drifting."
+- q: "A pendulum is released from rest closer and closer to the upside-down position. What happens to its period?"
+  options: ["It stays at the small-swing value", "It grows without bound, because the motion stalls near the saddle at the top", "It halves"]
+  answer: 1
+  why: "Near a saddle the motion slows exponentially, so the period diverges logarithmically as the energy approaches the barrier: 1.18 times the small-swing value at 90°, 3.9 times at 179°."
 {{< /quiz >}}
 
 ## References and further reading

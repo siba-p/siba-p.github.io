@@ -8,6 +8,16 @@ objectives:
   - "Compute a straight-line fit, its R² and parameter error bars by hand and in NumPy"
   - "Choose between squared, absolute and weighted losses for noisy or outlier-prone data"
   - "Recognise correlated parameters and extrapolation as the commonest ways to misread a fit"
+cover: "cover.svg"
+milestones:
+  - year: 1805
+    text: "Legendre publishes the method of least squares in a work on comet orbits"
+  - year: 1809
+    text: "Gauss derives least squares from the normal law of errors"
+  - year: 1886
+    text: "Galton describes regression towards the mean in the heights of children"
+  - year: 1964
+    text: "Huber introduces robust estimation, capping the pull of outlying points"
 track: ml
 weight: 1
 level: Foundation
@@ -64,6 +74,10 @@ There is a mechanical way to see this result. Join each data point to a rigid ro
 
 The picture also explains what the outlier did in the lab. A spring stretched four times as far pulls four times as hard, so one distant point can drag the whole rod. The absolute loss corresponds to strange springs that pull with the same force however far they are stretched, because the slope of $|r|$ is $\pm 1$ everywhere, and then one distant point cannot dominate.
 
+{{< fig src="springs.svg" alt="Six orange data points joined to a thick blue rod by vertical teal springs, each ending in a white ring on the rod; a violet diamond marks the centroid on the rod" caption="Least squares as mechanics. Each spring stores energy proportional to the squared residual, so the rod comes to rest on the least-squares line. Force balance puts the centroid on the line; torque balance fixes the slope." >}}
+
+The torque condition also says which points matter most for the slope. A point far from $\bar x$ has a long lever arm, so the same residual exerts a larger torque there than near the centroid. Such a point has high **leverage**: in a composition series measured at $x = 0, 0.1, 0.2, 0.3$ and $1.0$, the pure end member alone decides most of the slope. The standard diagnostic is to refit with each point left out in turn and see how far the parameters move (Cook's distance, R. D. Cook, 1977, formalises this).
+
 ### A worked example: Vegard's law by hand
 
 Real numbers make the formulas concrete. **Vegard's law** (1921) says that the lattice parameter of a solid solution varies roughly linearly between those of its two end members. Nickel and copper are both face-centred cubic, with lattice parameters of 3.524 Å and 3.615 Å, they mix at every composition, and their alloys follow the law closely. Here are five illustrative measurements on Ni₁₋ₓCuₓ:
@@ -99,7 +113,19 @@ Geometrically, $\mathbf X\hat{\boldsymbol\theta}$ is the orthogonal projection o
 "Linear regression" means linear in $\boldsymbol\theta$. The columns of $\mathbf X$ can be any fixed functions of the input: $x^2$, $\sin x$, $1/T$, $\ln c$. The Arrhenius equation $k = A\,e^{-E_a/RT}$ becomes linear after a logarithm, $\ln k = \ln A - (E_a/R)(1/T)$, with features $(1, 1/T)$. Polynomial fits, Fourier fits and the descriptor-based potentials in [the lesson on interatomic potentials](../mlip/) are all linear models in this sense. Neural networks are the first models in the course that are *not*.
 {{< /note >}}
 
+{{< note type="practice" title="From the lab: the equation of state" >}}
+The first calculation most people run on a new crystal with density functional theory is an energy–volume curve: the energy at seven or so volumes within a few percent of equilibrium, fitted to an equation of state to obtain the equilibrium volume $V_0$ and the bulk modulus $B_0$. The third-order **Birch–Murnaghan** equation, from Francis Birch's 1947 analysis of finite strain, looks forbidding, but expanded it is a cubic polynomial in $V^{-2/3}$:
+
+$$ E(V) = a + b\,V^{-2/3} + c\,V^{-4/3} + d\,V^{-2}. $$
+
+The fit is therefore *linear* least squares with features $(1, V^{-2/3}, V^{-4/3}, V^{-2})$: one call to `lstsq`, no starting guess, no risk of converging to a spurious minimum. $V_0$ is the root of $dE/dV = 0$ near the lowest computed energy, and $B_0 = V_0\, d^2E/dV^2$ there. Most codes fit the same equation by nonlinear least squares in $(E_0, V_0, B_0, B_0')$; the linear form is a quick cross-check and a starting guess that cannot fail.
+{{< /note >}}
+
 The cell below repeats the Vegard fit through the design matrix, then tests the claim from the lab about outliers. It adds a sixth, bad sample, as if one alloy's composition had been recorded wrongly, and refits with both losses.
+
+{{< note type="try" title="Pause and predict" >}}
+The bad sample sits at $x = 0.9$ with a lattice parameter of 3.540 Å, about 0.065 Å below the line. Before running the cell, guess how much it changes the least-squares slope of 0.090 Å: by 3 percent, 30 percent or 300 percent? Then guess what the absolute loss does.
+{{< /note >}}
 
 {{< py title="least squares, then an outlier" >}}
 import numpy as np
@@ -148,6 +174,14 @@ $$
 
 and the only part that depends on $w$ and $b$ is the sum of squares. **Least squares is maximum likelihood under Gaussian noise.** Every other loss corresponds to a different noise model: the absolute loss is maximum likelihood for Laplace (double-exponential) noise, whose heavier tails make outliers less surprising, which is why that fit ignored the outlier.
 
+{{< fig src="losses.svg" alt="Three panels: Gaussian and Laplace probability densities on a logarithmic axis; the squared, absolute and Huber losses against the residual; and the derivative of each loss, which is linear, constant, or linear then capped" caption="Each loss is a noise model read backwards. With equal variance, Laplace noise makes a $4\sigma$ residual 18 times more probable than Gaussian noise, so its loss grows only linearly and the pull of a distant point (right, the derivative of the loss) stays constant. The Huber loss, drawn with threshold $2\sigma$, is squared near zero and linear beyond." >}}
+
+The right-hand panel is the spring force of the previous section. The pull a point exerts on the fit is the derivative of its loss, $\ell'(r)$, which for the squared loss grows without limit. Peter Huber's 1964 compromise is a loss that is quadratic for $|r| < \delta$ and linear beyond: points inside the threshold are treated exactly as in least squares, and no single point can pull harder than $\delta$. With $\delta = 1.345\,\sigma$ the Huber estimate keeps 95 percent of the efficiency of least squares when the noise really is Gaussian, while a handful of gross errors barely moves it. It is computed with the same iterative reweighting as the absolute loss, and `scipy.optimize.least_squares(..., loss="huber", f_scale=delta)` provides it for nonlinear models.
+
+{{< note type="warn" title="Myth" >}}
+*Least squares is only valid if the noise is Gaussian.* If the errors have zero mean, equal variance and no correlation with one another, the least-squares estimate is unbiased and has the smallest variance of any estimator that is linear in the data, whatever the shape of the noise distribution. This is the **Gauss–Markov theorem**, which Gauss proved in the 1820s. Gaussian noise adds two things: the maximum-likelihood interpretation, and exact confidence intervals from the $t$ distribution. What least squares does not survive is heavy-tailed noise, where nonlinear estimators such as Huber's beat every linear one, and unequal or correlated errors, which need the weighting described next.
+{{< /note >}}
+
 {{< note type="story" >}}
 Least squares was published first by Adrien-Marie Legendre, in an 1805 appendix to a work on the orbits of comets. Carl Friedrich Gauss, who had become famous in 1801 by computing from a few weeks of observations where the newly discovered Ceres would reappear from behind the Sun, published his own treatment in 1809 and claimed to have used the method since 1795, which started a long priority dispute. Gauss's lasting contribution was the justification. He asked which law of errors makes the arithmetic mean of repeated measurements the most probable value, found the bell curve that now carries his name, and showed that under it least squares gives the most probable parameters: the argument of this section. The word *regression* came later, from Francis Galton's 1886 study of how the heights of children regress towards the population average.
 {{< /note >}}
@@ -178,6 +212,28 @@ For the Vegard fit above, the sum of squared residuals is $7.5\times10^{-6}$ Å�
 Parameter error bars are rarely independent. In the Arrhenius fit of the next section, the estimates of $\ln A$ and $E_a$ have a correlation coefficient of −0.9986. The data, between 300 and 350 K, pin down the slope and the height of the line in the middle of the range, but $\ln A$ is the intercept at $1/T = 0$, an infinite temperature far outside the data, so any error in the slope swings the intercept the opposite way. Quoting the two error bars as if they were independent misstates the uncertainty of every prediction made from them. Worse, plotting $\ln A$ against $E_a$ for a series of related fits can produce a convincing straight line that is nothing but this correlation, a spurious “compensation effect”. The cure is to centre the feature: fit against $1/T - \overline{1/T}$, and $\mathbf X^\top\mathbf X$ becomes diagonal, so the intercept and slope are uncorrelated. Otherwise, report the full covariance matrix.
 {{< /note >}}
 
+{{< fig src="compensation.svg" alt="Two scatter plots of 400 sampled parameter pairs: on the left activation energy against ln A falls on a thin straight line; on the right activation energy against ln k at 324 K forms a round, uncorrelated cloud" caption="Four hundred parameter sets consistent with the Arrhenius data of the next section if each rate constant carries a 5 percent error. In the raw form (left), $E_a$ and $\ln A$ lie on a line that looks like a compensation effect but is pure statistics. Expressed through $\ln k$ at the centre of the data, 324 K (right), the same uncertainty is uncorrelated." >}}
+
+### How many measurements do you need?
+
+The standard error of the slope, $\hat\sigma/\sqrt{\sum_i (x_i-\bar x)^2}$, answers a question that comes up whenever an experiment or a set of calculations is planned: how many points, and where? For $N$ points spread evenly over a range $\Delta$ of the input, $\sum_i (x_i-\bar x)^2 \approx N\Delta^2/12$, so
+
+$$ \sigma_w \approx \frac{\sqrt{12}\,\sigma}{\sqrt N\,\Delta}. $$
+
+{{< note type="practice" title="Back of the envelope" >}}
+Rate constants measured to 5 percent give $\sigma \approx 0.05$ in $\ln k$. Six temperatures from 300 to 350 K span $\Delta(1/T) = 1/300 - 1/350 = 4.8\times10^{-4}$ K⁻¹. Then $\sigma_w \approx 3.46 \times 0.05/(2.45 \times 4.8\times10^{-4}) \approx 150$ K, and since $E_a = -Rw$, the activation energy is uncertain by $R\,\sigma_w \approx 8.3 \times 150 \approx 1.2$ kJ/mol. The exact sum over the six temperatures gives 1.0 kJ/mol.
+{{< /note >}}
+
+{{< note type="try" title="Pause and predict" >}}
+You can afford six more measurements. Is it better to fill in the same range, giving twelve points between 300 and 350 K, or to keep six points and spread them from 300 to 400 K?
+{{< /note >}}
+
+Twelve points between 300 and 350 K bring the error bar on $E_a$ from 1.0 to 0.80 kJ/mol. Six points from 300 to 400 K bring it to 0.60 kJ/mol, with half the experiments. The error falls only as $1/\sqrt N$ but as $1/\Delta$, and $\Delta(1/T)$ grows from $4.8$ to $8.3\times10^{-4}$ K⁻¹. Widening the range is almost always the better buy, provided the same mechanism operates across it; a curved Arrhenius plot over the wider range is itself a finding.
+
+### When $x$ is noisy too
+
+Ordinary least squares assumes the inputs are exact and all the noise is in $y$. When the inputs are also uncertain (compositions from a quick EDX scan, temperatures from a thermocouple that lags the sample, descriptors that are themselves computed with error), the fitted slope is biased towards zero. If the measured $x$ scatters about the true values with variance $\sigma_x^2$ and the true inputs have variance $s_x^2$, the slope shrinks on average by the factor $s_x^2/(s_x^2 + \sigma_x^2)$, an effect called **attenuation** or regression dilution. Input noise with half the spread of the inputs underestimates the slope by 20 percent, and more data does not help, because the bias does not shrink with $N$. The remedies are to measure $x$ better or to fit a model with errors in both variables: orthogonal distance regression, or Deming regression for a straight line.
+
 ## In practice
 
 The calculation in NumPy, here for an Arrhenius plot (run it locally, or in the [Python lesson](../python-for-science/)):
@@ -202,7 +258,7 @@ dEa = np.sqrt(cov[1, 1]) * R / 1000
 print(f"Ea = {Ea:.1f} ± {dEa:.1f} kJ/mol,  A = {np.exp(lnA):.2e} 1/s")
 ```
 
-This prints `Ea = 53.7 ± 0.1 kJ/mol,  A = 2.65e+06 1/s`. For nonlinear models, where no normal equations exist, `scipy.optimize.curve_fit` does the same job iteratively; the next lesson explains how such iterative optimisers work.
+This prints `Ea = 53.7 ± 0.1 kJ/mol,  A = 2.65e+06 1/s`. The error bar is about fifteen times smaller than in the back-of-the-envelope estimate because these illustrative rate constants scatter about the line by only 0.3 percent, not 5 percent. For nonlinear models, where no normal equations exist, `scipy.optimize.curve_fit` does the same job iteratively; the next lesson explains how such iterative optimisers work.
 
 {{< note type="practice" >}}
 - Plot the residuals against $x$ and against the prediction before reporting anything. A curve, a funnel or one far-out point each tells you something the summary numbers hide.
@@ -261,5 +317,7 @@ This prints `Ea = 53.7 ± 0.1 kJ/mol,  A = 2.65e+06 1/s`. For nonlinear models, 
 6. A.-M. Legendre, *Nouvelles méthodes pour la détermination des orbites des comètes*, Paris (1805), with the appendix in which least squares was first published.
 7. C. F. Gauss, *Theoria motus corporum coelestium in sectionibus conicis solem ambientium*, Hamburg (1809), where least squares is derived from the normal law of errors.
 8. L. Vegard, “Die Konstitution der Mischkristalle und die Raumfüllung der Atome,” *Zeitschrift für Physik* **5**, 17–26 (1921).
+9. F. Birch, “Finite elastic strain of cubic crystals,” *Physical Review* **71**, 809–824 (1947).
+10. R. D. Cook, “Detection of influential observation in linear regression,” *Technometrics* **19**, 15–18 (1977).
 
 </div>

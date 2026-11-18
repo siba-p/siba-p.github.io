@@ -8,6 +8,16 @@ objectives:
   - "Explain why affine coupling layers have cheap inverses and Jacobian determinants"
   - "Compare training by energy and by example, and recognise mode collapse"
   - "Estimate free-energy differences by reweighting generated samples or by independence Metropolis"
+cover: "cover.svg"
+milestones:
+  - year: 2015
+    text: "Rezende and Mohamed bring normalizing flows into deep learning"
+  - year: 2017
+    text: "Dinh, Sohl-Dickstein and Bengio introduce RealNVP affine coupling layers"
+  - year: 2019
+    text: "Noé, Olsson, Köhler and Wu introduce Boltzmann generators"
+  - year: 2023
+    text: "Klein, Krämer and Noé apply equivariant flow matching to molecules"
 track: rl-ml
 weight: 2
 level: Advanced
@@ -80,6 +90,8 @@ $$ \mathbf y_a = \mathbf x_a, \qquad \mathbf y_b = \mathbf x_b \odot e^{\textcol
 
 The Jacobian of this map is triangular, because $\mathbf y_a$ does not depend on $\mathbf x_b$, so its determinant is the product of the diagonal entries $e^{s_j}$. The networks $\mathbf s$ and $\mathbf t$ can be as expressive as we like; invertibility is guaranteed by the structure, not by the networks.
 
+{{< fig src="coupling.svg" alt="Block diagram of an affine coupling layer: x_a is copied to y_a and fed to networks s and t; x_b is multiplied by e to the s and shifted by t to give y_b." caption="One affine coupling layer. Only the untouched half $x_a$ enters the networks, so running the layer backwards needs $s$ and $t$ evaluated at $y_a = x_a$, never their inverses. For $d$ coordinates the log-determinant costs $d/2$ additions instead of the order $d^3$ operations of a general determinant." >}}
+
 ### Stacking layers
 
 One coupling layer cannot do much, because half of the coordinates pass through it unchanged. Alternating which group is transformed, and stacking many layers, produces a flexible map whose log-determinant is simply the sum over layers. The figure below uses eight such layers on two coordinates. Its slider shows the samples after each layer: watch the Gaussian cloud being sheared one coordinate at a time, folded into a curved valley, and finally split into two separate states.
@@ -111,6 +123,10 @@ which minimises the opposite divergence, $\mathrm{KL}(p\,\|\,q)$, as far as the 
 ### Mode-seeking and mode-covering
 
 The two divergences fail in opposite ways, and the difference is the most important practical fact about Boltzmann generators. The reverse divergence $\mathrm{KL}(q\|p) = \int q\ln(q/p)$ is an average over the generator's own samples, so it heavily penalises samples in high-energy regions but pays nothing for regions the generator never visits. Starting from a Gaussian, the flow finds one well, fits it well, and has no incentive to cross the barrier: it is **mode-seeking** and liable to **mode collapse**. The forward divergence $\mathrm{KL}(p\|q) = \int p\ln(p/q)$ is an average over the data, so it heavily penalises any data point the generator assigns low probability: it is **mode-covering**, but only for the modes the data contain. Noé and colleagues combined the two: likelihood on short simulations in each known state keeps all states in the generator, and the energy term sharpens the generator where data are sparse.
+
+The simplest possible generator shows the difference with numbers. Fit a single Gaussian to the distribution along $x$ of the double well used later in this chapter, in which the right-hand well holds 27.4 % of the population. Minimising the reverse divergence puts the Gaussian in the left well, at mean $-0.98$ and width 0.125, with a divergence of 0.34; there is a second, worse minimum in the right well, at 1.31, and gradient descent stays in whichever it reaches first. Reweighting $10^4$ samples from the left-well fit gives an effective sample size of 97 % and a right-state population of 0.00. Minimising the forward divergence over Gaussians is the same as matching the mean and variance, which gives mean $-0.45$ and width 0.88: a poor fit to either well that wastes samples on the barrier, with an effective sample size of 23 %, but its reweighted right-state population, 0.268, is correct within statistical error. The good-looking diagnostic belongs to the wrong answer.
+
+{{< fig src="kl-modes.svg" alt="Left: a double-well density along x, with a narrow violet Gaussian on the left well and a broad orange Gaussian spanning both. Right: divergence against the Gaussian mean; the violet reverse KL curve has two minima, the orange forward KL curve one." caption="Single-Gaussian fits to the double well of this chapter. Reverse KL (violet) is mode-seeking: its fit gives an effective sample size of 97 % and misses the right state entirely. Forward KL (orange) is mode-covering: only 23 % effective sample size, but the reweighted population of the right state, 0.27, is right." >}}
 
 ### A Boltzmann generator in your browser
 
@@ -325,6 +341,18 @@ Diffusion models do not provide the density of a generated sample cheaply. It ca
 ## What generative sampling can and cannot do
 
 Generative samplers deliver what enhanced sampling has always sought: independent configurations from widely separated states, without waiting for transitions. They are strongest when tied to physics, trained on simulation data, refined with the energy and corrected by reweighting or Metropolis acceptance. Their weaknesses are equally clear. A generator cannot be trusted in regions it has never been shown, and mode collapse can hide a state while every diagnostic looks healthy, as the first two modes of the figure demonstrate. Scaling is the open problem: the overlap between $q$ and $p$, and with it the effective sample size, falls roughly exponentially with the number of degrees of freedom, so the success on two dimensions here, or on small proteins in vacuum, does not carry over directly to a solvated system of ten thousand atoms. The practical frontier combines generative proposals with exact acceptance steps and with molecular dynamics, using the generator for speed and statistical mechanics for correctness.
+
+{{< note type="practice" title="Back of the envelope" >}}
+How fast does overlap disappear with dimension? Take a Gaussian target and a Gaussian proposal that is too wide by a factor $s$ in every one of $d$ independent directions. The effective sample size fraction for large $n$ is $1/\langle w^2\rangle$ with normalised weights, and the integral can be done per direction:
+
+$$
+\frac{n_{\text{eff}}}{n} = \left(\int \frac{p(x)^2}{q(x)}\,\mathrm dx\right)^{-d} = \left(\frac{\sqrt{2s^2 - 1}}{s^2}\right)^{d}.
+$$
+
+For $s = 1.1$, a 10 % error in width, the factor per direction is 0.985: the fraction falls to one half after 45 directions, to 36 % for the 66 Cartesian coordinates of alanine dipeptide, and to $10^{-60}$ for the 9000 coordinates of a 3000-atom system. Even a 1 % error in width leaves only 17 % at 9000 coordinates. Real generators err differently in different directions and work in internal coordinates with rigid-body motion removed, but the exponent is the point: per-degree-of-freedom accuracy that is excellent for a peptide is useless for a solvated protein, which is why current work trains on the solute alone, with implicit solvent or coarse-grained environments, or uses generators only as proposals for local moves.
+{{< /note >}}
+
+{{< fig src="ess-dimension.svg" alt="Log-log plot of effective sample size fraction against number of degrees of freedom for proposals 1, 5, 10 and 20 per cent too wide; all curves stay near one and then fall steeply, at about 14, 45, 160 and 3600 dimensions for the half-way point." caption="Effective sample size of a Gaussian proposal that is slightly too wide in every direction, $n_{\text{eff}}/n = (\sqrt{2s^2-1}/s^2)^d$. Each curve is flat until a dimension set by the width error and then collapses; dashed lines mark alanine dipeptide and a 3000-atom system." >}}
 
 {{< note type="key" >}}
 - A generator with a tractable density $q(\mathbf x)$ yields exact Boltzmann averages through importance weights $w = e^{-U/k_BT}/q$; the effective sample size measures efficiency, but cannot detect states the generator never produces.

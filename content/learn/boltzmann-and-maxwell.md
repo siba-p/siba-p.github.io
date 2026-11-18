@@ -8,6 +8,16 @@ objectives:
   - "Compute most probable, mean and rms molecular speeds for any gas at any temperature"
   - "Explain equipartition and use it to define and measure temperature in molecular dynamics"
   - "Derive the ideal gas law from momentum transfer and recognise the virial correction"
+cover: "cover.svg"
+milestones:
+  - year: 1860
+    text: "Maxwell derives the distribution of molecular speeds in a gas"
+  - year: 1872
+    text: "Boltzmann proves the H-theorem: collisions drive any gas to Maxwell's distribution"
+  - year: 1902
+    text: "Gibbs introduces the canonical ensemble in his Elementary Principles"
+  - year: 1955
+    text: "Miller and Kusch confirm Maxwell's distribution with a slotted rotating cylinder"
 track: statmech
 weight: 2
 level: Core
@@ -49,6 +59,18 @@ $$
 
 and because the reservoir is large, this factor hardly changes from one quantum to the next. The probability of finding $n$ quanta in the small oscillator therefore falls geometrically, $P(n) \propto \left(q/(q+N)\right)^n$, an exponential in its energy $n\varepsilon$. The previous chapter found $k_BT = \varepsilon/\ln(1 + N/q)$ for the Einstein solid, so $q/(q+N) = e^{-\varepsilon/k_BT}$: the factor is exactly the Boltzmann factor for one quantum. With $N = q = 1000$, for example, it is 0.5003, so the small oscillator is empty half of the time, holds one quantum a quarter of the time, two an eighth of the time, and so on.
 
+{{< fig src="reservoir.svg" alt="Left: a diagram of a small orange system inside a large teal reservoir, with arrows showing energy exchange and the formula P of s proportional to the reservoir multiplicity, proportional to the Boltzmann factor. Right: orange bars of the exact probability that one oscillator holds 0 to 8 quanta, following a blue exponential curve" caption="Left: the derivation in one picture; the system's probability is the reservoir's number of microstates. Right: one oscillator in contact with 1000 others sharing 1000 quanta. The exact counts (bars), 0.500, 0.250, 0.125, 0.063, lie on the Boltzmann factor with $e^{-\varepsilon/k_BT} = 0.5003$ (curve); no Taylor expansion was used." >}}
+
+### The Boltzmann factor at work
+
+{{< note type="try" title="Pause and predict" >}}
+A reaction has an activation energy of 50 kJ/mol, typical of enzyme-catalysed and many solution reactions. Warming it from 300 K to 310 K, a 3 % rise in absolute temperature, changes its rate by how much: 3 %, 30 % or a factor of two?
+{{< /note >}}
+
+The Arrhenius rate is proportional to the Boltzmann factor of the barrier, so the ratio of rates is $\exp[(E_a/R)(1/300 - 1/310)] = \exp(6014\ \text{K} \times 1.075 \times 10^{-4}\ \text{K}^{-1}) = e^{0.647} = 1.91$. A 3 % change in $T$ almost doubles the rate, because the exponent $E_a/RT = 20$ amplifies every fractional change in temperature twentyfold. This is the origin of the chemist's rule of thumb that rates double for every 10 K near room temperature, and it is why a simulation thermostat that runs a few kelvin hot or cold biases computed rates by tens of per cent.
+
+The same factor stratifies the atmosphere. A molecule at height $z$ has potential energy $mgz$, so in an isothermal atmosphere the density falls as $e^{-mgz/k_BT}$, by a factor $e$ over the scale height $k_BT/mg$. For nitrogen at 300 K this is $4.14 \times 10^{-21}\ \text{J}/(4.65 \times 10^{-26}\ \text{kg} \times 9.81\ \text{m s}^{-2}) = 9.1$ km. Heavier molecules have shorter scale heights, and Jean Perrin used the same law in 1908, with the heights of resin grains suspended in water in place of molecules in air, to measure Avogadro's number.
+
 ## The partition function knows everything
 
 $Z$ looks like a mere normalising constant, but all of thermodynamics can be extracted from it by differentiation. With $\beta = 1/k_BT$:
@@ -60,6 +82,24 @@ $$ \langle \textcolor{#d4a017}{E} \rangle = -\frac{\partial \ln \textcolor{#12a5
 {{< /eq >}}
 
 For a classical particle the sum over states becomes an integral over [phase space](../motion-and-phase-space/), $Z = \frac{1}{h^{3N}N!}\int e^{-H(\mathbf r, \mathbf p)/k_BT}\,\mathrm d\mathbf r\,\mathrm d\mathbf p$. Because $H = K(\mathbf p) + V(\mathbf r)$, the integral splits into a momentum part, which can always be done exactly, and a configurational part, which is the hard part that MD and Monte Carlo exist to sample.
+
+### Worked example: a two-level system
+
+The simplest non-trivial partition function belongs to a system with two states separated by an energy $\varepsilon$: a nuclear spin in a magnetic field, a defect that can sit in two positions, a molecule with two conformers. With the lower state at zero energy,
+
+$$
+Z = 1 + e^{-\beta\varepsilon}, \qquad \langle E\rangle = -\frac{\partial\ln Z}{\partial\beta} = \frac{\varepsilon}{e^{\beta\varepsilon} + 1}, \qquad \frac{C}{k_B} = \frac{(\beta\varepsilon)^2 e^{\beta\varepsilon}}{(e^{\beta\varepsilon} + 1)^2} .
+$$
+
+Proton nuclear magnetic resonance at 400 MHz is a two-level system with $\varepsilon = h\nu = 2.65 \times 10^{-25}$ J, so $\beta\varepsilon = 6.4 \times 10^{-5}$ at 300 K. The excess population of the lower level, $\tanh(\beta\varepsilon/2)$, is $3.2 \times 10^{-5}$: of every million protons, only 32 contribute net signal. That is why NMR needs milligrams of sample, why spectrometers are built around ever stronger magnets, and why hyperpolarisation methods such as dynamic nuclear polarisation, which transfer the much larger polarisation of electron spins to the nuclei, can raise sensitivity by orders of magnitude.
+
+The heat capacity shows a feature the oscillator lacks. It rises from zero as the upper level becomes accessible, peaks at $0.44\,k_B$ when $k_BT = 0.42\,\varepsilon$, and then falls as $1/T^2$, because once the two levels are almost equally populated, more heating cannot put more energy in. This **Schottky anomaly** is observed in paramagnetic salts and in crystals with tunnelling defects at low temperature, and its position gives the splitting $\varepsilon$ directly.
+
+{{< fig src="twolevel.svg" alt="Left: populations of the lower and upper levels of a two-level system against kBT over epsilon, approaching one half from above and below. Right: heat capacity over kB against the same temperature axis, rising to a peak of 0.44 at 0.42 and then decaying" caption="A two-level system, everything computed from $Z = 1 + e^{-\varepsilon/k_BT}$. The upper population never exceeds one half at positive temperature, so the heat capacity peaks (0.44 $k_B$ at $k_BT = 0.42\,\varepsilon$) and then falls: the Schottky anomaly." >}}
+
+{{< note type="practice" title="From the lab" >}}
+Simulations almost never compute $Z$, because they do not need to. The Metropolis Monte Carlo algorithm (Metropolis, Rosenbluth, Rosenbluth, Teller and Teller, 1953) proposes a move from state $s$ to $s'$ and accepts it with probability $\min(1, e^{-(E_{s'} - E_s)/k_BT})$; the partition function cancels in the ratio, and the chain visits states with Boltzmann probabilities ([the Monte Carlo chapter](../monte-carlo/)). A molecular dynamics run with a canonical thermostat does the same implicitly. Quantities that depend on $Z$ itself, such as free energies and entropies, are obtained as differences between two states by thermodynamic integration or free-energy perturbation, the subject of [the chapter on free-energy methods](../es-fep-ti/).
+{{< /note >}}
 
 ## The speeds of molecules
 
@@ -105,6 +145,12 @@ Now put in numbers. At 300 K, $k_BT = (1.381 \times 10^{-23}\ \text{J K}^{-1})(3
 | mean kinetic energy $\tfrac32 k_BT$ | $6.21 \times 10^{-21}$ J | $6.21 \times 10^{-21}$ J |
 
 Argon is heavier by a factor 39.95/28.01 = 1.43, so all its speeds are smaller by $\sqrt{1.43} = 1.19$, but its mean kinetic energy, $6.21 \times 10^{-21}$ J or 38.8 meV, is identical. The fraction of very fast molecules is far more sensitive to mass than the averages are, because it lives in the exponential tail: it differs tenfold between two gases whose mean speeds differ by 19 %. For every gas, 4.6 % of the molecules move faster than twice the most probable speed, and only 0.04 % faster than three times it.
+
+{{< fig src="speeds.svg" alt="Left: for nitrogen at 300 kelvin, a rising dashed v squared curve, a falling dashed exponential and their product, a peaked curve with the most probable, mean and rms speeds of 422, 476 and 517 metres per second. Right: speed distributions of argon and nitrogen at 300 kelvin, with the tails above 1000 metres per second shaded" caption="Left: the three-dimensional Maxwell–Boltzmann distribution is the product of a factor that counts velocity directions, $v^2$, and the Boltzmann factor of the kinetic energy. Right: argon peaks at a lower speed than nitrogen, and its tail above 1000 m s⁻¹ (shaded) holds 0.11 % of the atoms against 1.05 % for nitrogen." >}}
+
+{{< note type="warn" title="Myth" >}}
+**Myth:** at any temperature, the most likely energy of a system is its lowest one. **Reality:** the Boltzmann factor makes each lowest-energy *microstate* the most probable single microstate, but the probability of an *energy* is the Boltzmann factor times the number of microstates with that energy. For molecular speeds that number grows as $v^2$, so the most probable speed is 422 m s⁻¹, not zero. For a protein the same competition decides folding: the folded state has the lowest enthalpy, but the unfolded state has vastly more conformations, and the protein unfolds once $T\Delta S$ exceeds $\Delta H$. Comparing basins by their lowest energies alone, as a geometry optimisation does, misses this; comparing their free energies, $-k_BT\ln$ of the partition function restricted to each basin, does not.
+{{< /note >}}
 
 {{< note type="story" >}}
 The first direct measurement of molecular speeds came in 1920, when Otto Stern sent a beam of silver atoms through a rotating apparatus and worked out their speed from how far the apparatus had turned while they were in flight. A precise test of the whole distribution came in 1955, when Robert Miller and Polykarp Kusch at Columbia University sorted potassium and thallium atoms by speed with a rapidly spinning cylinder cut with helical slots, and found the predicted shape in detail, 95 years after Maxwell had derived it.
@@ -165,11 +211,24 @@ $$ \textcolor{#f08c2e}{P}\,V = N\,k_B\textcolor{#e64980}{T} \qquad\text{(in 2D: 
 
 The lab measures pressure by adding up the momentum transferred to the walls. Compare it with the ideal-gas value: the measured pressure is somewhat higher, because the disks have a finite size and the free area is smaller than the box. That is the excluded-volume correction in van der Waals's equation, and the starting point of the theory of real gases and liquids. In MD, pressure is computed from the **virial**, $PV = Nk_BT + \frac{1}{d}\left\langle \sum_i \mathbf r_i \cdot \mathbf F_i \right\rangle$ in $d$ dimensions, which adds the interparticle forces to the kinetic term ([the MD chapter](../molecular-dynamics/)).
 
+## Where classical statistics stops
+
+Everything above treats molecules as distinguishable classical particles, each state occupied independently with probability proportional to $e^{-E/k_BT}$. That is valid only when the average number of particles per single-particle quantum state is much less than one, so that two identical particles almost never compete for the same state. The test is the number of particles in a cube whose side is the thermal wavelength of [the quantum chapter](../quantum-energy-levels/), $n\Lambda^3$, where $n$ is the number density.
+
+For nitrogen at 300 K and 1 atm, $n = P/k_BT = 2.45 \times 10^{25}$ m⁻³ and $\Lambda = 0.19$ Å, so $n\Lambda^3 = 1.7 \times 10^{-7}$: the gas is classical by seven orders of magnitude. For the conduction electrons of copper, $n = 8.47 \times 10^{28}$ m⁻³ and, with the electron mass, $\Lambda = 43$ Å at 300 K, so $n\Lambda^3 \approx 7 \times 10^3$. The electrons are crowded thousands to a state's worth of space, and the Pauli principle forces them into **Fermi–Dirac** statistics: they fill every level up to the Fermi energy, 7.0 eV for copper, equivalent to a temperature of 81,000 K.
+
+The consequence was a famous failure of classical physics. Paul Drude's 1900 model of a metal treated the electrons as a classical gas, which by equipartition should add $\tfrac32 R = 12.5$ J mol⁻¹ K⁻¹ to the heat capacity. The measured electronic heat capacity of copper is $\gamma T$ with $\gamma = 0.695$ mJ mol⁻¹ K⁻², or 0.21 J mol⁻¹ K⁻¹ at 300 K, under 2 % of the classical value. Arnold Sommerfeld resolved the puzzle in 1928: only electrons within about $k_BT$ of the Fermi level have empty states to move into, a fraction of order $k_BT/E_F \approx 0.004$, and only they can absorb heat. Bosons go the other way. When $n\Lambda^3$ of an ideal Bose gas reaches 2.612, a macroscopic fraction of the particles drops into the single lowest state; Eric Cornell and Carl Wieman's group reached this Bose–Einstein condensate in 1995 in a dilute rubidium vapour at about 170 nK.
+
+{{< note type="practice" title="From the lab" >}}
+Both regimes appear in one ab initio MD run of a metal. The nuclei are classical and follow Maxwell–Boltzmann statistics, thermostatted at the target temperature. The electrons are treated with Fermi–Dirac occupations, and DFT codes smear the occupations near the Fermi level, with Fermi–Dirac, Gaussian, Methfessel–Paxton or Marzari–Vanderbilt functions of width typically 0.05 to 0.2 eV, so that the sum over the Brillouin zone converges with an affordable number of k-points. With Fermi–Dirac smearing the quantity minimised is Mermin's free energy, not the energy, and forces are consistent with that free energy; monitoring the energy instead of the free energy in an NVE run makes a correct simulation look as if it drifts. When the electronic temperature is meant to be physical, as in simulations of warm dense matter or laser-heated metals, the smearing is set to $k_BT$ itself.
+{{< /note >}}
+
 {{< note type="key" >}}
 - A system at temperature $T$ visits microstate $s$ with probability $e^{-E_s/k_BT}/Z$; the partition function $Z$ yields energy, free energy, entropy and heat capacity.
 - Speeds in a gas follow the Maxwell–Boltzmann distribution, which collisions produce from any starting point.
 - The most probable, mean and rms speeds scale as $\sqrt{k_BT/m}$ in the ratio $1 : 1.128 : 1.225$; for N₂ at 300 K they are 422, 476 and 517 m s⁻¹.
 - Classically every quadratic degree of freedom holds $\tfrac12 k_BT$ (equipartition). This is how MD defines its temperature, and pressure follows from the momentum flux and the virial.
+- The Boltzmann factor is steep: with a 50 kJ/mol barrier a 10 K rise near room temperature doubles a rate. Classical statistics requires $n\Lambda^3 \ll 1$; it holds for molecules in a gas ($10^{-7}$) and fails for electrons in a metal ($10^{4}$), which obey Fermi–Dirac statistics.
 {{< /note >}}
 
 {{< quiz >}}
@@ -197,6 +256,10 @@ The lab measures pressure by adding up the momentum transferred to the walls. Co
   options: ["450", "297", "300"]
   answer: 1
   why: "Each rigid water has 9 coordinates minus 3 constraints, so 6 degrees of freedom; removing the centre-of-mass motion subtracts 3 more: $50 \\times 6 - 3 = 297$."
+- q: "Why does the classical equipartition value of $\\tfrac32 k_B$ per conduction electron fail for copper at room temperature?"
+  options: ["The electrons are too light to move", "Their thermal wavelength is so large that $n\\Lambda^3 \\approx 10^4$; they obey Fermi–Dirac statistics and only those near the Fermi level can absorb heat", "Electrons have no kinetic energy in a metal"]
+  answer: 1
+  why: "With $E_F = 7.0$ eV, only a fraction of order $k_BT/E_F \\approx 0.004$ of the electrons can be excited, so the electronic heat capacity is under 2 % of the classical value."
 {{< /quiz >}}
 
 ## References and further reading

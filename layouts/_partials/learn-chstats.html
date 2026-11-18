@@ -5,4 +5,5 @@
 {{- $figs := len (findRE `data-widget="` $c) -}}
 {{- $py := len (findRE `class="pycell"` $c) -}}
 {{- $qz := len (findRE `<li class="qz"` $c) -}}
-{{- return dict "min" (int (math.Ceil (div (float $p.WordCount) 130))) "figs" $figs "py" $py "quiz" $qz "live" (add $figs $py) -}}
+{{- $pics := len (findRE `<figure class="sfig` $c) -}}
+{{- return dict "min" (int (math.Ceil (div (float $p.WordCount) 130))) "figs" $figs "py" $py "quiz" $qz "pics" $pics "live" (add $figs $py) -}}

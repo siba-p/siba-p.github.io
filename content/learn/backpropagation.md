@@ -8,6 +8,16 @@ objectives:
   - "Verify backpropagated gradients against central finite differences"
   - "Explain why reverse mode delivers all gradients for the cost of a few forward passes"
   - "Diagnose vanishing and exploding gradients and choose the standard cures"
+cover: "cover.svg"
+milestones:
+  - year: 1960
+    text: "Kelley computes optimal-control gradients by sweeping backwards in time"
+  - year: 1970
+    text: "Linnainmaa describes reverse-mode automatic differentiation in his master's thesis"
+  - year: 1974
+    text: "Werbos applies reverse-mode differentiation to neural networks in his PhD thesis"
+  - year: 1986
+    text: "Rumelhart, Hinton and Williams show backpropagation learns useful hidden representations"
 track: neuron
 weight: 4
 level: Foundation
@@ -98,6 +108,10 @@ $$ \bar{\mathbf z} = \bar{\mathbf h} \odot \sigma'(\mathbf z), \qquad \bar{\text
 - $\bar{\mathbf x}$: the gradient handed back to the previous layer
 {{< /eq >}}
 
+{{< note type="practice" title="Back of the envelope" >}}
+Count the multiply-adds of one dense layer with $n_{\text{in}}$ inputs, $n_{\text{out}}$ neurons and a batch of $B$ examples. The forward product $\mathbf W\mathbf x$ costs $B\,n_{\text{in}}\,n_{\text{out}}$. The backward pass needs two products of the same size, $\bar{\mathbf x} = \mathbf W^{\top}\bar{\mathbf z}$ and $\bar{\mathbf W} = \bar{\mathbf z}\,\mathbf x^{\top}$, so a training step costs about three forward passes, the origin of the “two to three times” above. In floating-point operations, two per multiply-add, training a network of $N$ parameters on $D$ examples (tokens, for a language model) therefore costs about $6ND$, the estimate Jared Kaplan and co-workers used in their 2020 scaling laws. For GPT-3, with 175 billion parameters trained on 300 billion tokens, that is $3\times10^{23}$ operations. Finite differences would multiply the forward cost by $2N$ instead of 3.
+{{< /note >}}
+
 The price of reverse mode is paid in memory rather than time. The backward rules need values from the forward pass, such as $h(1-h)$ and the $\mathbf x$ in $\bar{\mathbf W} = \bar{\mathbf z}\,\mathbf x^{\top}$, so every intermediate activation must be kept until the backward sweep reaches it. For large networks trained on large batches, these stored activations, not the weights, often fill the memory of the GPU. **Gradient checkpointing**, an old idea from the automatic-differentiation literature, trades some of that memory back for time: keep the activations of only some layers and recompute the others during the backward pass.
 
 ## A worked example: two inputs, two hidden neurons, one output
@@ -112,6 +126,10 @@ with $\mathbf h = \sigma(\mathbf W\mathbf x + \mathbf b)$, $\hat y = \mathbf v\c
 
 **Forward.** $z_1 = 0.5 - 0.15 + 0.1 = 0.45$ and $z_2 = 0.8 + 0.1 - 0.1 = 0.8$, so $h_1 = \sigma(0.45) = 0.6106$ and $h_2 = \sigma(0.8) = 0.6900$. Then $\hat y = 1.2 \times 0.6106 - 0.7 \times 0.6900 + 0.2 = 0.4498$, and $L = (0.4498 - 1)^2 = 0.3027$.
 
+{{< note type="try" title="Pause and predict" >}}
+Before reading the backward pass, predict the sign of $\partial L/\partial W_{21}$, the gradient for the weight from $x_1$ into hidden neuron 2. The prediction, 0.45, is too low for a target of 1, and neuron 2 reaches the output through $v_2 = -0.7$. The answer is in the table below.
+{{< /note >}}
+
 **Backward.** Start at the output, $\bar{\hat y} = 2(\hat y - y) = -1.1004$. The output parameters follow at once: $\bar c = -1.1004$, $\bar v_1 = \bar{\hat y}\,h_1 = -0.6720$ and $\bar v_2 = \bar{\hat y}\,h_2 = -0.7593$. Each hidden neuron receives $\bar h_i = \bar{\hat y}\,v_i$, multiplies it by its own sigmoid slope, and hands the result to its weights and bias:
 
 | Hidden neuron | $\bar h_i$ | $h_i(1-h_i)$ | $\bar z_i = \bar b_i$ | $\bar W_{i1} = \bar z_i\,x_1$ | $\bar W_{i2} = \bar z_i\,x_2$ |
@@ -120,6 +138,18 @@ with $\mathbf h = \sigma(\mathbf W\mathbf x + \mathbf b)$, $\hat y = \mathbf v\c
 | 2 | +0.7703 | 0.2139 | +0.1648 | +0.1648 | +0.0824 |
 
 The signs tell a story. The prediction is too low, so every parameter should move to raise $\hat y$. Neuron 1 has a positive output weight, so it should become *more* active: its gradients are negative, and gradient descent, which subtracts them, increases its weights. Neuron 2 has a negative output weight, so it should become *less* active, and its gradients have the opposite sign. Nobody wrote that logic down; it falls out of the chain rule. Notice also that $\bar W_{i2}$ is half of $\bar W_{i1}$, because $x_2$ is half of $x_1$: a weight attached to a larger input gets more of the blame.
+
+{{< fig src="worked-network.svg" alt="Diagram of a network with inputs x1 and x2, hidden neurons h1 and h2, output y-hat and loss L. Blue labels give forward values such as z equal 0.45 and h equal 0.6106; pink labels give backward gradients such as dL/dz equal minus 0.3140; edges are labelled with their weights" caption="The worked example as a graph. Blue: values computed left to right in the forward pass. Pink: gradients $\partial L/\partial(\cdot)$ computed right to left, each from its right-hand neighbour times a local derivative. A weight's gradient is the $\partial L/\partial z$ of the neuron it enters times the input it carries; for example $\partial L/\partial W_{12} = -0.3140 \times 0.5 = -0.1570$." >}}
+
+### Gradients with respect to the inputs
+
+The backward pass need not stop at the weights. The last rule for a layer, $\bar{\mathbf x} = \mathbf W^{\top}\bar{\mathbf z}$, gives the gradient of the loss with respect to the network's inputs for one more matrix product. In the worked example, $\bar x_1 = 0.5\times(-0.3140) + 0.8\times0.1648 = -0.0252$ and $\bar x_2 = -0.3\times(-0.3140) + 0.2\times0.1648 = +0.1271$, the values at the left of the figure. Raising $x_1$ would lower the loss slightly; raising $x_2$ would raise it five times as fast. Each input reaches the loss along two paths, one through each hidden neuron, and for $x_1$ the two contributions, $-0.157$ and $+0.132$, nearly cancel: the sum rule at work.
+
+Input gradients have three uses in science. For a classifier they form a **sensitivity map**, showing which channels of a spectrum or pixels of a micrograph the prediction depends on, which is a quick test of whether the model looks at the physics or at an artefact. For a property model they point to the change of input that would improve the property most, the first step of gradient-based inverse design ([differentiable simulation](../differentiable-md/)). And for an interatomic potential they are the forces.
+
+{{< note type="practice" title="From the lab: forces for free" >}}
+An interatomic potential maps the $3N$ coordinates of $N$ atoms to one number, the energy. Forces, $\mathbf F = -\partial E/\partial \mathbf r$, are the gradient of one output with respect to many inputs, exactly the case reverse mode is built for: one backward pass after the energy delivers all $3N$ components, whether the system has 10 atoms or 100,000. SchNet, NequIP, MACE and most modern [message-passing potentials](../message-passing-potentials/) obtain forces this way, which guarantees that they are the exact gradient of the energy and that molecular dynamics with them conserves energy. Training on forces adds a twist: the loss now contains a gradient, so the parameter update needs the derivative of a derivative. Frameworks support this “double backpropagation” (in PyTorch, `create_graph=True` when computing the forces), and it makes a force-trained step noticeably more expensive than an energy-only one. A common bug is to compute forces under `torch.no_grad()` or from a detached graph during training: the force error then cannot reach the weights, the force loss stays flat, and no error is raised.
+{{< /note >}}
 
 One step of gradient descent with learning rate 0.2 moves all nine parameters at once and lowers the loss from 0.3027 to 0.0082. The cell below repeats the whole calculation and checks each of the nine gradients against a **central finite difference**, $[L(\theta_k + \epsilon) - L(\theta_k - \epsilon)]/2\epsilon$ with $\epsilon = 10^{-6}$, which costs two extra evaluations of the loss per parameter. The two agree to about one part in $10^9$. Set `eta = 0.5` and the same step overshoots: the loss rises to 0.364.
 
@@ -156,6 +186,8 @@ print(f"loss after one step with learning rate {eta}: {loss_and_grad(t - eta * g
 - Check a tiny network on a few data points, switch off randomness such as dropout, and remember that a kink (ReLU at zero) between $\theta - \epsilon$ and $\theta + \epsilon$ can make a correct gradient fail the test.
 {{< /note >}}
 
+{{< fig src="fd-error.svg" alt="Log-log plot of relative error against step size epsilon for one-sided and central finite differences of dL/dW11. Both errors fall as epsilon shrinks until rounding error takes over, below about 10 to the minus 5 for central and 10 to the minus 8 for one-sided differences; a band from 10 to the minus 6 to 10 to the minus 4 is shaded" caption="Relative error of finite-difference estimates of $\partial L/\partial W_{11}$ in the worked example. Truncation error falls as $\epsilon$ for one-sided and $\epsilon^2$ for central differences, until rounding error, growing as $1/\epsilon$, takes over. Central differences reach $2\times10^{-12}$ near $\epsilon = 10^{-5}$ and are better than $10^{-9}$ everywhere in the recommended band; one-sided differences never do better than about $10^{-8}$." >}}
+
 ## Vanishing and exploding gradients
 
 The backward pass multiplies many factors together, one per layer. If they are typically smaller than 1, the gradient shrinks exponentially with depth and early layers stop learning (**vanishing gradients**); if larger than 1, it grows exponentially (**exploding gradients**). The sigmoid's derivative is at most 0.25, so deep sigmoid networks suffered badly. The cures are now standard: activations whose slope does not shrink (ReLU and its relatives), careful initialisation of the weights ([the practical chapter](../neural-networks/)), normalisation layers, and **residual connections** $\mathbf h^{(l+1)} = \mathbf h^{(l)} + f(\mathbf h^{(l)})$, which give the gradient a direct path backwards through every layer.
@@ -163,6 +195,10 @@ The backward pass multiplies many factors together, one per layer. If they are t
 ### How fast is exponential?
 
 Take the most favourable case for a sigmoid network: a chain of single neurons, every weight equal to 1, every neuron sitting at $z = 0$ where the sigmoid is steepest. Each layer multiplies the backward signal by $1 \times 0.25$. After 10 layers the gradient reaching the first weight is $0.25^{10} \approx 9.5\times10^{-7}$ of the gradient at the output; after 20 layers it is $0.25^{20} \approx 9.1\times10^{-13}$. An update that small, added to a weight of order 1, vanishes completely in single-precision arithmetic, which resolves only about seven significant figures. In a real network the factor per layer involves a whole weight matrix and the slopes of many neurons, so it can be larger or smaller than 0.25, but the exponential dependence on depth is the same.
+
+The figure below measures the effect in a network rather than a chain: 30 layers of 100 neurons, random weights with variance $1/100$ for sigmoid and tanh (the scaling recommended by Xavier Glorot and Yoshua Bengio in 2010) and $2/100$ for ReLU (the scaling of Kaiming He and co-workers, 2015), and a batch of 64 random inputs. By the first layer the sigmoid network's gradient has shrunk by a factor of about $2\times10^{18}$, or 0.23 per layer, close to the idealised 0.25. With tanh, whose slope at zero is 1, the gradient loses a factor of only about 8 over the 30 layers, and with ReLU and He's scaling it stays within a factor of 1.3 of its value at the top. The activation and the initialisation, chosen together, decide whether a deep network can be trained at all.
+
+{{< fig src="vanishing.svg" alt="Two log-scale panels. Left, gradient relative to the output against number of layers for factors of 0.25, 1 and 1.5 per layer, with a dashed line at the float32 precision of 1.2 times 10 to the minus 7. Right, measured gradient norms in a 30-layer network: sigmoid falls to about 10 to the minus 18 at the first layer while tanh and ReLU stay near 1" caption="Left: the idealised chain of the text, with factors of 0.25, 1 and 1.5 per layer; the dots mark $0.25^{10} \approx 10^{-6}$ and $0.25^{20} \approx 10^{-12}$, and below the dashed line an update is lost against a weight of order 1 in single precision. Right: gradient norms measured layer by layer in a random 30-layer network of width 100. Sigmoid loses about 0.23 per layer; tanh and ReLU with variance-preserving initialisation lose a factor of 8 and 1.3 in total." >}}
 
 Exploding gradients are the mirror image: if each layer multiplies the signal by 1.5, twenty layers amplify it by $1.5^{20} \approx 3300$, and a single update can throw the weights so far that the loss becomes `NaN`. Sepp Hochreiter analysed the problem in his 1991 diploma thesis in Munich, and Yoshua Bengio, Patrice Simard and Paolo Frasconi showed in 1994 why it makes long-range dependencies so hard to learn in recurrent networks, which are effectively very deep in time.
 
@@ -176,12 +212,17 @@ Vanishing gradients appear even in the lab's single hidden neuron. Set the input
 
 Reverse-mode differentiation was described by Seppo Linnainmaa in his 1970 master's thesis, applied to neural networks by Paul Werbos in his 1974 doctoral thesis, and popularised by David Rumelhart, Geoffrey Hinton and Ronald Williams in a 1986 *Nature* paper, which showed that hidden layers trained this way learn useful internal representations. The same backward recursion had already appeared in optimal control, where Henry Kelley (1960) and Arthur Bryson (1961) computed gradients for problems such as optimal flight paths by sweeping backwards in time; engineers and weather forecasters know it as the **adjoint method**. Today every deep-learning framework (PyTorch, JAX, TensorFlow) builds the computational graph as your code runs and performs the backward pass automatically when you call `loss.backward()`.
 
+{{< note type="warn" title="Myth" >}}
+**Myth:** backpropagation is a learning algorithm. **Reality:** it computes derivatives and knows nothing about learning. The update that uses them is a separate choice, plain gradient descent, momentum or Adam, and the same backward pass also computes forces in a potential, sensitivities in inverse design and adjoint gradients in weather forecasting. Whether the brain does anything similar is an open question. A biological synapse has no known way to read the forward weights of the neurons downstream of it, which reverse mode needs in every $\mathbf W^{\top}$, the so-called weight-transport problem. In 2016 Timothy Lillicrap and co-workers showed that networks still learn when the backward pass uses fixed random matrices in place of $\mathbf W^{\top}$, an effect they called feedback alignment.
+{{< /note >}}
+
 {{< note type="key" >}}
 - A network is a computational graph; each node needs only its forward rule and its local derivative.
 - Backpropagation sends $\partial L/\partial(\text{node})$ from the loss back to the inputs, multiplying by local derivatives: the chain rule, evaluated from the right.
 - All gradients together cost about as much as a couple of forward passes, which is why networks with billions of parameters can be trained at all. The price is memory: forward values must be stored for the backward sweep.
 - Where a value feeds several nodes, the gradients from each path add. This is why gradients flow back through $\mathbf W^{\top}$ and why frameworks accumulate `.grad`.
 - Verify a hand-written backward pass against central finite differences; relative errors near $10^{-7}$ mean it is right.
+- The same backward pass gives gradients with respect to the inputs: sensitivity maps for classifiers and forces for interatomic potentials, at the cost of one more matrix product per layer.
 - Gradients are products of one factor per layer, so they vanish or explode exponentially with depth; ReLU, residual connections, careful initialisation and clipping keep the factors near 1.
 {{< /note >}}
 
@@ -210,6 +251,10 @@ Reverse-mode differentiation was described by Seppo Linnainmaa in his 1970 maste
   options: ["PyTorch raises an error", "Each step uses the sum of all gradients computed so far, so training behaves strangely", "The gradients are zero and nothing is learned"]
   answer: 1
   why: "Backward passes add into `.grad`, which is what makes shared weights work. Without zeroing, gradients from earlier steps pile up silently."
+- q: "An interatomic potential computes the energy of 10,000 atoms. How many backward passes does reverse mode need to give all the forces?"
+  options: ["One", "30,000, one per coordinate", "10,000, one per atom"]
+  answer: 0
+  why: "The energy is one output and the $3N$ coordinates are inputs. Reverse mode delivers the gradient of one output with respect to all inputs in a single backward sweep."
 {{< /quiz >}}
 
 ## References and further reading
@@ -227,5 +272,9 @@ Reverse-mode differentiation was described by Seppo Linnainmaa in his 1970 maste
 9. Y. Bengio, P. Simard and P. Frasconi, “Learning long-term dependencies with gradient descent is difficult,” *IEEE Transactions on Neural Networks* **5**, 157–166 (1994).
 10. R. Pascanu, T. Mikolov and Y. Bengio, “On the difficulty of training recurrent neural networks,” *Proceedings of ICML*, PMLR 28, 1310–1318 (2013).
 11. A. Griewank and A. Walther, *Evaluating Derivatives: Principles and Techniques of Algorithmic Differentiation*, 2nd ed., SIAM (2008), including checkpointing.
+12. J. Kaplan *et al.*, “Scaling laws for neural language models,” arXiv:2001.08361 (2020).
+13. X. Glorot and Y. Bengio, “Understanding the difficulty of training deep feedforward neural networks,” *Proceedings of AISTATS*, PMLR 9, 249–256 (2010).
+14. K. He, X. Zhang, S. Ren and J. Sun, “Delving deep into rectifiers: surpassing human-level performance on ImageNet classification,” *Proceedings of ICCV*, 1026–1034 (2015).
+15. T. P. Lillicrap, D. Cownden, D. B. Tweed and C. J. Akerman, “Random synaptic feedback weights support error backpropagation for deep learning,” *Nature Communications* **7**, 13276 (2016).
 
 </div>

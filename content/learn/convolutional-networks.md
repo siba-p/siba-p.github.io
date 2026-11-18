@@ -8,6 +8,16 @@ objectives:
   - "Implement a 2D convolution in NumPy and use it to detect edges"
   - "Explain translation equivariance, and how pooling turns it into approximate invariance"
   - "Choose 1D, 2D or 3D convolutions for spectra, micrographs and voxel grids"
+cover: "cover.svg"
+milestones:
+  - year: 1959
+    text: "Hubel and Wiesel record receptive fields of single neurons in cat visual cortex"
+  - year: 1980
+    text: "Fukushima's neocognitron alternates shared-weight feature detectors with pooling layers"
+  - year: 1989
+    text: "LeCun and colleagues train a convolutional network by backpropagation on zip codes"
+  - year: 2012
+    text: "Krizhevsky, Sutskever and Hinton's AlexNet wins the ImageNet challenge"
 track: arch
 weight: 1
 level: Core
@@ -80,6 +90,12 @@ print("max |response|, before and after the shift:", np.abs(edges).max(), np.abs
 
 The synthetic "micrograph" is a bright square particle on a dark background. The response is positive along its left edge (4 opposite the middle row, falling to 3 and 1 towards the corners), equally negative along its right edge, and zero elsewhere; the top and bottom edges are invisible to this kernel. Shift the particle one pixel to the right and the response shifts with it, while its maximum stays at 4: the subject of the section after next.
 
+{{< fig src="sliding-kernel.svg" alt="Three grids: a 7 by 8 input with a bright 3 by 3 block of ones, a 3 by 3 Sobel kernel, and the 5 by 6 feature map with values 1, 3, 4, 3, 1 in the columns at the left edge of the particle and the same values negated at its right edge; one 3 by 3 window of the input and the matching output cell are outlined." caption="One output value of the cell above, traced by hand. The outlined window straddles the particle's left edge, so the kernel's right column (weights 1, 2, 1) sits on bright pixels and its left column on dark ones: $1 + 2 + 1 = 4$." >}}
+
+{{< note type="math" title="Why it is called a convolution" >}}
+For the flipped form, the **convolution theorem** states that convolution in real space is multiplication in Fourier space: $\mathcal F[K * X] = \mathcal F[K]\,\mathcal F[X]$. A kernel is therefore a filter of spatial frequencies; the Sobel kernel suppresses the zero frequency (uniform regions) and passes the high frequencies of edges, while the $3\times3$ averaging kernel does the opposite. For large kernels the fast Fourier transform makes convolution cheaper, $O(n^2\log n)$ for an $n\times n$ image instead of $O(n^2k^2)$; for the $3\times3$ kernels of modern networks, direct summation, or the Winograd algorithms used by GPU libraries, is faster.
+{{< /note >}}
+
 {{< note type="try" >}}
 Replace `sobel_x` with `sobel_x.T` to find the top and bottom edges. Try the blurring kernel `np.ones((3, 3)) / 9`, and move the particle to the border to see what a convolution without padding loses.
 {{< /note >}}
@@ -111,6 +127,10 @@ $$ \textcolor{#f08c2e}{Y}_{o,\,ij} = \textcolor{#845ef7}{b}_o + \sum_{c=1}^{C_{\
 
 A 3 × 3 layer that takes 64 channels to 128 has 73,728 weights and 128 biases, whether the image is 32 × 32 or 4,000 × 4,000 pixels; set that against the billion weights above. A **1 × 1 convolution** looks at no neighbours: it mixes channels at each pixel, a cheap way to change their number (Lin, Chen and Yan, 2014).
 
+{{< note type="warn" title="Myth" >}}
+*Fewer parameters means less computation.* Weight sharing saves memory, not arithmetic: every weight is reused at every position. The $3\times3$ layer from 64 to 128 channels, applied with padding 1 to a $256\times256$ feature map, performs $256^2\times 9\times 64\times 128 \approx 4.8\times10^{9}$ multiply–adds with its 73,728 weights. The fully connected layer from a one-megapixel image to 1000 neurons, with its billion weights, performs about $1.0\times10^{9}$. Convolutional networks are cheap to store and expensive to run, which is why their cost is quoted in operations per image, and why the early layers, which run at full resolution, usually have few channels.
+{{< /note >}}
+
 ## Equivariance, invariance and pooling
 
 Because the same kernel is used at every position, shifting the input simply shifts the output. This is **translation equivariance**, and the cell above confirmed it.
@@ -140,9 +160,23 @@ $$ \textcolor{#f08c2e}{r_l} = \textcolor{#f08c2e}{r_{l-1}} + (\textcolor{#12a594
 
 For three 3 × 3 convolutions with a 2 × 2 max-pool after each of the first two, the field grows as 3, 4, 8, 10 and 18 pixels. Without the pooling, the same three convolutions see only 7 × 7.
 
+{{< fig src="receptive-field.svg" alt="Two diagrams of one-dimensional rows of neurons stacked by layer. Left: three 3-wide convolutions; the top neuron depends on 7 input pixels, highlighted in orange. Right: convolution, pooling, convolution, pooling, convolution; neurons in later rows are spaced further apart and the top neuron depends on 18 input pixels." caption="One row of each stack, traced back from a single top neuron (pink) to the inputs it depends on (orange). Pooling spaces later neurons further apart in the input, so each later kernel spans more pixels: the field labels follow the recursion $r_l = r_{l-1} + (k_l - 1)j_{l-1}$." >}}
+
+{{< note type="try" title="Pause and predict" >}}
+A precipitate 20 nm across is imaged at 0.5 nm per pixel, so it spans 40 pixels. How many $3\times3$ layers at stride 1 does a neuron need before its receptive field covers it? From $1 + 2L \ge 40$, the answer is 20 layers. With a $2\times2$ pool after every second convolution, the jump doubles every two layers: the field reaches 32 pixels after six convolutions and two pools, and 52 after seven convolutions and three pools, which is why practical networks downsample early and often.
+{{< /note >}}
+
 That carries a design lesson. Three stacked 3 × 3 layers see as far as one 7 × 7 layer, with $27C^2$ weights instead of $49C^2$ for $C$ channels, and three nonlinearities instead of one. Simonyan and Zisserman (2015) built their VGG networks on this observation, and modern networks are made almost entirely of 3 × 3 kernels.
 
 The receptive field must cover whatever decides the answer: to judge grain size, it must span several grains. Luo et al. (2016) showed that the pixels near the centre dominate, so the **effective receptive field** is roughly Gaussian and smaller than the theoretical one; make the theoretical field comfortably larger than the largest structure that matters. Graph networks face the same question with bonds in place of pixels ([graph neural networks](../graph-neural-networks/)).
+
+### A small network, counted end to end
+
+The pieces add up to a complete classifier. Take $64\times64$ grey-scale micrographs to be sorted into three classes, say equiaxed, lamellar and dendritic microstructure. A $3\times3$ convolution from 1 to 16 channels (160 parameters) is followed by a $2\times2$ max-pool to $32\times32$, a convolution from 16 to 32 channels (4,640), another pool to $16\times16$, and a convolution from 32 to 64 channels (18,496). Global average pooling turns the $16\times16\times64$ block into 64 numbers, and a linear layer maps them to three class scores (195 parameters). The total is 23,491 parameters, fewer than in a fully connected layer from the same image to six hidden neurons, and the receptive field of the last convolution is the 18 pixels computed above.
+
+{{< fig src="architecture.svg" alt="A row of boxes drawn as thin slabs: input 64 squared by 1, convolution to 64 squared by 16, max-pool to 32 squared by 16, convolution to 32 squared by 32, max-pool to 16 squared by 32, convolution to 16 squared by 64, global average pool to 64, and a linear layer to 3. Beneath each are its parameter count and receptive field: 160, 0, 4640, 0, 18496, 0 and 195 parameters; fields 1, 3, 4, 8, 10 and 18 pixels." caption="The worked classifier. Resolution halves at each pool while channels double, so the work per layer stays roughly balanced; almost 80 % of the 23,491 parameters sit in the last convolution." >}}
+
+An 18-pixel field is small for a 64-pixel image: each final feature describes a patch about a quarter of the image across, and global pooling averages those local descriptions. That suits textures such as microstructure classes, in which every region looks typical of the whole. It does not suit a task where the answer depends on how distant parts of the image are arranged, such as counting grains that span the field of view; there, add pooling stages or layers until the field is comparable to the structure.
 
 ## From the visual cortex to residual networks
 
@@ -160,14 +194,25 @@ The 1998 LeNet paper also introduced something it called **graph transformer net
 
 Nothing in the convolution requires two dimensions: the kernel slides along whichever axes the data are sampled on a regular grid.
 
-**1D: spectra and diffraction patterns.** A powder X-ray diffraction pattern measured from 5° to 95° in steps of 0.02° is a vector of 4,500 intensities. A 1D kernel learns peak shapes, shoulders and splittings, and pooling tolerates small peak shifts. The tolerance has to be local, because differentiating Bragg's law, $\lambda = 2d\sin\theta$, shows that a uniform strain $\varepsilon$ moves each peak by $\Delta(2\theta) = -2\varepsilon\tan\theta$, more at high angle than at low. Park et al. (2017) classified crystal systems and space groups from simulated powder patterns this way, and Oviedo et al. (2019) classified small experimental thin-film datasets by augmenting them with plausible peak shifts and intensity changes. Raman, infrared and absorption spectra are handled the same way.
+**1D: spectra and diffraction patterns.** A powder X-ray diffraction pattern measured from 5° to 95° in steps of 0.02° is a vector of 4,500 intensities. A 1D kernel learns peak shapes, shoulders and splittings, and pooling tolerates small peak shifts. The tolerance has to be local, because differentiating Bragg's law, $\lambda = 2d\sin\theta$, shows that a uniform strain $\varepsilon$ moves each peak by $\Delta(2\theta) = -2\varepsilon\tan\theta$, more at high angle than at low. Park et al. (2017) classified crystal systems and space groups from simulated powder patterns this way, and Oviedo et al. (2019) classified small experimental thin-film datasets by augmenting them with plausible peak shifts and intensity changes.
 
-**2D: micrographs and maps.** Micrographs are the natural home of 2D networks: segmenting phases, grains and pores, finding cracks, locating atomic columns. The workhorse is the **U-Net** of Ronneberger, Fischer and Brox (2015): an encoder downsamples for context, a decoder upsamples back to full resolution, and skip connections carry fine detail across. It was designed for biomedical images with few labelled examples, a situation most microscopy groups know well. Maps also come from simulation: in my own work on polymer adhesion, a 2D convolutional encoder reads a surface patterned with strongly and weakly attracting sites ([research](../../research/)).
+{{< fig src="xrd-strain.svg" alt="Left: a simulated powder pattern of copper with Cu K-alpha radiation showing the 111, 200, 220 and 311 peaks near 43, 50, 74 and 90 degrees, unstrained in blue and with 1 percent tensile strain in orange, each orange peak labelled with its shift: minus 0.45, minus 0.53, minus 0.85 and minus 1.13 degrees. Right: the shift in units of 0.02-degree steps against two-theta, rising from near zero to about 100 steps at 120 degrees, with the four peaks marked at about 23, 27, 43 and 56 steps." caption="Bragg's law for fcc copper ($a = 3.615$ Å, $\lambda = 1.5406$ Å). A uniform 1 % strain moves the 111 peak by 23 sampling steps but the 311 peak by 56, so a 1D network must tolerate shifts that grow with angle; peak positions are computed, heights are approximate." >}}
+ Raman, infrared and absorption spectra are handled the same way.
+
+**2D: micrographs and maps.** Micrographs are the natural home of 2D networks: segmenting phases, grains and pores, finding cracks, locating atomic columns. The workhorse is the **U-Net** of Ronneberger, Fischer and Brox (2015): an encoder downsamples for context, a decoder upsamples back to full resolution, and skip connections carry fine detail across. It was designed for biomedical images with few labelled examples, a situation most microscopy groups know well. The decoder has to increase resolution, usually by a **transposed convolution**, which spreads each input value over a $k\times k$ patch of a finer grid. When the kernel size is not divisible by the stride, neighbouring patches overlap unevenly and the output shows a faint checkerboard pattern; Augustus Odena, Vincent Dumoulin and Chris Olah (2016) traced the artefact to this cause and recommended nearest-neighbour upsampling followed by an ordinary convolution instead. Maps also come from simulation: in my own work on polymer adhesion, a 2D convolutional encoder reads a surface patterned with strongly and weakly attracting sites ([research](../../research/)).
 
 **3D: voxel grids.** Computed tomography of electrodes, electron densities on DFT grids and voxelised molecules are 3D arrays; AtomNet (Wallach, Dzamba and Heifets, 2015) applied 3D networks to protein–ligand complexes. Costs climb steeply: a 256³ volume holds 16.8 million voxels. For atoms there is a deeper problem: rotate a molecule and its voxel grid changes, so the network must learn every orientation from augmentation.
 
 {{< note type="warn" title="Tiles from one image on both sides of the split" >}}
 Small microscopy datasets are often enlarged by cutting each micrograph into hundreds of tiles. Split those tiles at random into training and test sets and neighbouring, nearly identical tiles land on both sides: the test score then measures memory, not generalisation. Split by micrograph, sample or batch instead ([generalisation](../generalisation/)).
+{{< /note >}}
+
+{{< note type="warn" title="Myth" >}}
+*98 % pixel accuracy means a good segmentation.* If pores occupy 2 % of the pixels of a micrograph, a network that labels every pixel as solid scores 98 % accuracy and finds no pores at all. Score segmentations per class with the **intersection over union**, $|A\cap B|/|A\cup B|$ between predicted and true regions, or the Dice coefficient $2|A\cap B|/(|A|+|B|)$; both are 0 for the pore class of that useless network. Train with a class-weighted cross-entropy or a Dice loss when one phase is rare.
+{{< /note >}}
+
+{{< note type="practice" title="From the lab" >}}
+Labelling atomic columns by hand in hundreds of scanning transmission electron microscopy images is impractical, but simulating such images is not. Maxim Ziatdinov and colleagues (2017) trained a fully convolutional network on simulated images of graphene-like lattices with known atom positions and applied it to experimental images, where it located atoms and defects frame by frame through a sequence recording beam-induced changes. Two checks make such a transfer trustworthy: add the noise, blur and scan distortions of the real instrument to the simulations, and confirm the network on a few hand-labelled experimental frames. A related danger is **shortcut learning**: a classifier trained on micrographs of good and failed samples taken on different days, or at different magnifications, can learn the day or the scale bar. Saliency methods such as Grad-CAM (Ramprasaath Selvaraju and colleagues, 2017), which highlight the image regions that drove a decision, and testing on images from another instrument expose it.
 {{< /note >}}
 
 {{< note type="practice" >}}
@@ -185,6 +230,7 @@ Atoms do not sit on a grid. The number of neighbours varies, the offsets are con
 - Its parameter count, $k^2 C_{\text{in}} C_{\text{out}} + C_{\text{out}}$, does not depend on the image size.
 - Convolution is translation-equivariant; pooling makes the output approximately invariant.
 - The receptive field grows by $k - 1$ times the accumulated stride per layer; stacked 3 × 3 kernels see far cheaply.
+- Weight sharing saves parameters, not arithmetic: the cost of a layer scales with the number of output positions.
 - 1D, 2D and 3D convolutions suit spectra, micrographs and voxel grids; graph networks carry the idea to atoms.
 {{< /note >}}
 
@@ -209,6 +255,14 @@ Atoms do not sit on a grid. The number of neighbours varies, the offsets are con
   options: ["3D convolutions are not translation-equivariant", "Voxel grids cannot store more than one element", "Rotating a molecule changes its voxel grid, and convolution has no built-in rotational symmetry"]
   answer: 2
   why: "Convolutions are equivariant to shifts, not rotations. Graph networks avoid the problem by working with distances and directions."
+- q: "Pores make up 2 % of the pixels in a set of micrographs. A segmentation network reports 98 % pixel accuracy. What should you check before trusting it?"
+  options: ["Nothing; 98 % is excellent", "The intersection over union for the pore class, since labelling everything as solid also scores 98 %", "The number of parameters"]
+  answer: 1
+  why: "With a rare class, pixel accuracy rewards ignoring it. Per-class IoU or Dice scores reveal whether the pores are found."
+- q: "A uniform tensile strain shifts powder-diffraction peaks. How does the shift depend on the diffraction angle?"
+  options: ["All peaks shift by the same angle", "The shift is −2ε tan θ, so high-angle peaks move further", "Only low-angle peaks move"]
+  answer: 1
+  why: "Differentiating Bragg's law at fixed wavelength gives Δ(2θ) = −2ε tan θ. For copper with 1 % strain the 111 peak moves 0.45° and the 311 peak 1.13°."
 {{< /quiz >}}
 
 ## References and further reading
@@ -234,6 +288,8 @@ Atoms do not sit on a grid. The number of neighbours varies, the offsets are con
 17. F. Oviedo et al., “Fast and interpretable classification of small X-ray diffraction datasets using data augmentation and deep neural networks,” *npj Computational Materials* **5**, 60 (2019).
 18. I. Wallach, M. Dzamba and A. Heifets, “AtomNet: a deep convolutional neural network for bioactivity prediction in structure-based drug discovery,” arXiv:1510.02855 (2015).
 19. T. Xie and J. C. Grossman, “Crystal graph convolutional neural networks for an accurate and interpretable prediction of material properties,” *Physical Review Letters* **120**, 145301 (2018).
-20. A. Dosovitskiy et al., “An image is worth 16x16 words: transformers for image recognition at scale,” *International Conference on Learning Representations* (2021).
+20. A. Odena, V. Dumoulin and C. Olah, “Deconvolution and checkerboard artifacts,” *Distill* (2016).
+21. R. R. Selvaraju, M. Cogswell, A. Das, R. Vedantam, D. Parikh and D. Batra, “Grad-CAM: visual explanations from deep networks via gradient-based localization,” *Proceedings of ICCV*, 618–626 (2017).
+22. A. Dosovitskiy et al., “An image is worth 16x16 words: transformers for image recognition at scale,” *International Conference on Learning Representations* (2021).
 
 </div>

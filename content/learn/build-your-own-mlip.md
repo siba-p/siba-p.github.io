@@ -8,6 +8,16 @@ objectives:
   - "Train on energies and forces by differentiating through the force computation"
   - "Validate a potential with an energy–volume curve and energy-conserving dynamics"
   - "Explain why a low test error did not guarantee MACE a correct lattice constant"
+cover: "cover.svg"
+milestones:
+  - year: 1996
+    text: "Jacobsen, Stoltze and Nørskov publish the effective-medium theory potential used as reference"
+  - year: 2007
+    text: "Behler and Parrinello introduce the atomic neural-network architecture built here"
+  - year: 2017
+    text: "Larsen and colleagues describe the Atomic Simulation Environment"
+  - year: 2022
+    text: "Batatia, Kovács, Simm, Ortner and Csányi present MACE"
 track: practice
 weight: 2
 level: Advanced
@@ -20,6 +30,8 @@ lab: "Every script below was run while writing this chapter; the numbers quoted 
 This chapter builds a complete machine-learned interatomic potential for copper, from raw data to molecular dynamics, using the ideas of the preceding chapters: the atomic decomposition and symmetry functions of [neural-network potentials](../neural-network-potentials/), the energy-and-force loss of [what an MLIP must learn](../mlip-foundations/), and the validation strategy of [training and validation](../mlip/). Every line of code below was run while writing this chapter, on a laptop CPU, and every number quoted is the actual output. The whole exercise takes about an hour of computer time.
 
 The steps are: generate reference data; turn each atom's environment into symmetry-function descriptors; define the atomic neural network; train it on energies and forces; use it as an ASE calculator and test it beyond its test error; and finally train an equivariant MACE model on the same data, to see how a modern package compares with a model written by hand.
+
+{{< fig src="pipeline.svg" alt="Flow chart of six boxes: reference data of 480 copper cells, 36 descriptors per atom, an atomic network of 2273 weights, training with forces by autograd, an ASE calculator, and physical tests; a dashed arrow returns from training to the network weights." caption="The pipeline of this chapter, with the numbers used. Forces are never fitted by a separate model: they are the negative gradient of the network energy, and the force error is backpropagated through that gradient to the weights." >}}
 
 The scripts need Python 3.10 or later with NumPy, PyTorch and ASE (`pip install numpy torch ase`), and the last step needs `pip install mace-torch`. To keep the exercise self-contained and fast, the reference energies and forces come from ASE's EMT potential, a simple many-body potential for metals, instead of from DFT. EMT plays the role of the "quantum-mechanical" reference here; in real work you replace it by a DFT calculator (GPAW, VASP, Quantum ESPRESSO or CP2K through their ASE interfaces) and nothing else in the pipeline changes.
 
@@ -60,11 +72,17 @@ print(len(frames), "configurations;", len(frames[0]), "atoms each")
 
 The data are written in extended XYZ format, which stores positions, cell, energy and forces together and is read by every MLIP code.
 
+{{< note type="practice" title="Back of the envelope: why EMT and not DFT here" >}}
+EMT labels the 480 configurations in a few seconds in total. A plane-wave PBE calculation of a 32-atom copper cell with a converged k-point mesh takes of order minutes on a multi-core node, so labelling the same 480 configurations would cost of order a day of a node, and generating them by DFT molecular dynamics far more: affordable, but too slow for a tutorial that you are meant to run, change and run again. The data set itself is small by research standards. Its 400 training cells contain 12 800 atomic environments and 38 400 force components, against a network of 2 273 weights: about 17 force labels per weight, which is why a network this size can be trained without severe overfitting. All 480 cells have one of only three volumes, a detail that becomes important in Step 6.
+{{< /note >}}
+
 ## Step 2: describing atomic environments
 
 Each atom is described by 36 numbers: 24 radial and 12 angular symmetry functions over its neighbours within a 5 Å cutoff, which in fcc copper includes the first three neighbour shells (at 2.55, 3.61 and 4.42 Å). The radial functions are Gaussians in the neighbour distance at eight centres and three widths, summed over neighbours and multiplied by the smooth cutoff function. The angular functions are of Behler's G5 type, $2^{1-\zeta}\sum_{j,k}(1 + \lambda\cos\theta_{ijk})^\zeta e^{-\eta(r_{ij}^2 + r_{ik}^2)}f_c(r_{ij})f_c(r_{ik})$, at three values of $\zeta$, both signs of $\lambda$ and two radial decays.
 
 The descriptors must be differentiable with respect to positions, because forces will be obtained by differentiating through them. The code therefore builds the neighbour list once with ASE (which handles periodic images), and computes all distances and angles from the position tensor inside PyTorch, so that automatic differentiation can follow every operation. The function `triplets` lists every pair of neighbours of the same central atom, which is what the angular terms sum over.
+
+It is worth counting what this means for copper. Within 5 Å each atom has 42 neighbours (12, 6 and 24 in the first three shells), so each atom contributes 42 entries to the pair list and $42 \times 41 / 2 = 861$ entries to the triplet list. A 32-atom cell therefore has 1 344 pairs and 27 552 triplets, and a mini-batch of ten cells has over a quarter of a million triplets, each evaluated for 12 angular functions and then differentiated twice during training. The angular terms dominate both the memory and the time of the whole tutorial. There is a second subtlety. The 32-atom training cell is 7.22 Å on a side, smaller than twice the cutoff, so an atom's 42 neighbours include several periodic images of the same atom. That is correct physics for a periodic crystal, and `neighbor_list` handles it by returning a separate entry, with its own shift vector `S`, for each image; a hand-written minimum-image convention would silently miss neighbours.
 
 The choice of widths matters more than any other setting in this tutorial. The first version of this script used radial Gaussians with widths between 1.25 and 5 Å, a common-looking choice. Trained identically, it reached a force error of 296 meV/Å after 25 epochs; the version below, with widths between 0.25 and 0.7 Å, reached 34 meV/Å at the same point. The figure, which runs the plotting code in the page, shows why: the broad functions overlap so much that they cannot tell the first, second and third neighbour shells apart, so the descriptor barely changes when an atom moves between them.
 
@@ -72,7 +90,7 @@ The choice of widths matters more than any other setting in this tutorial. The f
 
 ## Step 3: the atomic network
 
-The model is the Behler–Parrinello architecture in its simplest form, since there is only one element: one network, shared by every atom, maps a standardised descriptor vector to an atomic energy, and the energy of a structure is the sum over its atoms. The network has two hidden layers of 32 neurons with SiLU activations, a smooth function so that forces are smooth too; that is 2 273 weights in total. The descriptors are standardised with the mean and standard deviation over the training set, stored with the model, and the output bias starts at the mean energy per atom, so that training begins from a sensible baseline.
+The model is the Behler–Parrinello architecture in its simplest form, since there is only one element: one network, shared by every atom, maps a standardised descriptor vector to an atomic energy, and the energy of a structure is the sum over its atoms. The network has two hidden layers of 32 neurons with SiLU activations, a smooth function so that forces are smooth too; that is 2 273 weights in total. The count is $(36 \times 32 + 32) + (32 \times 32 + 32) + (32 + 1) = 1\,184 + 1\,056 + 33$. The descriptors are standardised with the mean and standard deviation over the training set, stored with the model, and the output bias starts at the mean energy per atom, so that training begins from a sensible baseline. Standardisation matters more than it looks: for an atom in slightly rattled copper the 36 descriptor values range from about 0.2 to 13, with the most slowly decaying angular functions largest, and without rescaling the first layer would be dominated by a few large inputs whose variation between structures is a small fraction of their mean.
 
 ## Step 4: training on energies and forces
 
@@ -230,9 +248,21 @@ Running it prints the test error at a few points during training:
 
 The final model predicts the energies of unseen structures to 0.3 meV per atom and their forces to 17 meV/Å, against force magnitudes of about 700 meV/Å in the data: an error of a few per cent. Training took about 33 minutes of wall time on a laptop CPU.
 
+{{< fig src="training.svg" alt="Two log-scale plots against training epoch. Left: test energy error rises from 8.2 to 10.2 meV per atom between epochs 1 and 10, then falls to 0.29. Right: test force error falls from 150 to 16.6 meV per angstrom; an orange point at 296 marks the broad radial functions at epoch 25 and a violet diamond marks MACE at about 31." caption="Test errors of the hand-written network during training, from the table above. The orange point is the first attempt with broad radial functions at epoch 25; the violet diamonds are the MACE model of Step 6 after its 30 epochs." >}}
+
+One feature of the table repays a closer look: the energy error rises from 8.2 to 10.2 meV/atom between epochs 1 and 10 while the force error halves. The loss explains it. At epoch 1 the energy term is $10 \times (0.0082)^2 \approx 7 \times 10^{-4}$ and the force term is $(0.150)^2 = 2.3 \times 10^{-2}$, more than thirty times larger, so the first epochs reshape the surface to fit its slopes and leave its absolute level to drift. Only once the force error has fallen does the energy term carry enough weight to pull the level back, and from epoch 25 both errors fall together.
+
+{{< note type="practice" title="Two checks worth adding" >}}
+Before a long training run, check the forces by finite differences: displace one atom by $\pm 10^{-4}$ Å, compute $-(E_+ - E_-)/(2 \times 10^{-4})$, and compare with the autograd force. In double precision they should agree to many digits; a disagreement means a bug in the descriptor, usually a term that does not depend on positions through the tensor that autograd follows. Second, keep `torch.set_default_dtype(torch.float64)` for anything that will run molecular dynamics. Single precision is faster, but the total energy of a cell is the sum of many atomic energies of similar size, and its rounding error can show up as drift in long NVE runs.
+{{< /note >}}
+
 ## Step 5: using the potential, and testing it properly
 
 A test error is not a validation. The last script wraps the network as an ASE calculator, so that it can drive any ASE workflow, and then asks three questions that the test set cannot answer. Does it reproduce the equation of state of the crystal, including volumes slightly outside the training range? Does it predict the equilibrium lattice constant? And does molecular dynamics with it conserve energy in a cell larger than any it was trained on?
+
+{{< note type="try" title="Pause and predict" >}}
+Before reading the output, predict two things. Where on the energy–volume curve will the network be least accurate? And should the force error along a 600 K trajectory be larger or smaller than the 16.6 meV/Å test error, given that the test set includes configurations up to 1200 K?
+{{< /note >}}
 
 ```python
 """Step 5: use the trained network as an ASE calculator, then test it beyond the test RMSE."""
@@ -318,6 +348,10 @@ force RMSE against EMT along the trajectory: 7 meV/Å
 
 The network reproduces the equilibrium lattice constant exactly and the energy–volume curve to within a meV per atom across the strains it was trained on (lattice constants between about 3.50 and 3.72 Å). At 3.45 and 3.80 Å, outside the training range, the errors grow to 5 meV per atom, the first sign of extrapolation that [the chapter on training and validation](../mlip/) warns about: the model was never shown such strongly compressed or expanded crystals. The molecular dynamics run, in a 108-atom cell three times larger than the training cells, conserves the total energy to 0.03 meV per atom over a picosecond, which shows that the forces are smooth and exactly conservative, and the forces along the trajectory agree with EMT to 7 meV/Å, better than the test error because room-temperature configurations are near the centre of the training distribution.
 
+{{< fig src="eos.svg" alt="Top: energy per atom against lattice constant from 3.45 to 3.80 angstrom for EMT and the network, nearly overlapping, with the three training lattice constants marked by dashed lines and a shaded band between them. Bottom: bar chart of network minus EMT, below 1 meV per atom inside the band and 4.7 and minus 4.4 at the two ends." caption="Energy–volume curve of the perfect crystal from the output above. Inside the band spanned by the three training cell sizes (dashed) the network is within 1 meV/atom of EMT; at 3.45 and 3.80 Å it extrapolates and the error grows to 4–5 meV/atom. The violet arrow marks where the MACE model of Step 6 puts the minimum." >}}
+
+The final temperature of 279 K in the NVE run is not an error. The atoms started from perfect lattice sites with velocities drawn at 600 K; in a harmonic crystal the kinetic energy is shared equally with potential energy on average, so the temperature falls to about half the initial value. The remaining 21 K is within the instantaneous temperature fluctuations of a 108-atom cell, whose relative size is $\sqrt{2/(3N)} \approx 8$ %, about 24 K at 300 K.
+
 ## Step 6: the same data with MACE
 
 Writing a potential by hand shows every moving part. For production work, mature packages implement far more capable architectures with careful defaults, GPU support and interfaces to LAMMPS. The same data set can be used to train an equivariant MACE model ([message-passing potentials](../message-passing-potentials/)) from the command line. MACE expects the reference values under explicit keys, so the data are first copied into new files with the energy and forces stored as `REF_energy` and `REF_forces`:
@@ -351,6 +385,25 @@ The physical test then tells a different story. Fitting the energy–volume curv
 
 The trained model is saved as `cu_mace.model` and is used from ASE with `from mace.calculators import MACECalculator; calc = MACECalculator(model_paths="cu_mace.model", device="cpu")`, or from LAMMPS for large simulations. Fine-tuning a foundation model instead of training from scratch, as described in [the chapter on universal potentials](../universal-potentials/), uses the same command with `--foundation_model` pointing to a pre-trained model.
 
+## When it goes wrong
+
+Most failures of a hand-written potential fall into a handful of patterns, and each has a recognisable symptom.
+
+**Forces are not being trained.** If `create_graph=True` is omitted, the computed forces carry no dependence on the weights. With a loss containing an energy term the script still runs, the energy error falls, and the force error stays where initialisation left it. Watching both errors from the first epoch reveals the problem at once.
+
+**The loss is dominated by one cell size or one temperature.** Mean errors hide structure. Plot force errors separately for each temperature and strain in the data; the hottest configurations, with the largest forces, usually account for most of the force error, and a model can look good on average while failing on the subset that matters.
+
+**The descriptor cannot see the difference.** If the test force error stalls at a few hundred meV/Å, as it did with the broad radial functions, the network is not the problem: inputs that do not change when an atom moves from one shell to the next cannot be used to predict how the energy changes. Plotting the radial functions against the neighbour distances, as in the figure in Step 2, is the quickest diagnosis.
+
+**The simulation explodes after a few picoseconds.** Atoms have reached configurations unlike any in the data, usually much closer contacts than at 1200 K. The model is extrapolating, and the fix is data: compressed cells, close-contact dimers and hotter snapshots, chosen with the methods of [training data and validation](../mlip/).
+
+{{< note type="try" title="Extensions to try" >}}
+1. Regenerate the data at eleven strains between −5 % and +5 % instead of three, retrain MACE, and check whether its lattice constant now agrees with EMT.
+2. Train three copies of the network from different random seeds and plot their spread along the energy–volume curve: it should be smallest inside the training band and grow outside it.
+3. Add 40 cells containing a vacancy, and compare the vacancy formation energy from EMT and from the network before and after including them.
+4. Replace EMT by GPAW or Quantum ESPRESSO through ASE for a few configurations, to see what changes when the reference is DFT.
+{{< /note >}}
+
 ## From here to a research potential
 
 Turning this exercise into a potential for research changes four things. The reference becomes DFT, computed with consistent settings, which makes each configuration seconds to hours of computer time instead of milliseconds, so every configuration must earn its place. The data set grows by **active learning**: train an ensemble, run molecular dynamics, compute the configurations on which the models disagree, retrain ([active learning](../active-learning/)). The system gains elements, which for a Behler–Parrinello potential means element-resolved descriptors and one network per element, and for MACE needs no change at all. And validation extends to the properties the potential will be used for: defects, surfaces, phonons, diffusion, melting, whatever the research question requires. The structure of the code, data in, descriptors or learned features, an atomic model, a loss on energies and forces, an ASE calculator out, stays exactly as here.
@@ -375,6 +428,10 @@ Turning this exercise into a potential for research changes four things. The ref
   options: ["The training and test data contained only three cell volumes, so the test error said nothing about volumes in between", "MACE is intrinsically less accurate than a Behler–Parrinello network", "The 5 Å cutoff was too short for copper"]
   answer: 0
   why: "A test set drawn like the training set certifies only what the training set covers. Sampling the volume continuously, or at many strains, is the fix; physical validation is what revealed the problem."
+- q: "The test energy error rose from 8.2 to 10.2 meV/atom between epochs 1 and 10 while the force error halved. Why?"
+  options: ["The learning rate was too high", "Early in training the force term was over thirty times larger than the energy term, so the optimiser fitted slopes first and let the energy level drift", "The test set changed"]
+  answer: 1
+  why: "With weights 10 and 1, the terms were about 7 × 10⁻⁴ and 2.3 × 10⁻²; energies only dominate the gradient once forces are good."
 {{< /quiz >}}
 
 ## References and further reading

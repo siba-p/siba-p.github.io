@@ -8,6 +8,16 @@ objectives:
   - "Trace the path from symmetry functions and GAP to ACE, message passing and equivariant networks"
   - "Compare classical, ab initio and machine-learned potentials by cost, accuracy and transferability"
   - "Name the three principles every modern potential inherits from this history"
+cover: "cover.svg"
+milestones:
+  - year: 1924
+    text: "Lennard-Jones fits inverse-power pair potentials to the measured properties of gases"
+  - year: 1984
+    text: "Daw and Baskes publish the embedded atom method for metals"
+  - year: 2007
+    text: "Behler and Parrinello publish a neural-network potential for bulk silicon"
+  - year: 2022
+    text: "Chen and Ong publish M3GNet, a potential covering most of the periodic table"
 track: found
 weight: 1
 level: Foundation
@@ -43,11 +53,33 @@ $$ V_{\text{LJ}}(r) = 4\textcolor{#d4a017}{\varepsilon}\left[\left(\frac{\textco
 - the $r^{-6}$ term has a physical basis, the London dispersion interaction (1930); the $r^{-12}$ term was chosen largely for convenience
 {{< /eq >}}
 
-The attractive term was justified a few years later by Fritz London's quantum-mechanical theory of dispersion forces, which showed that the correlated fluctuations of two atoms' electron clouds produce an attraction falling as $r^{-6}$. The repulsive exponent of 12 has no such basis; the true repulsion from overlapping electron clouds is closer to exponential, as in the Buckingham potential, but $r^{-12}$ is the square of $r^{-6}$ and was cheap to compute. For noble gases the Lennard-Jones potential is remarkably good, and it remains the model system of simulation, the "hydrogen atom" of liquid-state theory on which much of [statistical mechanics](../liquids-and-structure/) has been tested.
+The attractive term was justified a few years later by Fritz London's quantum-mechanical theory of dispersion forces, which showed that the correlated fluctuations of two atoms' electron clouds produce an attraction falling as $r^{-6}$. The repulsive exponent of 12 has no such basis; the true repulsion from overlapping electron clouds is closer to exponential, as in the Buckingham potential, but $r^{-12}$ is the square of $r^{-6}$ and was cheap to compute. For noble gases the Lennard-Jones potential is a good approximation, and it remains the model system of simulation, the "hydrogen atom" of liquid-state theory on which much of [statistical mechanics](../liquids-and-structure/) has been tested.
 
 For chemical bonds, Philip Morse introduced in 1929 a potential, $V(r) = D[1 - e^{-a(r - r_0)}]^2$, whose quantum mechanics is exactly solvable and which, unlike a harmonic spring, allows a bond to dissociate. Pair potentials of these kinds, with harmonic terms for bonds and angles and Coulomb terms for partial charges, became the basis of the **classical biomolecular force fields** developed from the 1970s, such as AMBER, CHARMM, GROMOS and OPLS, which still dominate simulations of proteins and solutions.
 
+{{< note type="fun" >}}
+The 1924 papers that introduced the potential are signed J. E. Jones. John Edward Jones added his wife's surname, Lennard, to his own when he married Kathleen Lennard in 1925, which is why the potential carries a double-barrelled name that its inventor did not yet have when he proposed it.
+{{< /note >}}
+
+### Three curves, one well
+
+How much does the choice of formula matter? A useful experiment is to make the three classic pair potentials agree as closely as they can and see where they still differ. Take argon, with the standard Lennard-Jones parameters $\varepsilon/k_B = 119.8$ K (a well depth of 10.3 meV) and $\sigma = 3.405$ Å, so that the minimum lies at 3.82 Å. Give a Morse potential the same depth and position, and choose its range parameter $a = 6/r_{\min} \approx 1.57$ Å⁻¹ so that it also has the same curvature at the bottom of the well, and hence the same vibrational frequency for a slightly displaced pair. Do the same for the Buckingham "exp-6" form, an exponential repulsion plus an $r^{-6}$ attraction, whose steepness parameter must then be $\alpha \approx 13.77$. Three formulas, three matched parameters each.
+
+{{< fig src="pairwells.svg" alt="Three panels comparing the Lennard-Jones, Buckingham and Morse potentials for argon: the well, the repulsive wall between 2.6 and 3.4 Å, and the attractive tail on a logarithmic scale" caption="Matched in depth, position and curvature, the three pair potentials agree within half a meV across the well but differ by a factor of two on the repulsive wall at 2.8 Å and by a factor of eight in the attraction at 8 Å. The dashed line marks the thermal energy at 300 K." >}}
+
+Across the well, between 3.5 and 4.3 Å, the three curves agree to within 0.53 meV, five per cent of the depth: any of them describes a pair of argon atoms vibrating gently at low temperature. They part company away from the minimum. On the repulsive wall at 2.8 Å, Lennard-Jones gives 298 meV, Buckingham 198 meV and Morse 153 meV, a factor of two between the extremes; this matters for high pressures and for fast collisions, where atoms are driven far up the wall. In the tail, Morse attraction falls exponentially, so at 8 Å it is eight times weaker than the $r^{-6}$ dispersion of the other two, which matters for cohesive and surface energies, where many distant pairs add up. And the Buckingham form has a hidden flaw: at very short distance the $-r^{-6}$ term eventually beats the exponential, so the curve reaches a maximum of about 210 eV at 0.81 Å and then plunges to minus infinity. Atoms in an ordinary simulation never get that close, but in a radiation-damage cascade or a badly prepared starting structure they can, and the simulation then collapses. The lesson, which machine-learned potentials relearned the hard way, is that **agreement where the data are says little about behaviour where they are not**. Practitioners still patch the short-range region explicitly, for example with the screened-Coulomb ZBL potential, as described in [the chapter on kernel and linear potentials](../kernel-and-linear-potentials/).
+
 Pair potentials, however, fail for most solids, and the failures are instructive. A pair potential predicts that the energy of a crystal varies linearly with the number of neighbours, so that removing an atom costs exactly as much energy as the bonds it had. For metals this is badly wrong: the measured energy to form a vacancy is only about a third of the cohesive energy per atom, whereas pair potentials make the two nearly equal. Pair potentials also force the **Cauchy relation** between elastic constants, $C_{12} = C_{44}$ for cubic crystals, which real metals violate (gold has $C_{12}$ about four times $C_{44}$). And they cannot explain why carbon, silicon and germanium prefer the open diamond structure with only four neighbours, when a pair potential always favours close packing. The lesson, repeated throughout this history, is that **the energy of a bond depends on its environment**. That requires many-body terms.
+
+{{< note type="try" title="Pause and predict" >}}
+Suppose each atom's energy grows not with the number of its neighbours $Z$ but with $\sqrt Z$, so that the first bonds an atom forms are worth more than the later ones. In a close-packed metal with $Z = 12$, what fraction of the cohesive energy does it now cost to create a vacancy? Guess before reading on: about 1, about a half, or close to zero?
+{{< /note >}}
+
+The calculation takes three lines. In bulk, each atom has energy $-A\sqrt{12}$, so the cohesive energy is $A\sqrt{12} \approx 3.46A$. Removing one atom and returning it to the bulk elsewhere leaves twelve neighbours, each now with eleven bonds instead of twelve, and each loses $A(\sqrt{12} - \sqrt{11}) \approx 0.147A$ of binding. The vacancy therefore costs $12 \times 0.147A \approx 1.77A$, or 0.51 of the cohesive energy: half, rather than all of it as for a pair potential. Measured ratios for common face-centred cubic metals lie between 0.2 and 0.4, and the remaining gap is narrowed by the pair repulsion and by relaxation of the neighbours into the hole.
+
+{{< fig src="bondcount.svg" alt="Left: energy per atom against number of neighbours, a straight line for a pair potential and a square-root curve for an embedding model, with dimer, diamond, simple cubic, bcc and fcc marked. Right: bar chart of vacancy formation energy divided by cohesive energy for the two models and six metals" caption="Left: a pair potential makes every bond worth the same, so energy is linear in the coordination $Z$; a square-root embedding makes the first bonds the strongest (sc is simple cubic). Right: the vacancy formation energy as a fraction of the cohesive energy is 1 for a pair potential and 0.51 for the square-root model; approximate measured values for Al, Pt, Au, Cu, Ag and Ni lie between 0.2 and 0.4." >}}
+
+The square-root law is not an arbitrary choice. In tight-binding theory the width of the band of electronic states an atom contributes to grows as the square root of the sum of the squared hopping integrals to its neighbours, so the bonding energy, which scales with that width, grows as $\sqrt Z$: this is the second-moment approximation behind the Finnis–Sinclair potential below. Linus Pauling had reached the same qualitative conclusion from chemistry in the 1940s: an atom's valence is shared among its bonds, so each bond weakens as more are formed. Both ideas say the same thing in different languages, and the left panel of the figure is their common picture.
 
 ## Many-body potentials for metals and semiconductors
 
@@ -55,11 +87,11 @@ For metals, the decisive step was the **embedded atom method** (EAM) of Murray D
 
 {{< eq title="The embedded atom method" say="An atom's energy depends on how much electron density its neighbours supply, with diminishing returns." >}}
 $$ E = \sum_i \textcolor{#f08c2e}{F}\Big(\underbrace{\textstyle\sum_{j\neq i} \textcolor{#12a594}{\rho}(r_{ij})}_{\bar\rho_i}\Big) + \frac12\sum_{i\neq j} \textcolor{#4c6ef5}{\phi}(r_{ij}) $$
-- $\textcolor{#12a594}{\rho}(r)$: the density contributed by a neighbour at distance $r$; $\textcolor{#f08c2e}{F}$: the embedding energy, a concave function
+- $\textcolor{#12a594}{\rho}(r)$: the density contributed by a neighbour at distance $r$; $\textcolor{#f08c2e}{F}$: the embedding energy, negative and curving upwards (convex), so its gains diminish
 - $\textcolor{#4c6ef5}{\phi}$: a pair repulsion between ion cores
 {{< /eq >}}
 
-Because $F$ is concave, roughly $-\sqrt{\bar\rho}$ in the related Finnis–Sinclair potential of 1984 (derived from the second-moment approximation of tight-binding theory), each additional neighbour adds less energy than the previous one. That single feature fixes the vacancy formation energy, breaks the Cauchy relation and gives realistic surface energies. EAM potentials are as cheap as pair potentials, and for forty years they have been the workhorse of simulations of metals and alloys, of dislocations, grain boundaries and radiation damage, with millions of atoms. Notice the form of the equation: **the total energy is a sum of atomic energies, each a function of a descriptor of the atom's local environment** (here the scalar $\bar\rho_i$). Twenty-four years later, the Behler–Parrinello network would generalise exactly this structure.
+Because $F$ is negative and convex, roughly $-\sqrt{\bar\rho}$ in the related Finnis–Sinclair potential of 1984 (derived from the second-moment approximation of tight-binding theory), each additional neighbour adds less energy than the previous one. That single feature fixes the vacancy formation energy, breaks the Cauchy relation and gives realistic surface energies. EAM potentials are as cheap as pair potentials, and for forty years they have been the workhorse of simulations of metals and alloys, of dislocations, grain boundaries and radiation damage, with millions of atoms. Notice the form of the equation: **the total energy is a sum of atomic energies, each a function of a descriptor of the atom's local environment** (here the scalar $\bar\rho_i$). Twenty-four years later, the Behler–Parrinello network would generalise exactly this structure.
 
 Covalent materials needed angles. Frank Stillinger and Thomas Weber added an explicit three-body term in 1985 that penalises bond angles deviating from the tetrahedral value, making diamond silicon stable. Jerry Tersoff took a different route in 1988 with a **bond-order potential**, inspired by Linus Pauling's idea that a bond weakens as an atom forms more of them: the attractive part of each pair interaction is multiplied by a bond order that decreases with the number and angles of competing neighbours. Donald Brenner's reactive empirical bond-order potential (REBO, 1990) extended this to hydrocarbons and became, with its successor AIREBO, the standard for carbon nanotubes and graphene. Michael Baskes's modified EAM (MEAM, 1992) added angular terms to the embedding density for directional bonding in metals and semiconductors.
 
@@ -71,7 +103,11 @@ Each of these potentials encodes physical insight about a class of bonding in a 
 
 A different solution to the problem was to stop approximating the energy at all. In 1985 Roberto Car and Michele Parrinello showed how to run molecular dynamics with forces computed from density-functional theory on the fly, by treating the electronic wavefunctions as extra dynamical variables that follow the nuclei adiabatically. **Ab initio molecular dynamics** (AIMD), in the Car–Parrinello form or the Born–Oppenheimer form in which the electronic problem is solved to convergence at every step, made it possible to simulate liquid water, chemical reactions and materials under extreme conditions without any empirical fitting, with the accuracy and transferability of DFT.
 
-Its cost confines it to a few hundred atoms and tens of picoseconds even on large supercomputers. Many important phenomena, such as nucleation, diffusion in solids, the dynamics of interfaces and anything involving thousands of atoms or nanoseconds, are out of reach. By the 2000s the field faced a clear gap: classical potentials were fast but inaccurate and hard to build, ab initio dynamics was accurate but slow. Machine learning was proposed to close it, by learning a potential that reproduces DFT energies and forces at a cost close to that of a classical potential.
+Its cost confines it to a few hundred atoms and tens of picoseconds even on large supercomputers. Many important phenomena, such as nucleation, diffusion in solids, the dynamics of interfaces and anything involving thousands of atoms or nanoseconds, are out of reach. {{< note type="practice" title="Back of the envelope" >}}
+How long would one nanosecond of ab initio dynamics take? With a time step of 1 fs, a nanosecond is $10^6$ steps. If a converged DFT force calculation for 200 atoms takes a minute, which is realistic on a modest number of processor cores, the run needs $10^6$ minutes, almost two years of uninterrupted computing. A classical potential such as EAM costs of the order of a microsecond per atom per step on one core, so the same 200 atoms take about $0.2$ ms per step and the whole nanosecond a few minutes. The gap of five to six orders of magnitude is the space that machine-learned potentials set out to occupy, typically costing ten to a thousand times more than EAM but still many thousands of times less than DFT.
+{{< /note >}}
+
+By the 2000s the field faced a clear gap: classical potentials were fast but inaccurate and hard to build, ab initio dynamics was accurate but slow. Machine learning was proposed to close it, by learning a potential that reproduces DFT energies and forces at a cost close to that of a classical potential.
 
 ## The first neural-network potentials
 
@@ -89,6 +125,8 @@ $$ E = \sum_{i=1}^{N} \textcolor{#f08c2e}{E_i}, \qquad \textcolor{#f08c2e}{E_i} 
 {{< /eq >}}
 
 The atomic decomposition makes the energy extensive and the model applicable to any number of atoms. Locality makes the cost grow linearly with system size. The symmetry functions, radial and angular functions summed over neighbours and refined in Behler's 2011 paper, guarantee the physical symmetries exactly, so the network does not have to learn them. Forces follow by differentiating the total energy, so they are consistent with it and energy is conserved in dynamics. The structure is that of EAM, with the single scalar density replaced by a vector of dozens of environment descriptors and the hand-chosen embedding function replaced by a flexible neural network. [The chapter on neural-network potentials](../neural-network-potentials/) develops it in detail, and the figure there shows the architecture in action.
+
+{{< fig src="skeleton.svg" alt="Two parallel pipelines. Top, the embedded atom method: a neighbourhood within the cutoff gives one number, the summed density, which a fixed embedding function turns into an atomic energy. Bottom, the Behler–Parrinello network: the same neighbourhood gives about fifty symmetry-function values, which a learned neural network turns into an atomic energy. Both sum atomic energies" caption="The same skeleton, 23 years apart. Each atom’s neighbourhood is condensed into a descriptor, a function maps it to an atomic energy, and the atomic energies are summed. EAM uses one number and a fixed formula; Behler and Parrinello use a vector of symmetry functions and a trained network." >}}
 
 ## Kernel methods and systematic descriptors
 
@@ -113,6 +151,10 @@ Until about 2021, every MLIP was trained for one chemical system: silicon, water
 ## What the history teaches
 
 Looking back, each generation added flexibility while keeping the lessons of the previous one. From pair potentials came the need for environment dependence; from EAM, the atomic energy as a function of a local descriptor; from bond-order potentials and Stillinger–Weber, the importance of angles; from ReaxFF, the cost of building flexibility by hand; from AIMD, the target accuracy; from Behler and Parrinello, the combination of locality, symmetry and learning that every modern MLIP inherits; from GAP and ACE, systematic and complete descriptions of environments and the value of uncertainty; from message passing and equivariance, learned representations and data efficiency; and from universal models, the power of very large data sets. The principles that recur throughout, and that the rest of this subject develops, are three: **physical symmetries must be built in exactly, locality makes potentials scalable, and forces must be the exact gradient of an energy**.
+
+{{< note type="warn" title="Myth" >}}
+*Machine learning has made the classical potentials obsolete.* It has not. Biomolecular force fields such as AMBER and CHARMM still run most protein simulations, EAM still runs most million-atom simulations of metals, and Lennard-Jones particles still test most new ideas in statistical mechanics, because they are thousands of times cheaper than machine-learned potentials and have decades of validation behind them. The traffic also runs the other way: many machine-learned potentials keep a physical baseline, such as a screened-Coulomb repulsion at short range, a dispersion correction or explicit electrostatics, and learn only the difference between it and the reference. The right question is not which generation is newest but which is accurate enough, at a cost you can afford, for the property you need.
+{{< /note >}}
 
 {{< note type="key" >}}
 - An interatomic potential replaces the quantum-mechanical energy $E(\{\mathbf r\})$ by a cheap function; forces are its negative gradient.

@@ -896,3 +896,100 @@ table.cr .cr-ex:hover { border-color: var(--accent); }
 .lpath-steps small i { width: 8px; height: 8px; border-radius: 50%; background: var(--tone); }
 .lpath-steps .lp-done { grid-column: 3; grid-row: 1 / 3; }
 @media (max-width: 900px) { .lpath-panel { grid-template-columns: minmax(0, 1fr); padding: 18px; } .lpath-about { position: static; } }
+
+/* ---------- static figures ---------- */
+.sfig { margin: 2em 0 2.2em; max-width: 880px; }
+.sfig-plate { display: block; padding: 14px 16px; border-radius: var(--lw-radius, 14px); border: 1px solid var(--line); background: var(--plate, #fff); box-shadow: var(--shadow-sm); cursor: zoom-in; transition: border-color .2s, box-shadow .2s; }
+.sfig-plate:hover { border-color: color-mix(in oklab, var(--tone, var(--accent)) 45%, var(--line)); box-shadow: var(--shadow); }
+.sfig img { display: block; width: 100%; height: auto; margin: 0 auto; }
+.sfig figcaption { margin: .7rem 2px 0; font-size: .87rem; line-height: 1.55; color: var(--ink-3); }
+.sfig-tag { font: 600 .74rem var(--f-body); color: var(--tone, var(--accent)); margin-right: .55em; }
+.chap-body figure.sfig { counter-increment: fig; }
+.chap-body .sfig-tag::before { content: "Figure " counter(chap) "." counter(fig); }
+.sfig.narrow { max-width: 560px; }
+.lightbox { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 3vmin; background: rgb(6 10 24 / .78); backdrop-filter: blur(4px); cursor: zoom-out; animation: lb-in .18s ease-out; }
+.lightbox img { max-width: min(1400px, 96vw); max-height: 88vh; width: auto; height: auto; padding: 18px; border-radius: 14px; background: #fff; box-shadow: 0 30px 80px -20px rgb(0 0 0 / .6); }
+.lightbox p { position: absolute; left: 0; right: 0; bottom: 2.4vmin; margin: 0 auto; max-width: 80ch; padding: 0 20px; text-align: center; color: #e9edf7; font-size: .9rem; line-height: 1.5; }
+@keyframes lb-in { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .lightbox { animation: none; } }
+
+/* ---------- covers and thumbnails ---------- */
+.chap-head .wrap.has-cover { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 360px); gap: 28px 56px; align-items: center; }
+.chap-cover { display: block; border-radius: 18px; overflow: hidden; border: 1px solid color-mix(in oklab, var(--tone) 30%, var(--line)); background: #fff; box-shadow: 0 30px 60px -32px rgb(12 18 34 / .45), 0 0 0 6px color-mix(in oklab, var(--tone) 8%, transparent); transform: rotate(1.6deg); transition: transform .35s cubic-bezier(.2, .8, .2, 1); cursor: zoom-in; }
+.chap-cover:hover { transform: rotate(0deg) scale(1.02); }
+.chap-cover img { display: block; width: 100%; height: auto; }
+@media (max-width: 900px) { .chap-head .wrap.has-cover { grid-template-columns: minmax(0, 1fr); } .chap-cover { max-width: 340px; transform: none; order: -1; margin-bottom: 4px; } }
+@media (max-width: 560px) { .chap-cover { max-width: 100%; } }
+.chap-pager .next.has-thumb { grid-template-columns: minmax(0, 1fr) 132px; column-gap: 18px; }
+.chap-pager .next.has-thumb > :not(img) { grid-column: 1; }
+.pg-thumb { grid-column: 2; grid-row: 1 / span 3; align-self: center; width: 132px; height: auto; border-radius: 10px; border: 1px solid var(--line); background: #fff; }
+@media (max-width: 560px) { .chap-pager .next.has-thumb { grid-template-columns: minmax(0, 1fr); } .pg-thumb { display: none; } }
+.syl-link { grid-template-columns: 46px minmax(0, 1fr) auto 28px; }
+.syl-thumb { width: 124px; height: auto; border-radius: 10px; border: 1px solid var(--line); background: #fff; transition: transform .25s; }
+.syl-link:hover .syl-thumb { transform: rotate(-1.5deg) scale(1.03); }
+@media (max-width: 640px) { .syl-thumb { display: none; } .syl-link { grid-template-columns: 34px minmax(0, 1fr) 26px; } }
+
+/* ---------- book tabs: contents, timeline, formula sheet ---------- */
+.bk-tabs { position: relative; }
+.bk-tablist { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 26px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+.bk-tablist label { display: grid; gap: 2px; padding: .7em 1.1em; border-radius: 12px; border: 1px solid var(--line); cursor: pointer; transition: border-color .2s, background .2s, box-shadow .2s; }
+.bk-tablist label b { font: 400 1.5rem/1.1 "Instrument Serif", Georgia, serif; color: var(--ink); }
+.bk-tablist label small { font: 500 .74rem var(--f-mono); color: var(--ink-3); }
+.bk-tablist label:hover { border-color: var(--line-2); background: var(--card); }
+.bk-panel { display: none; }
+#bt-contents:checked ~ .bp-contents, #bt-timeline:checked ~ .bp-timeline, #bt-formulas:checked ~ .bp-formulas { display: block; }
+#bt-contents:checked ~ .bk-tablist label[for="bt-contents"], #bt-timeline:checked ~ .bk-tablist label[for="bt-timeline"], #bt-formulas:checked ~ .bk-tablist label[for="bt-formulas"] { border-color: var(--tone); background: color-mix(in oklab, var(--tone) 7%, var(--card)); box-shadow: inset 0 -3px 0 var(--tone); }
+#bt-contents:focus-visible ~ .bk-tablist label[for="bt-contents"], #bt-timeline:focus-visible ~ .bk-tablist label[for="bt-timeline"], #bt-formulas:focus-visible ~ .bk-tablist label[for="bt-formulas"] { outline: 2px solid var(--tone); outline-offset: 2px; }
+.bp-intro { margin: 0 0 1.4rem; max-width: 70ch; color: var(--ink-2); }
+.bp-contents .syl-part:first-child { border-top: 0; padding-top: 4px; }
+
+/* timeline (book tab and library) */
+.tl { list-style: none; margin: 0; padding: 0; position: relative; max-width: 900px; }
+.tl::before { content: ""; position: absolute; left: 86px; top: 6px; bottom: 6px; width: 2px; background: linear-gradient(180deg, transparent, var(--line-2) 4%, var(--line-2) 96%, transparent); }
+.tl-cent { margin: 1.4rem 0 .6rem; }
+.tl-cent:first-child { margin-top: 0; }
+.tl-cent span { display: inline-block; width: 70px; text-align: right; font: 400 1.6rem/1 "Instrument Serif", Georgia, serif; color: var(--ink-3); }
+.tl-item { display: grid; grid-template-columns: 70px 32px minmax(0, 1fr); align-items: start; padding: .45rem 0; }
+.tl-year { text-align: right; font: 600 .95rem var(--f-mono); color: var(--tone, var(--accent)); padding-top: .1em; }
+.tl-dot { justify-self: center; width: 12px; height: 12px; margin-top: .3em; border-radius: 50%; background: var(--card); border: 3px solid var(--tone, var(--accent)); position: relative; z-index: 1; }
+.tl-body { display: grid; gap: 2px; padding-left: 6px; }
+.tl-text { font-size: .97rem; color: var(--ink); line-height: 1.45; }
+.tl-body a { font-size: .8rem; color: var(--ink-3); text-decoration: none; }
+.tl-body a:hover { color: var(--tone, var(--accent)); text-decoration: underline; }
+.tl-body a b { color: var(--tone, var(--accent)); font-weight: 600; }
+.tl-item:hover .tl-dot { background: var(--tone, var(--accent)); }
+.tl-box { max-height: 640px; overflow-y: auto; padding: 22px 18px 12px 0; border-radius: 16px; border: 1px solid var(--line); background: var(--card); scrollbar-width: thin; }
+.tl-filter { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+.tl-filter button { display: inline-flex; align-items: center; gap: .45em; padding: .45em .85em; border-radius: 999px; border: 1px solid var(--line); background: var(--card); font: 500 .82rem var(--f-body); color: var(--ink-2); cursor: pointer; }
+.tl-filter button i { width: 9px; height: 9px; border-radius: 50%; background: var(--tone); }
+.tl-filter button:hover { border-color: var(--line-2); color: var(--ink); }
+.tl-filter button.on { border-color: var(--tone, var(--accent)); color: var(--ink); background: color-mix(in oklab, var(--tone, var(--accent)) 10%, var(--card)); }
+@media (max-width: 560px) { .tl::before { left: 56px; } .tl-item { grid-template-columns: 44px 24px minmax(0, 1fr); } .tl-cent span { width: 44px; font-size: 1.25rem; } .tl-year { font-size: .82rem; } }
+
+/* formula sheet */
+.fs-ch { padding: 18px 0 8px; border-top: 1px solid var(--line); }
+.fs-ch:first-of-type { border-top: 0; padding-top: 0; }
+.fs-ch h3 { margin: 0 0 .9rem; font-size: 1.12rem; }
+.fs-ch h3 a { color: var(--ink); text-decoration: none; display: inline-flex; gap: .6em; align-items: baseline; }
+.fs-ch h3 a span { font: 400 1.5rem/1 "Instrument Serif", Georgia, serif; color: var(--tone); }
+.fs-ch h3 a:hover { color: var(--tone); }
+.fs-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; max-width: 900px; }
+.fs-grid .eqcard { margin: 0; max-width: none; }
+.fs-grid .katex-display { overflow-x: auto; overflow-y: hidden; }
+
+/* ---------- library cover wall ---------- */
+.cover-wall { display: grid; gap: 14px; padding: 8px 0 26px; overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); }
+.cw-row { overflow: hidden; }
+.cw-track { display: flex; gap: 14px; width: max-content; animation: cw-slide 160s linear infinite; }
+.cw-rev .cw-track { animation-direction: reverse; animation-duration: 190s; }
+.cover-wall:hover .cw-track, .cover-wall:focus-within .cw-track { animation-play-state: paused; }
+@keyframes cw-slide { to { transform: translateX(calc(-50% - 7px)); } }
+.cw-card { position: relative; display: block; width: 200px; flex: none; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); background: #fff; box-shadow: var(--shadow-sm); transition: transform .25s, box-shadow .25s; }
+.cw-card:hover, .cw-card:focus-visible { transform: translateY(-4px) rotate(-1deg); box-shadow: var(--shadow); text-decoration: none; }
+.cw-card img { display: block; width: 100%; height: auto; }
+.cw-card span { position: absolute; left: 0; right: 0; bottom: 0; display: grid; gap: 1px; padding: 22px 10px 8px; font: 600 .78rem/1.25 var(--f-display); color: #fff; background: linear-gradient(180deg, transparent, rgb(8 12 26 / .78)); opacity: 0; transition: opacity .2s; }
+.cw-card span small { font: 600 .66rem var(--f-body); color: rgb(255 255 255 / .8); }
+.cw-card:hover span, .cw-card:focus-visible span { opacity: 1; }
+@media (hover: none) { .cw-card span { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .cw-track { animation: none; } .cw-row { overflow-x: auto; } }
+.tl [hidden], .tl-item[hidden], .tl-cent[hidden] { display: none !important; }

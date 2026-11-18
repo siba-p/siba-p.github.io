@@ -8,6 +8,16 @@ objectives:
   - "Compute radial and angular symmetry functions and verify their invariance numerically"
   - "Explain why angular information is needed to separate environments with identical distances"
   - "Compare symmetry functions, SOAP and ACE by cost, length and completeness"
+cover: "cover.svg"
+milestones:
+  - year: 1983
+    text: "Steinhardt, Nelson and Ronchetti introduce rotation-invariant bond-orientational order parameters"
+  - year: 2011
+    text: "Behler publishes the atom-centred symmetry functions used by most neural-network potentials"
+  - year: 2013
+    text: "Bartók, Kondor and Csányi introduce the SOAP descriptor"
+  - year: 2019
+    text: "Drautz introduces the atomic cluster expansion, a complete many-body basis"
 track: found
 weight: 3
 level: Core
@@ -72,6 +82,8 @@ $$
 
 count neighbours in soft shells centred at $r_s$; angular functions $G_i^{4}$ add three-body information through $\cos\theta_{ijk}$. The cut-off function $f_c$ goes smoothly to zero so that the energy, and its derivative the force, stay continuous as atoms enter and leave the sphere. Each atom gets a vector of perhaps 50–100 such numbers, fed to an element-specific neural network that outputs $\varepsilon_i$. This was the first machine-learned potential that scaled to condensed phases. The third row of the lab is a two-dimensional version of $G^2$, summed over atoms.
 
+{{< fig src="census.svg" alt="Left: a central atom surrounded by five coloured soft shells at increasing radius and a dashed cutoff circle at 4 Å, with neighbours scattered among the shells. Right: five Gaussian radial functions centred at 1, 1.5, 2, 2.5 and 3 Å, each multiplied by the cosine cutoff function, plotted against neighbour distance" caption="The five radial functions of the code in the In practice section ($η = 4$ Å⁻², $r_s$ = 1 to 3 Å, $r_c = 4$ Å). Each neighbour adds to every function the height of that curve at its distance, so the descriptor is a soft histogram of distances; the cutoff function (dashed) shrinks the outer shells and takes every contribution smoothly to zero at $r_c$." >}}
+
 A useful picture is a census of the neighbourhood. Each radial function asks atom $i$ one question: how many neighbours live at about distance $r_s$, counted softly with a Gaussian of width set by $\eta$? A set of such questions is a smoothed histogram of neighbour distances, a private radial distribution function for every atom, and the answers do not depend on which way the map is drawn or what the neighbours are called. Angular functions ask a second kind of question: how many *pairs* of neighbours sit at a given angle, as seen from the centre? In the notation of Behler's 2011 paper, the standard angular function is
 
 {{< eq title="Behler's angular symmetry function" say="Count pairs of neighbours, weighted by the angle they make at the central atom and by how close all three atoms are to one another." >}}
@@ -84,9 +96,17 @@ $$ G_i^{4} = 2^{1-\textcolor{#12a594}{\zeta}} \sum_{j<k} \big(1 + \textcolor{#84
 
 Behler's paper writes the sum over all neighbours $j$ and $k$, which counts every pair twice; many codes, the card above and the worked example below use pairs $j < k$. The factor of two vanishes once inputs are standardised, but matters when you compare numbers between codes. A common variant, $G^5$, drops $r_{jk}$ from the exponential and the third cut-off factor, so that neighbours far from each other still count as a pair; the copper potential in [the tutorial on building an MLIP](../build-your-own-mlip/) uses it.
 
+{{< fig src="angular.svg" alt="Two panels of the angular factor of Behler's G4 against bond angle from 0 to 180 degrees, for zeta equal to 1, 2, 4 and 16; left for lambda plus one, peaked at 0 degrees, right for lambda minus one, peaked at 180 degrees. Vertical lines mark 90, 109.5 and 180 degrees" caption="The angular factor $2^{1-ζ}(1 + λ\cos θ)^ζ$. Raising $ζ$ narrows the window of angles a function responds to; $λ = +1$ looks at small angles and $λ = -1$ at wide ones. At the tetrahedral angle, 109.5°, the factor for $ζ = 2$, $λ = +1$ is 0.22, against 0.50 at 90°." >}}
+
+The figure shows why a practical set mixes several $\zeta$ values. With $\zeta = 1$ the factor is a broad cosine that changes by only 0.33 between 90° and 109.5°; with $\zeta = 16$ and $\lambda = -1$ it is essentially zero below 120° and switches on sharply towards 180°, which makes it a sensitive detector of linear arrangements such as the axial bonds of an octahedron. A set with $\zeta = 1, 2, 4, 16$ and both signs of $\lambda$ therefore covers the angular range with overlapping windows, much as the radial functions cover the distance range with overlapping shells.
+
 **SOAP.** The smooth overlap of atomic positions (Bartók, Kondor and Csányi, 2013) places a Gaussian on every neighbour to form a smooth neighbour density $\rho_i(\mathbf r)$, expands it in radial functions and spherical harmonics, $\rho_i(\mathbf r) = \sum_{nlm} c^{i}_{nlm} g_n(r) Y_{lm}(\hat{\mathbf r})$, and forms the rotationally invariant **power spectrum** $p^i_{nn'l} = \sum_m c^{i}_{nlm}\,(c^{i}_{n'lm})^*$. The SOAP kernel, a normalised dot product of power spectra, underlies the GAP potentials and much of kernel-based materials ML.
 
-SOAP, honestly assessed: it is smooth, it has a clear geometric meaning (two environments are similar if their smeared neighbour densities overlap well after the best rotation), and its kernel suits Gaussian-process regression. Its costs are equally real. The power spectrum is three-body, so it inherits the incompleteness described next, although raising the kernel to a power $\zeta > 1$, as GAP does, brings in higher-order correlations implicitly. Its length grows with the square of the number of elements, because every pair of element channels gets its own block: with eight radial functions and angular orders up to $l = 6$, it has $\tfrac{8\cdot 9}{2}\times 7 = 252$ components for one element and $\tfrac{32\cdot 33}{2}\times 7 = 3696$ for four. And its hyperparameters (the cut-off, the Gaussian width of each atom, commonly around 0.5 Å, and the two truncations) change the results and are usually chosen by trial and validation.
+SOAP, honestly assessed: it is smooth, it has a clear geometric meaning (two environments are similar if their smeared neighbour densities overlap well after the best rotation), and its kernel suits Gaussian-process regression. {{< note type="story" >}}
+Rotation-invariant combinations of spherical-harmonic coefficients are older than machine-learned potentials by a quarter of a century. In 1983 Paul Steinhardt, David Nelson and Marco Ronchetti characterised order in simulated supercooled liquids and glasses with the bond-orientational order parameters $Q_l = \big[\tfrac{4\pi}{2l+1}\sum_m |\bar q_{lm}|^2\big]^{1/2}$, where $\bar q_{lm}$ averages $Y_{lm}$ over the bonds to the nearest neighbours. That is a power spectrum with a single radial channel. $Q_6$ is 0.575 for an fcc environment, 0.485 for hcp and 0.663 for an icosahedron, and $Q_4$ separates fcc (0.191) from hcp (0.097) even more clearly; these numbers are still the standard way to identify crystal nuclei in simulations of freezing.
+{{< /note >}}
+
+Its costs are equally real. The power spectrum is three-body, so it inherits the incompleteness described next, although raising the kernel to a power $\zeta > 1$, as GAP does, brings in higher-order correlations implicitly. Its length grows with the square of the number of elements, because every pair of element channels gets its own block: with eight radial functions and angular orders up to $l = 6$, it has $\tfrac{8\cdot 9}{2}\times 7 = 252$ components for one element and $\tfrac{32\cdot 33}{2}\times 7 = 3696$ for four. And its hyperparameters (the cut-off, the Gaussian width of each atom, commonly around 0.5 Å, and the two truncations) change the results and are usually chosen by trial and validation.
 
 **Completeness and ACE.** A descriptor built from distances and angles (two- and three-body information) is not complete: Pozdnyakov et al. (2020) constructed distinct environments that such descriptors cannot tell apart. The **atomic cluster expansion** (ACE; Drautz, 2019) systematically includes correlations of any body order, from a basis that can be made complete, and connects symmetry functions, SOAP and modern equivariant networks in a single framework.
 
@@ -136,6 +156,18 @@ The output carries three lessons. First, $G^2$ is exactly 3.0000 for both arrang
 Second, the angular functions see it at once. With $\lambda = +1$, which favours small angles, the square scores 0.08296, more than two and a half times the tetrahedron's 0.03132. Each of its four 90° pairs has an angular factor $(1 + 0)^2 = 1$, against $(1 - \tfrac13)^2 = \tfrac49$ for each of the six tetrahedral pairs, and its neighbours are closer to one another (1.41 Å against 1.63 Å), so the Gaussian in $r_{jk}$ weights them more; its two 180° pairs add nothing, because $1 + \cos 180° = 0$. With $\lambda = -1$, which favours wide angles, the order reverses (0.12527 against 0.11096). Two numbers pin the geometry down better than one, which is why practical sets use both signs and several values of $\zeta$ and $\eta$.
 
 Third, the mirrored, rotated, shifted and renumbered tetrahedron gives the same three numbers to every printed digit, although all its coordinates have changed: the invariance is exact by construction, not learned. Angles separate this pair of environments, but recall Pozdnyakov's examples: some different environments share all their distances and angles, and only higher body-order information separates those.
+
+### A harder case: fcc against hcp
+
+{{< note type="try" title="Pause and predict" >}}
+Copper is face-centred cubic, but a stacking fault in it contains a few layers of atoms in a hexagonal close-packed (hcp) environment, with the same nearest-neighbour distance of 2.556 Å. A model uses radial functions only, with a cutoff of 4 Å. What energy difference will it predict between fcc and ideal hcp copper?
+{{< /note >}}
+
+None. Both structures have 12 neighbours at 2.556 Å and 6 at 3.615 Å; the first difference is a pair of hcp neighbours at 4.174 Å, directly above and below along the $c$ axis, which lies outside the cutoff. Every radial function with $r_c$ between 3.62 and 4.17 Å therefore takes exactly the same value in both crystals, and so does every quantity built from them. The model predicts a stacking-fault energy of zero, whereas the measured value for copper is about 40 mJ/m², and that energy controls the splitting of dislocations and hence how copper deforms. The same blind spot affected early pair and EAM potentials whose cutoffs ended between the second and third neighbour shells.
+
+{{< fig src="fcchcp.svg" alt="Left: number of neighbours against distance for fcc and hcp copper; the shells at 2.56 and 3.62 Å are identical, and hcp has an extra shell of 2 atoms at 4.17 Å. Right: histogram of angles between the bonds to the 12 nearest neighbours; fcc has 60, 90, 120 and 180 degrees, hcp also has 109.5 and 146.4 degrees and fewer 120 and 180 degree pairs" caption="Copper in fcc and ideal hcp stacking, built with the same nearest-neighbour distance of 2.556 Å. Left: inside a 4 Å cutoff the radial shells are identical. Right: the angles between first-neighbour bonds differ; hcp has three pairs at 109.5°, six at 146.4° and only three at 180°." >}}
+
+Angles resolve it with a cutoff that contains only the first shell. Of the 66 pairs of nearest neighbours, both structures have 24 at 60° and 12 at 90°, but fcc has 24 at 120° and 6 at 180°, while hcp has 18 at 120°, 3 at 180°, 3 at 109.5° and 6 at 146.4°. An angular function with $\lambda = -1$ and a large $\zeta$, which responds mainly to near-linear triplets, sees the six fcc pairs at 180° against three in hcp. Extending the cutoff beyond 4.17 Å also works, at the price of more neighbours. In practice both are done, with cut-offs of 5–6 Å and a full set of angular functions, and the stacking-fault energy is a standard validation target for any potential of an fcc metal.
 
 ## In practice
 
@@ -198,6 +230,7 @@ The per-atom descriptors are **equivariant** to permutation (renumbering the ato
 - Radial symmetry functions are soft neighbour counts in distance shells; angular functions are needed to separate environments with identical distance lists, such as tetrahedral and square-planar atoms.
 - SOAP is a smooth three-body power spectrum whose length grows with the square of the number of elements; ACE is a complete, systematically truncated many-body basis. No finite descriptor is complete.
 - Smooth cut-offs, standardised inputs and correct periodic neighbour lists are prerequisites for any descriptor-based model.
+- fcc and hcp share every neighbour distance up to 4.17 Å; radial descriptors with a shorter cut-off predict a zero stacking-fault energy, and angular functions or a longer cut-off fix it.
 {{< /note >}}
 
 {{< quiz >}}
@@ -229,6 +262,10 @@ The per-atom descriptors are **equivariant** to permutation (renumbering the ato
   options: ["Include every periodic image within the cut-off, because an atom can see several images of the same neighbour", "Nothing special: the minimum-image convention is enough", "Reduce the cut-off to 4 Å, since larger cut-offs are not allowed"]
   answer: 0
   why: "The minimum-image convention is valid only for cut-offs up to half the cell width, here 4 Å. Beyond that, several images of one atom fall inside the sphere and all of them must be counted."
+- q: "A copper potential uses only radial symmetry functions with a cut-off of 4 Å. What stacking-fault energy does it predict?"
+  options: ["About the DFT value, since copper is simple", "Zero: fcc and hcp copper have identical neighbour shells up to 4.17 Å", "A negative value"]
+  answer: 1
+  why: "Both stackings have 12 neighbours at 2.556 Å and 6 at 3.615 Å; the first difference lies outside the cut-off, so every radial descriptor is identical."
 {{< /quiz >}}
 
 ## References and further reading
@@ -246,5 +283,6 @@ The per-atom descriptors are **equivariant** to permutation (renumbering the ato
 9. L. Himanen, M. O. J. Jäger, E. V. Morooka, F. Federici Canova, Y. S. Ranawat, D. Z. Gao, P. Rinke and A. S. Foster, “DScribe: library of descriptors for machine learning in materials science,” *Computer Physics Communications* **247**, 106949 (2020).
 10. M. M. Bronstein, J. Bruna, T. Cohen and P. Veličković, *Geometric Deep Learning: Grids, Groups, Graphs, Geodesics, and Gauges*, arXiv:2104.13478 (2021), chapters 3–5.
 11. G. Imbalzano, A. Anelli, D. Giofré, S. Klees, J. Behler and M. Ceriotti, “Automatic selection of atomic fingerprints and reference configurations for machine-learning potentials,” *Journal of Chemical Physics* **148**, 241730 (2018).
+12. P. J. Steinhardt, D. R. Nelson and M. Ronchetti, “Bond-orientational order in liquids and glasses,” *Physical Review B* **28**, 784–805 (1983).
 
 </div>

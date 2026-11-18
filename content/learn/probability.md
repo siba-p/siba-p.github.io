@@ -8,6 +8,16 @@ objectives:
   - "Explain why averages of many independent variables follow the normal distribution"
   - "Use Bayes' theorem to update a belief and recognise the base-rate trap"
   - "Estimate honest error bars from correlated simulation data with block averaging"
+cover: "cover.svg"
+milestones:
+  - year: 1654
+    text: "Blaise Pascal and Pierre de Fermat found the mathematics of chance in letters"
+  - year: 1713
+    text: "Jacob Bernoulli's Ars Conjectandi proves the law of large numbers, published posthumously"
+  - year: 1733
+    text: "Abraham de Moivre approximates the binomial distribution by the normal curve"
+  - year: 1763
+    text: "Richard Price publishes Thomas Bayes's essay on inverse probability"
 track: chance
 weight: 1
 level: Foundation
@@ -25,9 +35,17 @@ The **probability** of an outcome is the fraction of times it occurs in a long s
 
 The width of the funnel is the first appearance of a law that governs all statistical estimates: the typical deviation of an observed fraction from the true probability is $\sqrt{p(1 - p)/n}$, shrinking in proportion to $1/\sqrt n$. Ten times more data narrows the uncertainty by only a factor of $\sqrt{10} \approx 3.2$. The loaded die in the figure shows why this matters. After 30 rolls, the extra sixes may not yet be distinguishable from chance; after 1000 they are unmistakable.
 
+{{< note type="warn" title="Myth" >}}
+"After a run of heads, tails is due, because the law of large numbers has to even things out." The coin has no memory; each toss is heads with probability 1/2 whatever came before. The law of large numbers works by swamping, not by compensation. After 10 000 fair tosses the number of heads typically differs from 5000 by about $\sqrt{10\,000 \times 0.25} = 50$; after a million tosses it differs from 500 000 by about 500. The absolute excess grows like $\sqrt n$, while the fraction, $50/10\,000 = 0.005$ and then $500/10^6 = 0.0005$, shrinks like $1/\sqrt n$. The same misconception appears in simulation as the belief that a run which has spent too long in one basin will spend correspondingly longer in the other to make up for it.
+{{< /note >}}
+
 Probability has a second interpretation, as a **degree of belief** given the available information. "The probability that this candidate material is stable is 30 %" is not a statement about repeated trials, since the material either is or is not stable; it expresses uncertainty. This Bayesian interpretation obeys exactly the same mathematical rules, and it is the natural language for inference from data, for uncertainty in machine-learning predictions ([Gaussian processes](../uncertainty-gaussian-processes/)) and for deciding which experiment to do next ([active learning](../active-learning/)).
 
 ## The rules of probability
+
+{{< note type="story" >}}
+Probability theory began with a gambling question. In 1654 Blaise Pascal and Pierre de Fermat exchanged letters about the problem of points: if a game of chance between two players is interrupted before either has won, how should the stakes be divided? The question had been put to Pascal by the Chevalier de Méré. Their answer, to divide the stakes in proportion to each player's probability of winning had the game continued, required counting the possible continuations, and it introduced the idea of an expected value.
+{{< /note >}}
 
 Probabilities are numbers between 0 (impossible) and 1 (certain). Two rules generate everything else.
 
@@ -47,6 +65,10 @@ $$
 $$
 
 There are $\binom{10}{3} = 120$ ways to choose which 3 of 10 coin tosses are heads. Statistical mechanics is built on this kind of counting: the entropy of [an Einstein solid](../entropy-and-temperature/) is the logarithm of the number of ways of distributing energy quanta among oscillators.
+
+{{< note type="practice" title="Back of the envelope" >}}
+What is the probability that all the molecules of a gas are found in the left half of their container at a given instant? Each molecule is in the left half with probability 1/2, independently, so for $N$ molecules the answer is $2^{-N}$. For $N = 100$ this is $7.9 \times 10^{-31}$. Inspecting the gas a billion times per second for the age of the universe, $4.4 \times 10^{17}$ s, gives $4.4 \times 10^{26}$ inspections and an expected $3 \times 10^{-4}$ sightings. For a mole, $N = 6 \times 10^{23}$, the exponent itself is astronomical. The second law of thermodynamics is, in this sense, a statement about counting: the spread-out arrangements are not forced, only overwhelmingly more numerous.
+{{< /note >}}
 
 ## Random variables and distributions
 
@@ -78,7 +100,7 @@ $$ \textcolor{#d4a017}{\mu} = \langle X \rangle = \sum_k k\,P(k) \;\;\text{or}\;
 
 The mean is **linear**: $\langle aX + bY\rangle = a\langle X\rangle + b\langle Y\rangle$ for any random variables, independent or not. The variance is not linear, but for **independent** variables the variances add: $\mathrm{Var}(X + Y) = \mathrm{Var}(X) + \mathrm{Var}(Y)$. This one rule explains the $1/\sqrt n$ law. The sum of $n$ independent copies of a variable with variance $\sigma^2$ has variance $n\sigma^2$, so their average, which is the sum divided by $n$, has variance $n\sigma^2/n^2 = \sigma^2/n$ and standard deviation $\sigma/\sqrt n$. Check this against the Galton board: the observed spread of the bins converges to $\sqrt{np(1-p)}$, the square root of the summed variances of $n$ independent bounces.
 
-In statistical mechanics, means are the observable quantities and variances carry physics too. The average energy of a system in contact with a heat bath is its internal energy, and the variance of the energy is proportional to its heat capacity, $\langle E^2\rangle - \langle E\rangle^2 = k_BT^2 C_V$. Fluctuations measured in a simulation are therefore a route to thermodynamic response functions, explored in [the chapter on fluctuations](../boltzmann-and-maxwell/).
+In statistical mechanics, means are the observable quantities and variances carry physics too. The average energy of a system in contact with a heat bath is its internal energy, and the variance of the energy is proportional to its heat capacity, $\langle E^2\rangle - \langle E\rangle^2 = k_BT^2 C_V$. Fluctuations measured in a simulation are therefore a route to thermodynamic response functions, explored in [the chapter on fluctuations](../fluctuations-and-response/).
 
 ## The normal distribution and the central limit theorem
 
@@ -98,13 +120,29 @@ For $n = 1$ the histogram simply reproduces the original shape. By $n = 5$ the a
 
 This theorem is why measurement errors, which are the sum of many small independent disturbances, are usually Gaussian; why the velocity of a heavy particle buffeted by many collisions is Gaussian; and why the bins of the Galton board fill into a bell. It is also the basis of every error bar. When you report the average of $n$ independent measurements as $\bar x \pm \sigma/\sqrt n$, the **standard error of the mean**, you are using the central limit theorem to say that the true mean lies within that range with about 68 % confidence, and within twice that range with about 95 %.
 
+### When averaging fails
+
+The theorem has a condition that is easy to forget: the variance must be finite. The Cauchy distribution, $p(x) = \gamma/[\pi(x^2 + \gamma^2)]$, violates it. Physicists know it as the Lorentzian, the line shape of a lifetime-broadened spectral line and the energy profile of a resonance. Its tails fall off so slowly, as $1/x^2$, that neither its variance nor even its mean exists, and the average of $n$ Cauchy samples has exactly the same Cauchy distribution as a single sample. Averaging a thousand values gives no improvement over taking one. Every so often a sample far out in the tail arrives and drags the running mean to a new value.
+
+{{< fig src="heavy-tails.svg" alt="Running means against the number of samples on a logarithmic axis: three Gaussian runs converge to zero inside a narrowing band while three Cauchy runs keep jumping" caption="Three runs each of Gaussian (blue) and Cauchy (orange) samples of the same width. The Gaussian running means stay inside the ±2/√n band; the Cauchy running means never settle, because single extreme samples keep resetting them." >}}
+
+Milder versions of the same problem appear in simulation. In Zwanzig's free-energy perturbation, $\Delta F = -k_BT\ln\langle e^{-\Delta U/k_BT}\rangle$, the exponential gives enormous weight to rare configurations with low $\Delta U$. The variance is finite, but the average is dominated by samples that may never appear in a run of practical length, and the estimate is then biased as well as noisy, which is why [free-energy calculations](../es-fep-ti/) split a large change into many small steps. Rare-event observables in general, such as the maximum stress in a fracture simulation, call for diagnostics beyond $\sigma/\sqrt n$: plot the running average, check whether it is dominated by a few samples, and compare independent runs.
+
 ## Other distributions in science
 
 A few other distributions appear so often that they are worth recognising.
 
 The **Poisson distribution**, $P(k) = \lambda^k e^{-\lambda}/k!$, describes the number of independent random events in a fixed interval when they occur at an average rate $\lambda$ per interval: radioactive decays per minute, photons arriving at a detector, defects in a length of wire. Its mean and variance are both $\lambda$, so the relative uncertainty of a count is $1/\sqrt\lambda$. A detector that registers 10 000 counts has a statistical uncertainty of 1 %.
 
-The **exponential distribution**, $p(t) = \lambda e^{-\lambda t}$ for $t \ge 0$, describes the waiting time until the next such event. It is memoryless: having waited a long time does not make the event more imminent. Kinetic Monte Carlo simulations draw the waiting time between rare events from this distribution.
+The Poisson distribution is the binomial distribution in the limit of many trials, each very unlikely. Divide the interval into $n$ short pieces, each holding an event with probability $p = \lambda/n$. The binomial probability of $k$ events is $\binom{n}{k}(\lambda/n)^k(1 - \lambda/n)^{n-k}$. As $n \to \infty$ with $k$ fixed, $\binom{n}{k}/n^k \to 1/k!$ and $(1 - \lambda/n)^{n} \to e^{-\lambda}$, which leaves $\lambda^k e^{-\lambda}/k!$. This is why counts of vacancies in a crystal, mutations in a DNA strand of given length and X-ray photons in a detector pixel all follow Poisson statistics: each site or interval has a small, independent chance of an event.
+
+The **exponential distribution**, $p(t) = \lambda e^{-\lambda t}$ for $t \ge 0$, describes the waiting time until the next such event. It is memoryless: having waited a long time does not make the event more imminent. Kinetic Monte Carlo simulations draw the waiting time between rare events from this distribution. It follows from the Poisson distribution in one line: the number of events in a time $t$ is Poisson with mean $\lambda t$, so the probability of none is $e^{-\lambda t}$. That is the probability that the waiting time exceeds $t$, and differentiating $1 - e^{-\lambda t}$ gives the density $\lambda e^{-\lambda t}$, with mean waiting time $1/\lambda$.
+
+{{< fig src="family.svg" alt="Five boxes with small plots of the Bernoulli, binomial, normal, Poisson and exponential distributions, joined by arrows labelled with the limits that connect them" caption="How the distributions of this chapter arise from one another. Summing Bernoulli trials gives the binomial; many rare trials give the Poisson; waiting times between Poisson events are exponential; and large sums tend to the normal distribution." >}}
+
+{{< note type="practice" title="From the lab" >}}
+In kinetic Monte Carlo of diffusion in a crystal, each possible event $i$, such as a vacancy hop to one of its neighbours, has a rate from harmonic transition-state theory, $k_i = \nu\,e^{-E_i/k_BT}$. With an attempt frequency $\nu = 10^{13}$ s⁻¹ and a barrier of 0.5 eV at 300 K, where $k_BT = 0.02585$ eV, $k = 10^{13} \times e^{-19.34} = 4.0 \times 10^4$ s⁻¹, so the mean waiting time is 25 μs, or $2.5 \times 10^{10}$ MD steps of 1 fs. The residence-time algorithm of Bortz, Kalos and Lebowitz (1975), the same scheme Gillespie (1976) introduced for chemical reactions, uses two uniform random numbers per step: one chooses event $i$ with probability $k_i/k_{\text{tot}}$, the other advances the clock by $-\ln(u)/k_{\text{tot}}$, an exponential waiting time with the total rate. Every step is an event, which is how kMC reaches seconds or hours of simulated time. [Reaction rates](../es-rates/) covers where the $k_i$ come from.
+{{< /note >}}
 
 The **uniform distribution**, constant on an interval, is what random-number generators produce. Every other distribution used in a simulation is made from uniform random numbers by a transformation, such as $-\ln(1 - u)/\lambda$ for an exponential, or by an accept–reject scheme. [Monte Carlo methods](../monte-carlo/) are built on this.
 
@@ -126,6 +164,16 @@ The theorem is simple, but its consequences routinely surprise people. Suppose a
 
 Of 1000 candidates, 50 are good and the screen flags 45 of them. Of the 950 bad ones it flags 95. So 140 are flagged, and only 45 of them, 32 %, are good. When the thing being looked for is rare, even a fairly accurate test produces mostly false positives, because the few true positives are outnumbered by the small fraction of a huge number of negatives. The lesson applies to high-throughput screening, to medical tests and to any classifier deployed on imbalanced data: the precision of a prediction depends on the base rate, not only on the accuracy of the test.
 
+The same calculation is faster in **odds**, the ratio of the probabilities for and against. Bayes' theorem in odds form says that posterior odds equal prior odds times the **likelihood ratio** $P(D \mid H)/P(D \mid \text{not } H)$. Here the prior odds are 50 : 950, or 1 : 19, and a flag is $0.9/0.1 = 9$ times more likely for a good candidate than for a bad one, so the posterior odds are 9 : 19 and the probability is $9/28 = 32$ %. A second, independent screen with the same performance multiplies the odds by 9 again, to 81 : 19, or 81 %.
+
+{{< note type="try" title="Pause and predict" >}}
+The screen can be improved in one of two ways: raise its sensitivity from 90 % to 99 %, or cut its false-positive rate from 10 % to 1 %. Which helps more at a 5 % base rate?
+
+Raising the sensitivity changes the likelihood ratio from 9 to 9.9 and the precision from 32 % to 34 %. Cutting false positives changes it from 9 to 90 and the precision to 83 %. When good candidates are rare, the false-positive rate controls the precision, as the figure shows across all base rates.
+{{< /note >}}
+
+{{< fig src="base-rate.svg" alt="Precision of a screen plotted against the base rate of good candidates on a logarithmic axis for three screens, with the values at a 5 percent base rate marked" caption="The fraction of flagged candidates that are truly good, as the base rate changes. At 5 % the original screen gives 32 % and the more sensitive one 34 %; cutting false positives tenfold gives 83 %. Below a base rate of about 1 % even the better screen flags mostly duds." >}}
+
 Bayes' theorem is also the foundation of a whole approach to inference. To fit a model to data, one treats the model's parameters as the hypothesis, specifies a prior, and computes the posterior distribution of the parameters given the data. The posterior says not only which parameters fit best but how uncertain they are. Gaussian processes, Bayesian optimisation and Bayesian neural networks are all applications of this idea.
 
 ## Estimating averages from data
@@ -133,6 +181,14 @@ Bayes' theorem is also the foundation of a whole approach to inference. To fit a
 Every simulation ends with the same task: estimate an average from a finite number of samples and say how uncertain the estimate is. The sample mean $\bar x = \frac1n\sum x_i$ estimates $\mu$, and the sample variance $s^2 = \frac{1}{n - 1}\sum (x_i - \bar x)^2$ estimates $\sigma^2$ (the $n - 1$ corrects for having used the data to locate the mean). If the samples are independent, the standard error of $\bar x$ is $s/\sqrt n$.
 
 Simulation data, however, are almost never independent. Consecutive frames of a molecular dynamics trajectory are separated by a few femtoseconds and are nearly identical; consecutive configurations in a Markov chain Monte Carlo run differ by a single move. Treating them as independent grossly underestimates the error. The correct statement replaces $n$ by an **effective number of independent samples**, $n_{\text{eff}} = n/(2\tau)$, where $\tau$ is the integrated autocorrelation time in units of the sampling interval: roughly the number of steps it takes for the system to forget its past. A practical way of measuring the true error without computing $\tau$ explicitly is **block averaging**: divide the trajectory into blocks, average within each block, and treat the block averages as independent samples. As the blocks are made longer than the correlation time, the estimated error rises and then levels off at the correct value. [The chapter on trajectory analysis](../trajectory-analysis/) develops this in detail.
+
+The figure applies the method to a synthetic series with known statistics, $x_t = \phi\,x_{t-1} + \sqrt{1 - \phi^2}\,\varepsilon_t$ with $\phi = 0.95$ and unit variance, a standard model for a slowly decorrelating observable. Its autocorrelation function is $\phi^k$, so $\tau = \tfrac12 + \sum_{k \ge 1}\phi^k = (1 + \phi)/[2(1 - \phi)] = 19.5$ steps. A run of $n = 65\,536$ steps therefore holds about $65\,536/39 \approx 1700$ independent samples, and the exact standard error of the mean is $\sqrt{39/65\,536} = 0.024$. The naive formula $s/\sqrt n$ gives 0.0040, six times too small. Block lengths of 256 to 2048 steps give estimates between 0.022 and 0.026, scattered by the small number of blocks: with $M$ blocks the error estimate itself has a relative uncertainty of about $1/\sqrt{2(M - 1)}$, 18 % for 16 blocks.
+
+{{< fig src="blocks.svg" alt="Left: a correlated time series with alternating shaded blocks of 128 steps and each block's mean drawn as a bar. Right: the block-averaged error estimate rising with block length to a plateau at the exact value" caption="Left: neighbouring block means of a correlated series ($\tau = 19.5$ steps) still differ far less than single steps do. Right: the error estimate, as a fraction of the exact value, rises from 0.17 for single steps to a plateau near 1 once the blocks are much longer than $2\tau$." >}}
+
+{{< note type="warn" title="Myth" >}}
+"Saving frames more often gives smaller error bars." Once the interval between saved frames is shorter than the correlation time, extra frames are near-copies of their neighbours and add almost no information. A 100 ns MD run of a protein whose observable decorrelates in 1 ns contains about 50 independent samples whether it is saved every 1 ps or every 100 ps; the naive error bar shrinks by a factor of 10 between the two, the true error not at all. To reduce the error, run longer or run independent replicas.
+{{< /note >}}
 
 Finally, the link between probability and fitting. If measurements scatter around a model's predictions with independent Gaussian errors of equal width, the probability of the data given the parameters, the **likelihood**, is a product of Gaussians. Maximising it is the same as minimising the sum of squared residuals. **Least squares** is therefore maximum-likelihood estimation under Gaussian noise, and the loss functions of machine learning can be read as negative log-likelihoods, an idea developed in [learning from data](../learning-from-data/).
 
@@ -165,6 +221,14 @@ Finally, the link between probability and fitting. If measurements scatter aroun
   options: ["100 000", "100", "200"]
   answer: 1
   why: "n_eff = n/(2τ) = 100 000/1000 = 100."
+- q: "You average 10 000 independent samples from a Lorentzian (Cauchy) line shape. How does the spread of the average compare with that of a single sample?"
+  options: ["100 times narrower", "10 times narrower", "The same"]
+  answer: 2
+  why: "The Cauchy distribution has no finite variance, so the central limit theorem does not apply; the mean of n Cauchy samples has the same distribution as one sample."
+- q: "Events occur at a rate of 4 × 10⁴ per second. What is the mean waiting time between them?"
+  options: ["25 μs", "4 × 10⁴ s", "2.5 ms"]
+  answer: 0
+  why: "Waiting times are exponential with mean 1/λ = 1/(4 × 10⁴ s⁻¹) = 25 μs."
 {{< /quiz >}}
 
 ## References and further reading
@@ -176,6 +240,8 @@ Finally, the link between probability and fitting. If measurements scatter aroun
 3. W. Feller, *An Introduction to Probability Theory and Its Applications*, vol. 1, 3rd ed., Wiley (1968).
 4. F. Galton, *Natural Inheritance*, Macmillan (1889), where the quincunx (Galton board) is described.
 5. H. Flyvbjerg and H. G. Petersen, "Error estimates on averages of correlated data", *Journal of Chemical Physics* **91**, 461–466 (1989). The block-averaging method.
-6. A. Grossfield, P. N. Patrone, D. R. Roe, A. J. Schultz, D. W. Siderius and D. M. Zuckerman, "Best practices for quantification of uncertainty and sampling quality in molecular simulations", *Living Journal of Computational Molecular Science* **1**, 5067 (2019).
+6. A. B. Bortz, M. H. Kalos and J. L. Lebowitz, "A new algorithm for Monte Carlo simulation of Ising spin systems", *Journal of Computational Physics* **17**, 10–18 (1975).
+7. D. T. Gillespie, "A general method for numerically simulating the stochastic time evolution of coupled chemical reactions", *Journal of Computational Physics* **22**, 403–434 (1976).
+8. A. Grossfield, P. N. Patrone, D. R. Roe, A. J. Schultz, D. W. Siderius and D. M. Zuckerman, "Best practices for quantification of uncertainty and sampling quality in molecular simulations", *Living Journal of Computational Molecular Science* **1**, 5067 (2019).
 
 </div>

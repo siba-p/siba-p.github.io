@@ -71,6 +71,41 @@
     }
   }
 
-  function init() { chapter(); library(); continues(); document.addEventListener("learn:progress", continues); }
+  /* static figures open full size; Escape or a click closes them */
+  function zoom() {
+    document.addEventListener("click", e => {
+      const a = e.target.closest("a[data-zoom]"); if (!a || e.metaKey || e.ctrlKey) return;
+      e.preventDefault();
+      const img = a.querySelector("img"), cap = a.closest("figure") && a.closest("figure").querySelector("figcaption");
+      const box = document.createElement("div"); box.className = "lightbox"; box.setAttribute("role", "dialog"); box.setAttribute("aria-label", img ? img.alt : "Figure");
+      box.innerHTML = '<img alt="">' + (cap ? "<p></p>" : "");
+      box.firstChild.src = a.getAttribute("href"); box.firstChild.alt = img ? img.alt : "";
+      if (cap) box.lastChild.textContent = cap.textContent.trim();
+      const close = () => { box.remove(); document.removeEventListener("keydown", key); a.focus(); };
+      const key = ev => { if (ev.key === "Escape") close(); };
+      box.addEventListener("click", close); document.addEventListener("keydown", key);
+      document.body.append(box);
+    });
+  }
+
+  /* book tabs follow the address (#timeline, #formulas), and the library timeline filters by book */
+  function tabs() {
+    const pick = () => { const h = location.hash.slice(1), r = document.getElementById("bt-" + h); if (r && (h === "timeline" || h === "formulas" || h === "contents")) r.checked = true; else if (/^part-/.test(h)) { const c = document.getElementById("bt-contents"); if (c) c.checked = true; } };
+    pick(); addEventListener("hashchange", pick);
+    document.querySelectorAll('input[name="bktab"]').forEach(r => r.addEventListener("change", () => { if (r.checked) history.replaceState(null, "", "#" + r.id.slice(3)); }));
+    const bar = document.querySelector(".tl-filter"), list = document.querySelector(".tl-all");
+    if (bar && list) bar.addEventListener("click", e => {
+      const b = e.target.closest("button[data-tl]"); if (!b) return;
+      bar.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
+      const f = b.dataset.tl; let cent = null, any = false;
+      [...list.children].forEach(li => {
+        if (li.classList.contains("tl-cent")) { if (cent) cent.hidden = !any; cent = li; any = false; return; }
+        const show = f === "all" || li.dataset.c === f; li.hidden = !show; any = any || show;
+      });
+      if (cent) cent.hidden = !any;
+    });
+  }
+
+  function init() { chapter(); library(); continues(); zoom(); tabs(); document.addEventListener("learn:progress", continues); }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(init, 0)); else setTimeout(init, 0);
 })();

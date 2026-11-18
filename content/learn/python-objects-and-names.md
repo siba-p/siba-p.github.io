@@ -8,6 +8,16 @@ objectives:
   - "Recognise how integers, floats and strings behave, including floor division and rounding"
   - "Choose correctly between == and is, and between shallow and deep copies"
   - "Estimate the memory cost of Python objects and explain why NumPy arrays are smaller"
+cover: "cover.svg"
+milestones:
+  - year: 1985
+    text: "IEEE 754 standardises binary floating point, a design led by William Kahan"
+  - year: 2008
+    text: "Van Rossum's Python 3.0 makes all strings Unicode and merges int with long"
+  - year: 2013
+    text: "Philip Guo's Online Python Tutor draws names and objects as boxes and arrows"
+  - year: 2015
+    text: "Python 3.5 adopts type hints, PEP 484 by van Rossum, Lehtosalo and Langa"
 track: pycore
 weight: 2
 level: Foundation
@@ -38,6 +48,14 @@ The second example shows the same rule with a list, and the result is the one th
 The last example shows the most common bug that aliasing causes. `[row, row]` is a list containing two references to one list, so setting `grid[0][0]` changes "both rows". A list comprehension, `[[0, 0] for _ in range(2)]`, evaluates `[0, 0]` afresh on each pass and creates two independent rows. The same trap catches people who write `[[0] * n] * m` to make a matrix; a NumPy array, `np.zeros((m, n))`, avoids it entirely.
 
 Function arguments follow the same rule. Calling `f(a)` binds the function's parameter to the same object that `a` refers to. If the function modifies that object in place, the caller sees the change; if it rebinds its parameter, the caller does not. Python's argument passing is therefore neither "by value" nor "by reference" in the C++ sense; it is sometimes called **call by sharing**, and it is just assignment.
+
+{{< note type="warn" title="Myth" >}}
+**Myth:** Python passes numbers by value and lists by reference. **Reality:** every argument is passed the same way: the parameter becomes one more name for the caller's object. The difference people observe comes from mutability. A function cannot change the caller's integer because no operation can change any integer; `n += 1` inside the function builds a new integer and rebinds the local name. It can change the caller's list because `append`, slice assignment and `+=` on a list modify the object itself.
+{{< /note >}}
+
+{{< note type="try" title="Pause and predict" >}}
+`a = [1, 2]; b = a; a += [3]`. What is `b`? Compare the first quiz question at the end of the chapter, where `a = a + [3]` leaves `b` as `[1, 2]`. Here `b` is `[1, 2, 3]`: for a list, `+=` calls the method `__iadd__`, which extends the list in place and then rebinds `a` to the same object. A tuple or an integer has no in-place addition, so `+=` falls back to building a new object, and `t += (3,)` leaves any alias of `t` unchanged. The same augmented assignment therefore means mutation for mutable types and rebinding for immutable ones.
+{{< /note >}}
 
 ## Numbers
 
@@ -95,6 +113,16 @@ Mutability also determines what can be a **dictionary key** or set element. A di
 
 **Copying** has two levels. A **shallow copy**, `a.copy()`, `list(a)` or `a[:]`, creates a new outer container whose slots refer to the *same* element objects. If the elements are themselves mutable, such as the rows of a list of lists, the copy and the original still share them. A **deep copy**, `copy.deepcopy(a)`, recursively copies everything reachable. In numerical work, NumPy's `arr.copy()` copies the whole numerical buffer, which is usually what you want.
 
+The figure below draws the three cases for a two-row nested list, `a = [[1, 2], [3, 4]]`, and checks two operations against each: appending a new row to `a`, and changing an element inside a row. Only the deep copy is independent at both levels. A shallow copy is enough when the elements are immutable, as in a list of floats or strings, and is much cheaper, which is why it is the default.
+
+{{< fig src="copies.svg" alt="Three columns. For b = a, both names point to one outer list. For b = a.copy(), two outer lists point to the same two inner lists. For b = copy.deepcopy(a), each outer list has its own two inner lists. Below each column: whether a.append and a[0][0] = 9 show up in b; yes and yes, no and yes, no and no." caption="Alias, shallow copy and deep copy of a nested list. The yes and no verdicts are computed by running both operations in Python each time the figure is drawn." >}}
+
+NumPy adds a fourth case that catches experienced users. Basic slicing of an array, `b = a[10:20]` or `z = xyz[:, 2]`, returns a **view**: a new array object that shares the original's data buffer. Writing `z -= z.mean()` therefore shifts the z coordinates inside `xyz` as well. Indexing with a list of positions or a Boolean mask, `a[[1, 4, 7]]` or `a[a > 0]`, returns a copy instead. `np.shares_memory(a, b)` settles the question when in doubt, and an explicit `.copy()` makes independence visible to the next reader.
+
+{{< note type="practice" title="From the lab" >}}
+A classic bug in hand-written molecular dynamics and Monte Carlo codes: the integrator updates a positions array in place, `pos += vel * dt`, and the sampling code stores frames with `traj.append(pos)`. At the end every stored frame equals the last one, because the list holds a thousand references to one array; the mean-squared displacement computed from it is exactly zero at every lag. The fix is `traj.append(pos.copy())`, or preallocating `traj = np.empty((n_frames, n_atoms, 3))` and writing `traj[k] = pos`, which copies the values into slot k. ASE avoids the trap by design: `atoms.get_positions()` returns a copy, while the attribute `atoms.positions` is the live array.
+{{< /note >}}
+
 ## Memory management
 
 CPython frees memory automatically using **reference counting**. Every object records how many references point to it. Binding a name, storing the object in a list or passing it to a function increments the count; rebinding the name, deleting it with `del`, removing it from the list or returning from the function decrements it. When the count reaches zero, the object is destroyed immediately and its memory returned. In the figure, every object that loses its last arrow disappears from the picture at the next step, because nothing can reach it any more.
@@ -102,6 +130,18 @@ CPython frees memory automatically using **reference counting**. Every object re
 Reference counting cannot free a group of objects that refer to each other in a cycle, such as two objects each holding a reference to the other, because their counts never fall to zero. CPython therefore also runs a **cyclic garbage collector** from time to time, which finds groups of objects reachable only from each other and frees them. In everyday code you never call it; in a long simulation that creates large cyclic structures, `import gc; gc.collect()` can be used to force a collection.
 
 The object model has a memory cost that matters for scientific data. On a 64-bit build, each integer object occupies 28 bytes and each float 24, and a list adds an 8-byte pointer per element on top. A list of a million floats therefore uses about 32 MB, whereas a NumPy array of a million float64 values stores the bare numbers contiguously in exactly 8 MB, with no per-element objects at all. For large numerical data, NumPy is the right container, and [the chapter on NumPy arrays](../numpy-arrays/) explains its memory layout.
+
+The figure below shows where the bytes go. A float object is 24 bytes: an 8-byte reference count, an 8-byte pointer to its type, and the 8-byte double itself, so two thirds of every float object is bookkeeping. The list adds an 8-byte pointer per element and a 56-byte header, and when it grows by `append` it over-allocates its pointer array by up to about an eighth, so that a long run of appends costs constant time per append on average. A NumPy array keeps one header of about a hundred bytes and then the raw doubles back to back, which is also what lets compiled code and the processor's vector instructions stream through them.
+
+{{< fig src="layout.svg" alt="Top: a list object whose header fields are refcount, type, length, items and capacity; the items field points to an array of three pointers, each pointing to a separate float object made of refcount, type and value. Bottom: a NumPy array object pointing to one contiguous buffer holding 0.5, 1.5 and 2.5 as raw 8-byte values." caption="The same three numbers stored two ways. The list costs about 32 bytes per number, an 8-byte pointer plus a 24-byte float object; the array costs 8." >}}
+
+Integers grow with their value. CPython stores an `int` as a sign and a sequence of 30-bit digits, each held in a 4-byte word. Any integer below $2^{30}$ takes 28 bytes, and each further 30 bits of magnitude adds 4 bytes, so `2**100`, which needs 101 bits and therefore four digits, takes 40. The right panel below is `sys.getsizeof` measured for every bit length up to 300; the left panel measures the list and the array of the previous figure at sizes up to a million elements.
+
+{{< fig src="sizes.svg" alt="Left: memory against the number of floats, rising linearly to 32 MB for a list and 8 MB for a NumPy array at one million. Right: a staircase of sys.getsizeof for integers against their bit length, 28 bytes up to 30 bits and 4 bytes more for every further 30 bits, reaching 64 bytes at 300 bits." caption="Measured with tracemalloc and sys.getsizeof on 64-bit CPython 3.13. The factor of four between list and array holds at every size beyond a few hundred elements." >}}
+
+{{< note type="practice" title="Back of the envelope" >}}
+A trajectory of a 100 000-atom system saved every 10 ps for 10 ns has 1 000 frames of 300 000 coordinates, 3 × 10⁸ numbers. As a float64 NumPy array that is 2.4 GB, which fits in a workstation's memory. As nested Python lists of floats it is about 32 bytes per number, 9.6 GB, before counting the headers of a hundred million inner lists. In single precision, the float32 that DCD files use on disk, the array shrinks to 1.2 GB. Beyond about a million numbers, the choice of container decides whether an analysis fits in memory at all.
+{{< /note >}}
 
 ## Dynamic typing and type hints
 

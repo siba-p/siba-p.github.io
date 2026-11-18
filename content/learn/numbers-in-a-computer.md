@@ -8,6 +8,16 @@ objectives:
   - "Explain machine epsilon and why the gaps between floats grow with their size"
   - "Recognise catastrophic cancellation and summation error, and rewrite formulas to avoid them"
   - "Explain why GPU simulation and training codes use mixed precision"
+cover: "cover.svg"
+milestones:
+  - year: 1941
+    text: "Konrad Zuse's Z3 computes in binary floating point"
+  - year: 1965
+    text: "William Kahan publishes compensated summation, recovering digits lost in long sums"
+  - year: 1985
+    text: "IEEE 754 standardises floating point, with William Kahan as principal architect"
+  - year: 1996
+    text: "Ariane 5 is lost when a 16-bit integer conversion overflows"
 track: machine
 weight: 2
 level: Foundation
@@ -31,7 +41,13 @@ $$ \textcolor{#4c6ef5}{n} = \sum_{k=0}^{N-1} \textcolor{#12a594}{b_k}\,\textcolo
 - $N$: number of bits; $N$ bits give $2^{N}$ different patterns
 {{< /eq >}}
 
-To represent negative numbers, computers use **two's complement**: the leftmost bit counts as $-2^{N-1}$ instead of $+2^{N-1}$. In 8 bits it is worth $-128$, so the range runs from $-128$ to $+127$. The beauty of the scheme is that the hardware adds signed and unsigned numbers with exactly the same circuit. The price is that arithmetic **wraps around** silently when it leaves the range: $127 + 1$ gives $-128$.
+To represent negative numbers, computers use **two's complement**: the leftmost bit counts as $-2^{N-1}$ instead of $+2^{N-1}$. In 8 bits it is worth $-128$, so the range runs from $-128$ to $+127$. The advantage of the scheme is that the hardware adds signed and unsigned numbers with exactly the same circuit. The price is that arithmetic **wraps around** silently when it leaves the range: $127 + 1$ gives $-128$.
+
+{{< fig src="twos-wheel.svg" alt="A wheel of the sixteen 4-bit patterns from 0000 to 1111, with their two's-complement values 0 to +7 in blue and −8 to −1 in pink, and an orange seam between 0111 and 1000." caption="Two's complement is arithmetic on a wheel. Adding 1 always moves one step clockwise; the result is wrong only when a sum crosses the orange seam between the largest positive and the most negative number." >}}
+
+The wheel shows why one adder serves both readings. An $N$-bit adder computes sums modulo $2^N$, discarding any carry out of the top bit, and $-x$ and $2^N - x$ are the same number modulo $2^N$. To negate a number by hand, invert every bit and add one. For $-42$ in 8 bits: $42 = 00101010_2$, inverted $11010101_2$, plus one $11010110_2$. Read as unsigned that pattern is 214, and $214 - 256 = -42$. Adding it to $00101010_2$ gives $1\,00000000_2$, and the ninth bit falls off the end to leave zero, as it should.
+
+Long bit patterns are written in **hexadecimal**, base 16, because each hex digit stands for exactly four bits: `0`–`9` for 0000–1001 and `A`–`F` for 1010–1111. The 8-bit pattern above is `D6`, and the 32-bit pattern of the float nearest to 0.1 is `3DCCCCCD`, where the repeating `C` (1100) is the repeating binary fraction of one tenth made visible. Memory addresses, colour codes and file signatures are all written this way.
 
 {{< widget name="floatbits" title="Bits, integers and floating-point numbers" caption="Click any bit to flip it, or type a number. In integer mode, try 127 and 128, and 100 + 100. In floating-point mode, try 0.1, 16777217 and the smallest number." >}}
 
@@ -64,6 +80,8 @@ Two patterns of the exponent are reserved: all zeros encode zero and the **subno
 | bfloat16 | 1, 8, 7 | about 2 | $3\times10^{38}$ | neural-network training |
 | single (FP32) | 1, 8, 23 | about 7 | $3.4\times10^{38}$ | GPU molecular dynamics (mixed with double), graphics |
 | double (FP64) | 1, 11, 52 | about 16 | $1.8\times10^{308}$ | most scientific computing |
+
+{{< fig src="formats.svg" alt="Four horizontal bars drawn to scale, for FP64, FP32, bfloat16 and FP16, each split into a 1-bit sign, an exponent field and a fraction field." caption="The four formats to scale. The exponent field fixes the range and the fraction field the precision; bfloat16 keeps all 8 exponent bits of FP32 and drops 16 fraction bits, so converting between them is just truncation." >}}
 
 ### Decoding a float by hand
 
@@ -102,6 +120,10 @@ Picture the floats as marks on a ruler. Between 1 and 2 there are $2^{23}$, abou
 | $10^{8}$ | 8 | $1.5\times10^{-8}$ |
 
 A running total can therefore only move in steps of the local gap: once it is large, small increments are rounded heavily or lost entirely.
+
+{{< fig src="ruler.svg" alt="Two number lines with a tick at every value of a toy floating-point format with 4 significant bits: from 0 to 16 the ticks crowd towards zero, and a zoom from 0 to 2 shows the gap halving at 1, 0.5 and 0.25, with evenly spaced subnormals below 0.25." caption="Every non-negative number of a toy format with 4 significant bits and exponents from −2 to 3. Each power-of-two interval holds the same 8 numbers, so the gap doubles from one interval to the next. Below the smallest normal number, 0.25, the subnormals continue at a constant gap down to zero instead of leaving a hole." >}}
+
+The subnormals at the left of the ruler exist so that $x - y = 0$ only when $x = y$: without them, the difference of two distinct tiny numbers could round to zero, and a later division by it would blow up. Their cost is precision (the smallest float32 subnormal, $1.4\times10^{-45}$, has a single significant bit) and, on many processors, speed: arithmetic that produces or consumes subnormals can be handled by slow microcode and run tens of times slower. Codes that spend time near underflow, such as an exponentially decaying correlation function or a Boltzmann factor $e^{-E/k_BT}$ for a high-energy state, sometimes run with **flush-to-zero** enabled for that reason, which compilers switch on with options such as `-ffast-math`.
 
 {{< note type="fun" >}}
 Floats are spent lavishly on small numbers. Almost exactly half of all 32-bit patterns encode numbers between −1 and 1, and a full quarter encode magnitudes below $2^{-63} \approx 10^{-19}$. Meanwhile, above 16,777,216 only every second integer has a pattern of its own, and above 33,554,432 only every fourth.
@@ -145,11 +167,21 @@ Four lessons are hiding in that output.
 3. **Summation order matters.** Adding ten million single-precision 0.1s one after another gives 1,087,937, an error of 9%: once the running total is large, each small addition is rounded badly. NumPy's `sum` adds in pairs, a tree, and is accurate to $10^{-7}$. Kahan's compensated summation does better still. This is also why parallel sums give slightly different answers from serial ones (see [the Fortran chapter](../fortran/)): addition in floating point is **not associative**, $(a+b)+c \ne a+(b+c)$.
 4. **Integers overflow silently**, and the sign can flip.
 
+{{< note type="try" title="Pause and predict" >}}
+Does `(0.1 + 0.2) + 0.3 == 0.1 + (0.2 + 0.3)` print True in Python? Decide before running it. It prints False: the left side is 0.6000000000000001 and the right side is 0.6. In the first order the rounding error of $0.1 + 0.2$ survives into the final sum; in the second, $0.2 + 0.3$ is exactly 0.5 and the remaining error rounds away. A parallel reduction over thousands of threads changes the grouping from run to run, so the last bits of an MD energy can differ between two runs of the same input on the same GPU.
+{{< /note >}}
+
 ### Anatomy of a 9 percent error
 
 The error in the running sum of 0.1s is not random noise; the ruler predicts it. Between 131,072 ($2^{17}$) and 524,288 ($2^{19}$) the gap is 1/64 and then 1/32, and 0.1 rounds down to 0.09375 every time, so the total falls behind: it reaches 524,288 after 5.49 million additions instead of 5.24 million. Above $2^{19}$ the gap is 0.0625. Now 0.1 is 1.6 gaps, which rounds *up* to two gaps, and every addition adds 0.125. Above $2^{20}$ the gap is 0.125 itself and the step stays the same. The remaining 4.51 million additions therefore contribute 563,649 instead of 450,919, and the total ends at 1,087,937.
 
+{{< fig src="running-sum.svg" alt="Left: running float32 total of 0.1 against the number of additions, falling slightly below the exact line up to about 5.5 million additions and then rising above it to end at 1,087,937. Right: the amount actually added per step against the running total, a staircase near 0.1 that drops to 0.09375 above about 131,000 and jumps to 0.125 above about 524,000." caption="Computed with NumPy's sequential float32 `cumsum`. Each addition moves the total by a whole number of local gaps, so the effective increment is a staircase in the size of the total: 0.09375 between $2^{17}$ and $2^{19}$, then 0.125 for the rest of the sum." >}}
+
 A steady bias of 25 percent per step is the signature of an accumulator grown too large for its increments. Pairwise summation avoids it by keeping partial sums of similar size, Kahan's algorithm by carrying the lost low-order part in a second variable, and a double-precision accumulator by making the gap $2^{29}$ times smaller.
+
+{{< note type="warn" title="Myth" >}}
+**Myth: double precision makes a simulation accurate to sixteen digits.** Precision describes how numbers are stored, not how close the result is to the truth. Molecular dynamics is chaotic: two runs whose initial coordinates differ in the last bit diverge exponentially, and after a few picoseconds the trajectories are unrelated. That does not matter, because what an MD run measures are averages over the trajectory, which converge with statistical errors of a few percent or less. These errors, and the force field's own errors, dwarf rounding in either precision. What precision must protect is the integrity of the algorithm: conserved quantities that drift, sums that lose their small terms, and differences of large numbers, the subject of the next section.
+{{< /note >}}
 
 ## Worked example: the variance of an energy
 
@@ -197,14 +229,18 @@ The art is to spend precision only where errors accumulate. In molecular dynamic
 
 GROMACS is built by default in "mixed precision", mostly single with selected accumulations in double; a double-precision build exists for jobs such as normal-mode analysis. OpenMM's mixed mode computes forces in single precision and integrates in double. AMBER's GPU engine (Le Grand, Götz and Walker, 2013) accumulates forces in **64-bit fixed-point integers**. Integer addition is exact and associative, so the total no longer depends on the order in which thousands of GPU threads add their contributions, and a run repeated on the same hardware reproduces itself bit for bit.
 
-Machine learning goes further, because neural networks tolerate noisy arithmetic remarkably well: training runs in FP16 or bfloat16 with FP32 master weights. FP16 cannot represent anything below $6\times10^{-8}$, and many gradients are smaller, hence loss scaling. bfloat16, designed at Google for its TPU accelerators, keeps all eight exponent bits of FP32 and gives up fraction bits instead, so it has FP32's range and rarely needs loss scaling.
+Machine learning goes further, because neural networks tolerate noisy arithmetic well: training runs in FP16 or bfloat16 with FP32 master weights. FP16 cannot represent anything below $6\times10^{-8}$, and many gradients are smaller, hence loss scaling. bfloat16, designed at Google for its TPU accelerators, keeps all eight exponent bits of FP32 and gives up fraction bits instead, so it has FP32's range and rarely needs loss scaling.
+
+{{< note type="practice" title="Back of the envelope" >}}
+Precision also sets the size of files. A trajectory of 100,000 atoms stores $3 \times 10^5$ coordinates per frame: 1.2 MB in single precision, 2.4 MB in double. Ten thousand frames are then 12 GB or 24 GB. GROMACS's compressed XTC format goes further by rounding each coordinate to a fixed precision, by default 0.001 nm, and storing the resulting integers with a variable number of bits, which shrinks the single-precision size several-fold. A thousandth of a nanometre is far below the thermal fluctuation of any atom, so nothing physical is lost, but velocities are not stored and the file cannot be used to restart a run exactly. XTC and TRR files are written in XDR, a big-endian byte order, while x86 processors, and ARM processors as they are almost always configured, are little-endian (they store the least significant byte first); fixing the byte order in the format is what lets a trajectory written on one machine be read on any other.
+{{< /note >}}
 
 {{< note type="practice" title="Precision in simulation and machine learning" >}}
 Molecular dynamics on GPUs typically uses **mixed precision**: forces in single precision, but accumulated energies and positions in double or fixed point, so that energy is still conserved over millions of steps. Neural networks are trained in FP16 or bfloat16 with FP32 master weights and **loss scaling**, because small gradients would otherwise underflow to zero in FP16. In both fields, a NaN appearing mid-run is usually an overflow or a division by zero somewhere upstream; compilers and frameworks have options (`-ffpe-trap`, `torch.autograd.detect_anomaly`) to stop at the first one.
 {{< /note >}}
 
 {{< note type="key" >}}
-- Integers are exact but wrap around silently when they leave their range.
+- Integers are exact but wrap around silently when they leave their range; two's complement is arithmetic modulo $2^N$.
 - A float keeps a fixed number of significant bits (about 7 digits in single, 16 in double), so the gap between neighbours grows with size.
 - Errors come from how roundings combine: subtracting nearly equal numbers and adding small terms to large totals are the classic traps, and both can be rewritten away.
 - Mixed precision spends double precision only where errors accumulate: sums and state carried from step to step.
@@ -235,6 +271,14 @@ Molecular dynamics on GPUs typically uses **mixed precision**: forces in single 
   options: ["Integer multiplication is faster than floating-point multiplication", "Integer addition is exact and associative, so the total does not depend on the order in which thousands of threads add their contributions", "GPUs cannot store floating-point numbers"]
   answer: 1
   why: "Floating-point addition is not associative, so a parallel sum in floats changes with the order of the additions. Fixed-point sums do not, which makes runs reproducible."
+- q: "What is the 8-bit two's-complement pattern of −42?"
+  options: ["10101010", "11010110", "11010101"]
+  answer: 1
+  why: "42 is 00101010. Inverting every bit gives 11010101, and adding one gives 11010110, which read as unsigned is 214 = 256 − 42."
+- q: "Why does bfloat16 rarely need loss scaling while FP16 does?"
+  options: ["bfloat16 has more fraction bits", "bfloat16 keeps FP32's 8 exponent bits, so it has FP32's range and small gradients do not underflow", "bfloat16 is computed in double precision"]
+  answer: 1
+  why: "Range is set by the exponent field. FP16 has 5 exponent bits and underflows below about 6×10⁻⁸; bfloat16 has 8 and reaches below 10⁻³⁸."
 {{< /quiz >}}
 
 ## References and further reading

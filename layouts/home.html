@@ -133,10 +133,20 @@
 {{- $order := partial "learn-order.html" . }}
 <section class="section" id="learn">
   <div class="wrap">
+    {{- $mins := 0 }}{{ $live := 0 }}{{ $quiz := 0 }}
+    {{- range $order }}{{ $st := partialCached "learn-chstats.html" .page .page.RelPermalink }}{{ $mins = add $mins $st.min }}{{ $live = add $live $st.live }}{{ $quiz = add $quiz $st.quiz }}{{ end }}
     <div class="section-head">
-      <div><h2>Learn</h2><p>Eight books on the foundations of computational materials science, from first principles to current research methods, with simulations that run in the browser.</p></div>
+      <div><h2>Learn</h2><p>Methods notes for atomistic simulation and machine learning in materials science: the derivations, parameter choices and failure modes that papers take for granted and textbooks leave out.</p></div>
       <a class="more" href="{{ "learn/" | relURL }}">Open Learn</a>
     </div>
+    <ul class="hl-stats">
+      <li><b>{{ len site.Data.learn }}</b> books</li>
+      <li><b>{{ len $order }}</b> chapters</li>
+      <li><b>{{ math.Round (div (float $mins) 60) }}</b> hours of reading</li>
+      <li><b>{{ $live }}</b> interactive figures and code cells</li>
+      <li><b>{{ $quiz }}</b> quiz questions</li>
+      <li class="hl-links"><a href="{{ "learn/#paths" | relURL }}">Choose a reading path</a><a href="{{ "learn/#roadmap" | relURL }}">See the roadmap</a></li>
+    </ul>
     <div class="home-subjects">
       {{- range site.Data.learn }}{{ $c := . }}{{ $mine := where $order "course.id" $c.id }}
       <a class="subj tone-{{ $c.tone }}" href="{{ printf "learn/%s/" $c.slug | relURL }}">
@@ -154,6 +164,17 @@
       </a>
       {{- end }}
     </div>
+    {{- with site.Data.learnfeatured }}
+    <h3 class="hl-h">Good places to start</h3>
+    <div class="hl-feat">
+      {{- range . }}{{ $s := . }}{{ range $order }}{{ if eq .page.File.ContentBaseName $s }}{{ $pg := .page }}
+      <a class="hl-card tone-{{ .course.tone }}" href="{{ $pg.RelPermalink }}">
+        {{ with $pg.Params.cover }}<img src="{{ printf "img/learn/%s/%s" $s . | relURL }}" alt="" loading="lazy" width="400" height="300">{{ else }}<span class="hl-ph" aria-hidden="true"></span>{{ end }}
+        <span class="hl-body"><small>{{ .course.short }}</small><b>{{ $pg.Title }}</b>{{ with $pg.Params.hook }}<span>{{ . }}</span>{{ end }}</span>
+      </a>
+      {{- end }}{{ end }}{{ end }}
+    </div>
+    {{- end }}
   </div>
 </section>
 

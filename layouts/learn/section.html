@@ -50,17 +50,34 @@
         {{ if $from }}
         <p class="bk-rel"><span class="bk-rl">Draws on</span>{{ range site.Data.learn }}{{ if in $from .id }}<a class="bk-chip tone-{{ .tone }}" href="{{ printf "learn/%s/" .slug | relURL }}">{{ .short }}</a>{{ end }}{{ end }}</p>
         {{ else }}
-        <p class="bk-rel"><span class="bk-rl">Draws on</span><span class="bk-none">Nothing else: this book is a starting point.</span></p>
+        <p class="bk-rel"><span class="bk-rl">Draws on</span><span class="bk-none">None. This book is an entry point.</span></p>
         {{ end }}
         {{ with $to }}
         <p class="bk-rel"><span class="bk-rl">Leads to</span>{{ range site.Data.learn }}{{ if in $to .id }}<a class="bk-chip tone-{{ .tone }}" href="{{ printf "learn/%s/" .slug | relURL }}">{{ .short }}</a>{{ end }}{{ end }}</p>
         {{ end }}
-        <p class="bk-note">Each chapter lists exactly which chapters it builds on, so you can also jump in at any point.</p>
+        <p class="bk-note">Every chapter lists its prerequisites, so you can also start in the middle.</p>
       </div>
     </section>
 
-    <section class="wrap syllabus" id="contents" aria-labelledby="contents-h">
-      <h2 id="contents-h" class="syl-h">Contents</h2>
+    {{- /* milestones and key equations gathered from the chapters, for the timeline and formula tabs */}}
+    {{- $ms := slice }}{{ $eqs := slice }}{{ $neq := 0 -}}
+    {{- range $i, $e := $mine }}{{ $pg := $e.page }}
+      {{- range $pg.Params.milestones }}{{ $ms = $ms | append (dict "year" (int .year) "text" .text "t" $pg.Title "u" $pg.RelPermalink "n" (add $i 1)) }}{{ end }}
+      {{- $cards := findRE `<aside class="eqcard">[\s\S]*?</aside>` (string $pg.Content) }}
+      {{- with $cards }}{{ $eqs = $eqs | append (dict "t" $pg.Title "u" $pg.RelPermalink "n" (add $i 1) "cards" .) }}{{ $neq = add $neq (len .) }}{{ end }}
+    {{- end }}
+    {{- $ms = sort $ms "year" }}
+    <section class="wrap syllabus bk-tabs" id="contents" aria-label="Contents, timeline and formula sheet">
+      <input class="lpath-r" type="radio" name="bktab" id="bt-contents" checked>
+      <input class="lpath-r" type="radio" name="bktab" id="bt-timeline">
+      <input class="lpath-r" type="radio" name="bktab" id="bt-formulas">
+      <div class="bk-tablist">
+        <label for="bt-contents"><b>Contents</b><small>{{ len $mine }} chapters</small></label>
+        {{ with $ms }}<label for="bt-timeline"><b>Ideas through time</b><small>{{ len . }} milestones</small></label>{{ end }}
+        {{ with $neq }}<label for="bt-formulas"><b>Formula sheet</b><small>{{ . }} key equations</small></label>{{ end }}
+      </div>
+
+      <div class="bk-panel bp-contents">
       {{- $n := 0 }}{{ $k := 0 }}
       {{- range $c.parts }}{{ $p := . }}{{ $ch := where $mine "part.id" $p.id }}{{ if $ch }}{{ $k = add $k 1 }}
       {{- $pm := 0 }}{{ range $ch }}{{ $pm = add $pm (partialCached "learn-chstats.html" .page .page.RelPermalink).min }}{{ end }}
@@ -77,11 +94,12 @@
             <a class="syl-link" href="{{ $pg.RelPermalink }}" data-learn-slug="{{ $pg.File.ContentBaseName }}">
               <span class="syl-n">{{ $n }}</span>
               <span class="syl-main"><b class="syl-t">{{ $pg.Title }}</b><span class="syl-hook">{{ $pg.Params.hook | default ($pg.Description | truncate 180) }}</span></span>
+              {{ with $pg.Params.cover }}<img class="syl-thumb" src="{{ printf "img/learn/%s/%s" $pg.File.ContentBaseName . | relURL }}" alt="" loading="lazy" width="400" height="300">{{ end }}
               <span class="lp-done" aria-hidden="true">{{ $check }}</span>
             </a>
             <div class="syl-detail">
               {{ with $pg.Params.objectives }}<ul class="syl-obj">{{ range . }}<li>{{ . }}</li>{{ end }}</ul>{{ end }}
-              <p class="syl-meta"><span class="lvl lvl-{{ lower $pg.Params.level }}">{{ $pg.Params.level }}</span><span>{{ $st.min }} min</span>{{ with $st.live }}<span>{{ . }} interactive</span>{{ end }}{{ with $st.quiz }}<span>{{ . }}-question quiz</span>{{ end }}</p>
+              <p class="syl-meta"><span class="lvl lvl-{{ lower $pg.Params.level }}">{{ $pg.Params.level }}</span><span>{{ $st.min }} min</span>{{ with $st.live }}<span>{{ . }} interactive</span>{{ end }}{{ with $st.pics }}<span>{{ . }} {{ cond (eq . 1) "figure" "figures" }}</span>{{ end }}{{ with $st.quiz }}<span>{{ . }}-question quiz</span>{{ end }}</p>
               {{ with $pg.Params.prereqs }}<p class="syl-pre"><span>Builds on</span>{{ range $j, $s := . }}{{ range $order }}{{ if eq .page.File.ContentBaseName $s }}<a class="tone-{{ .course.tone }}" href="{{ .page.RelPermalink }}" data-learn-slug="{{ $s }}">{{ .page.Title }}</a>{{ end }}{{ end }}{{ end }}</p>{{ end }}
             </div>
           </li>
@@ -90,21 +108,48 @@
       </section>
       {{- end }}{{ end }}
 
+      </div>
+
+      {{ with $ms }}
+      <div class="bk-panel bp-timeline">
+        <p class="bp-intro">When the methods in this book were introduced, in date order. Each entry links to the chapter that covers it.</p>
+        <ol class="tl">
+          {{- $prev := 0 }}
+          {{- range . }}
+          {{- $cent := mul (div .year 100) 100 }}{{ if ne $cent $prev }}<li class="tl-cent" aria-hidden="true"><span>{{ $cent }}s</span></li>{{ $prev = $cent }}{{ end }}
+          <li class="tl-item"><span class="tl-year">{{ .year }}</span><span class="tl-dot" aria-hidden="true"></span><span class="tl-body"><span class="tl-text">{{ .text }}</span><a href="{{ .u }}">Chapter {{ .n }} · {{ .t }}</a></span></li>
+          {{- end }}
+        </ol>
+      </div>
+      {{ end }}
+
+      {{ with $eqs }}
+      <div class="bk-panel bp-formulas">
+        <p class="bp-intro">Every key equation in the book with its symbols defined, collected for revision. Chapter titles link to the derivations.</p>
+        {{- range . }}
+        <section class="fs-ch">
+          <h3><a href="{{ .u }}"><span>{{ .n }}</span>{{ .t }}</a></h3>
+          <div class="fs-grid">{{ range .cards }}{{ . | safeHTML }}{{ end }}</div>
+        </section>
+        {{- end }}
+      </div>
+      {{ end }}
+
       <nav class="course-next" aria-label="Other books">
         {{ range site.Data.learn }}{{ if ne .id $cid }}<a class="tone-{{ .tone }}" href="{{ printf "learn/%s/" .slug | relURL }}"><span class="cn-cn" aria-hidden="true"></span><span><small>Book {{ .n }} · {{ .level }}</small><b>{{ .title }}</b></span></a>{{ end }}{{ end }}
       </nav>
     </section>
   </div>
   {{- /* Links from the old single-page books (#slug or #slug--section) go to the chapter's own page. */}}
-  <script>(function () { var h = decodeURIComponent(location.hash.slice(1)), s = {{ $slugs }}; if (!h) return; var p = h.split("--"); if (s.indexOf(p[0]) < 0) return; location.replace({{ "learn/" | relURL }} + p[0] + "/" + (p.length > 1 ? "#" + p.slice(1).join("--") : "")); })();</script>
+  <script>(function () { var h = decodeURIComponent(location.hash.slice(1)), s = {{ $slugs }}; if (!h || /^(contents|timeline|formulas|part-)/.test(h)) return; var p = h.split("--"); if (s.indexOf(p[0]) < 0) return; location.replace({{ "learn/" | relURL }} + p[0] + "/" + (p.length > 1 ? "#" + p.slice(1).join("--") : "")); })();</script>
 {{- else }}
   {{- /* ================= the library ================= */ -}}
   {{- $mins := 0 }}{{ $live := 0 }}{{ $quiz := 0 -}}
   {{- range $order }}{{ $st := partialCached "learn-chstats.html" .page .page.RelPermalink }}{{ $mins = add $mins $st.min }}{{ $live = add $live $st.live }}{{ $quiz = add $quiz $st.quiz }}{{ end -}}
   {{- $stages := slice
-      (dict "lv" "Foundations" "t" "The working tools" "d" "Mathematics, computing and Python: the language every later chapter is written in. Read them alongside each other.")
-      (dict "lv" "Core" "t" "The theories" "d" "How machines learn from data, how matter behaves statistically, and how to simulate it on a computer.")
-      (dict "lv" "Advanced" "t" "Research methods" "d" "Free energies and rare events, and machine learning built for atoms: the methods of current research.") -}}
+      (dict "lv" "Foundations" "t" "The working tools" "d" "Calculus, linear algebra, the Linux shell and Python. Every later chapter is written in this language; the three books can be read side by side.")
+      (dict "lv" "Core" "t" "The theories" "d" "Statistical mechanics, molecular simulation and machine learning: the theory under every simulation you run and every model you train.")
+      (dict "lv" "Advanced" "t" "Research methods" "d" "Free energies, rare events and machine-learned potentials: methods that are still being refined in the literature.") -}}
   <header class="lib-head">
     <div class="wrap">
       <h1>{{ .Title }}</h1>
@@ -123,12 +168,28 @@
       <p class="lib-resume" data-learn-resume hidden><span>Continue where you left off</span> <a href="#"></a></p>
       <p class="lh-stats"><span class="lh-progress" data-learn-total hidden><b data-learn-count>0</b> chapters marked as read in this browser</span></p>
     </div>
-    <nav class="lib-jump wrap" aria-label="On this page"><a href="#roadmap">Roadmap</a><a href="#paths">Reading paths</a><a href="#how-to-read">How a chapter works</a><a href="#map">Dependency map</a><a href="#tools">Reference tools</a><a href="#about-these-notes">About the notes</a></nav>
+    <nav class="lib-jump wrap" aria-label="On this page"><a href="#roadmap">Roadmap</a><a href="#paths">Reading paths</a><a href="#timeline">Ideas through time</a><a href="#how-to-read">How a chapter works</a><a href="#map">Dependency map</a><a href="#tools">Reference tools</a><a href="#about-these-notes">About the notes</a></nav>
   </header>
+
+  {{- $covers := slice }}{{ range $order }}{{ $e := . }}{{ with $e.page.Params.cover }}{{ $covers = $covers | append $e }}{{ end }}{{ end }}
+  {{- if ge (len $covers) 8 }}
+  {{- $half := div (len $covers) 2 }}
+  <section class="cover-wall" aria-label="Every chapter, by its cover">
+    {{- range $row, $set := slice (first $half $covers) (after $half $covers) }}
+    <div class="cw-row{{ if $row }} cw-rev{{ end }}">
+      <div class="cw-track">
+        {{- range $dup := slice 0 1 }}{{ range $set }}
+        <a class="cw-card tone-{{ .course.tone }}" href="{{ .page.RelPermalink }}"{{ if $dup }} aria-hidden="true" tabindex="-1"{{ end }}><img src="{{ printf "img/learn/%s/%s" .page.File.ContentBaseName .page.Params.cover | relURL }}" alt="" loading="lazy" width="400" height="300"><span><small>{{ .course.short }}</small>{{ .page.Title }}</span></a>
+        {{- end }}{{ end }}
+      </div>
+    </div>
+    {{- end }}
+  </section>
+  {{- end }}
 
   <section class="section tight" id="roadmap">
     <div class="wrap">
-      <div class="section-head"><div><h2>The roadmap</h2><p>Eight books in three stages. Each stage uses the tools of the one before it. Inside a stage the books are independent, so read them in any order or side by side.</p></div></div>
+      <div class="section-head"><div><h2>The roadmap</h2><p>Eight books in three stages. Each stage assumes the one before it; books within a stage can be read in any order.</p></div></div>
       <ol class="rm">
         {{- range $si, $sg := $stages }}
         <li class="rm-stage">
@@ -156,7 +217,7 @@
 
   <section class="section alt" id="paths">
     <div class="wrap">
-      <div class="section-head"><div><h2>Choose a reading path</h2><p>Pick the description that sounds most like you. Each path is an ordered reading list that crosses books, arranged so that every chapter comes after the chapters it builds on.</p></div></div>
+      <div class="section-head"><div><h2>Choose a reading path</h2><p>Pick the description closest to where you are now. Each path is a reading list drawn from several books, ordered so that a chapter's prerequisites always come before it.</p></div></div>
       {{- $paths := site.Data.learnpaths }}
       <style>{{ range $paths }}#lp-{{ .id }}:checked ~ .lpath-panels [data-path="{{ .id }}"] { display: grid; } #lp-{{ .id }}:checked ~ .lpath-tabs label[for="lp-{{ .id }}"] { background: var(--card); border-color: var(--accent); color: var(--ink); box-shadow: var(--shadow); } #lp-{{ .id }}:focus-visible ~ .lpath-tabs label[for="lp-{{ .id }}"] { outline: 2px solid var(--accent); outline-offset: 2px; } {{ end }}</style>
       <div class="lpath">
@@ -188,9 +249,32 @@
     </div>
   </section>
 
+  {{- $all := slice }}
+  {{- range $order }}{{ $e := . }}{{ range $e.page.Params.milestones }}{{ $all = $all | append (dict "year" (int .year) "text" .text "t" $e.page.Title "u" $e.page.RelPermalink "c" $e.course.id "tone" $e.course.tone "b" $e.course.short) }}{{ end }}{{ end }}
+  {{- with $all }}{{ $all = sort . "year" }}
+  <section class="section tight" id="timeline">
+    <div class="wrap">
+      <div class="section-head"><div><h2>Ideas through time</h2><p>{{ len $all }} moments, from {{ (index $all 0).year }} to {{ (index $all (sub (len $all) 1)).year }}, when the ideas in these notes first appeared. Filter by book, and follow any milestone to the chapter that explains it.</p></div></div>
+      <div class="tl-filter" role="group" aria-label="Filter the timeline by book">
+        <button type="button" class="on" data-tl="all">All books</button>
+        {{- range site.Data.learn }}<button type="button" class="tone-{{ .tone }}" data-tl="{{ .id }}"><i></i>{{ .short }}</button>{{ end }}
+      </div>
+      <div class="tl-box">
+        <ol class="tl tl-all">
+          {{- $prev := 0 }}
+          {{- range $all }}
+          {{- $cent := mul (div .year 100) 100 }}{{ if ne $cent $prev }}<li class="tl-cent" aria-hidden="true"><span>{{ $cent }}s</span></li>{{ $prev = $cent }}{{ end }}
+          <li class="tl-item tone-{{ .tone }}" data-c="{{ .c }}"><span class="tl-year">{{ .year }}</span><span class="tl-dot" aria-hidden="true"></span><span class="tl-body"><span class="tl-text">{{ .text }}</span><a href="{{ .u }}"><b>{{ .b }}</b> · {{ .t }}</a></span></li>
+          {{- end }}
+        </ol>
+      </div>
+    </div>
+  </section>
+  {{- end }}
+
   <section class="section" id="how-to-read">
     <div class="wrap">
-      <div class="section-head"><div><h2>How a chapter works</h2><p>Every chapter is built from the same elements. The excerpt below is live: move the slider.</p></div></div>
+      <div class="section-head"><div><h2>How a chapter works</h2><p>All chapters share one layout. The excerpt below is live; move the slider.</p></div></div>
       <div class="peek-grid">
         <div class="peek tone-gold" aria-label="Excerpt from the statistical mechanics book">
           <nav class="pk-rail" aria-hidden="true">
@@ -226,11 +310,11 @@
           </div>
         </div>
         <ol class="peek-notes">
-          <li><b>One page per chapter.</b> Each book opens with a syllabus: its parts, what every chapter teaches and what it builds on. Inside a chapter the sidebar shows the whole book and follows the section you are reading; on a phone it opens from the button at the top.</li>
-          <li><b>A clear start.</b> Every chapter opens with why the idea matters, a short list of what you will be able to do, and the chapters to read first. Then the text begins with the question that motivated the idea and the people and papers that answered it.</li>
+          <li><b>One page per chapter.</b> Each book opens with its contents: the parts, what each chapter covers and what it assumes. Inside a chapter the sidebar shows the whole book and tracks the section you are reading; on a phone it opens from the button at the top.</li>
+          <li><b>Objectives and prerequisites first.</b> A chapter opens with the problem the method was invented to solve, what you should be able to do afterwards, and the chapters it assumes.</li>
           <li><b>Equation cards.</b> Key equations are set apart with every symbol explained and a one-line reading in words. Colours in the equation match the colours in the figures.</li>
           <li><b>Interactive figures and code.</b> Figures compute their results as you change the parameters. Code cells run real Python with NumPy in the page; the first run downloads the interpreter, about 10 MB.</li>
-          <li><b>A clear finish.</b> Each chapter closes with its key points, a quiz that explains its answers, the original papers, and a link to the next chapter. Mark chapters as read to track your progress in this browser.</li>
+          <li><b>Key points, quiz and sources.</b> A chapter closes with its key points, a short quiz with worked answers, and the original papers. Chapters you mark as read are remembered in this browser.</li>
         </ol>
       </div>
     </div>
@@ -238,7 +322,7 @@
 
   <section class="section alt" id="map">
     <div class="wrap">
-      <div class="section-head"><div><h2>Dependency map</h2><p>Every chapter, grouped by book, with lines to its prerequisites. Hover a chapter to highlight what it builds on; click to open it.</p></div></div>
+      <div class="section-head"><div><h2>Dependency map</h2><p>All chapters, grouped by book, joined to their prerequisites. Hover over a chapter to see what it depends on; click to open it.</p></div></div>
       {{- $nodes := slice -}}
       {{- range $order }}{{ $nodes = $nodes | append (dict "s" .page.File.ContentBaseName "t" .page.Title "n" "" "c" .course.id "u" .page.RelPermalink "d" .page.Description "m" .page.Params.level "p" (.page.Params.prereqs | default slice)) }}{{ end -}}
       {{- $courses := slice -}}{{ range site.Data.learn }}{{ $courses = $courses | append (dict "id" .id "t" .title "tone" .tone "r" .mark) }}{{ end -}}

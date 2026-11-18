@@ -15,9 +15,9 @@
   tone: violet
   icon: curve
   level: "Foundations"
-  blurb: "The mathematics used throughout simulation and machine learning, developed from first principles: functions and calculus, linear algebra and gradients, and probability."
+  blurb: "The calculus, linear algebra and probability that simulation and machine-learning papers use without comment: the Taylor expansions behind integrators, Hessians and normal modes, the eigenvectors behind PCA, and the statistics behind an honest error bar."
   tagline: "Calculus, linear algebra and probability"
-  audience: "For students and early-career scientists who want the mathematics behind simulation and machine learning built from first principles; school algebra and a little trigonometry are all you need first."
+  audience: "Anyone whose mathematics stopped at first-year calculus, or never got there. School algebra is enough to start."
   outcomes:
     - "Read laws of nature from data by choosing axes that straighten them"
     - "Differentiate and integrate the functions of physical science, and approximate them with Taylor series"
@@ -43,9 +43,9 @@
   tone: teal
   icon: chip
   level: "Foundations"
-  blurb: "How a computer executes a program and stores numbers, how Linux and the shell work, and how compiled code is written for numerical work."
+  blurb: "What happens between typing a command and getting a number back: how caches set the speed of a simulation, why a floating-point sum drifts, how bash expands a line, how Slurm schedules a job, and how to write and compile Fortran for numerical kernels."
   tagline: "Processors, Linux and compiled code"
-  audience: "For students and early-career researchers in simulation or machine learning who use computers daily but have never looked under the hood; no prior Linux or programming experience is needed, only school-level mathematics."
+  audience: "Researchers who use a cluster every day without knowing what is underneath. No Linux experience is assumed."
   outcomes:
     - "Explain how a processor executes code and why memory access limits speed"
     - "Predict when integer and floating-point arithmetic will overflow, round or cancel"
@@ -71,9 +71,9 @@
   tone: sky
   icon: code
   level: "Foundations"
-  blurb: "Python from the interpreter up: how source code runs, the object model, data structures and classes, then NumPy, scientific data and performance."
+  blurb: "Python as an analysis language for simulation data: the object model behind its most confusing bugs, what each data structure costs, NumPy's memory layout and broadcasting, and how to find and remove the slow parts of a script."
   tagline: "From the interpreter to NumPy"
-  audience: "For scientists and students who have written a little code in any language and want to use Python with understanding rather than by recipe; the Computing book's chapters on computer architecture and floating-point numbers are useful background."
+  audience: "Anyone who has written some code in any language and wants to stop programming by copy and paste. The Computing chapters on processors and floating point help."
   outcomes:
     - "Explain how CPython turns source code into bytecode and runs it"
     - "Predict how names, objects and mutability behave, and avoid aliasing bugs"
@@ -96,9 +96,9 @@
   tone: indigo
   icon: curve
   level: "Core"
-  blurb: "Learning from data, from fitting a line to deep networks: optimisation, generalisation, kernels and Gaussian processes, neural networks and modern architectures."
+  blurb: "Machine learning as it is used on scientific data: least squares and likelihood, gradient descent and why it stalls, validation that does not leak, Gaussian processes with error bars, backpropagation, and the convolutional, graph and transformer architectures behind current materials models."
   tagline: "From one neuron to transformers"
-  audience: "For students and early-career scientists who want to understand machine learning from the ground up; you should be comfortable with derivatives, gradients, matrices, basic probability and simple NumPy."
+  audience: "Scientists comfortable with derivatives, matrices and basic probability who want to know what a model is doing, not only which library call to make."
   outcomes:
     - "Fit and judge a model by choosing its loss, optimiser and validation scheme"
     - "Train neurons and deep networks with backpropagation and diagnose failing training runs"
@@ -127,9 +127,9 @@
   tone: gold
   icon: atoms
   level: "Core"
-  blurb: "The mechanics of particles and the statistical mechanics built on it: entropy and temperature, the Boltzmann distribution, ensembles and free energy, fluctuations, phase transitions and liquids."
+  blurb: "The statistical mechanics every simulation rests on: phase space and Liouville's theorem, entropy from counting states, the Boltzmann distribution, ensembles and free energy, fluctuation–response relations, phase transitions and the structure of liquids."
   tagline: "From Newton to free energy"
-  audience: "For students and early-career researchers who run or analyse molecular simulations; it assumes first-year calculus and basic probability, and no prior statistical mechanics."
+  audience: "Anyone who runs or analyses molecular simulations. First-year calculus and basic probability are enough; no statistical mechanics is assumed."
   outcomes:
     - "Predict classical motion from a potential and read it as a phase-space trajectory"
     - "Judge when quantised energy levels matter and when classical nuclei are accurate"
@@ -152,9 +152,9 @@
   tone: orange
   icon: atoms
   level: "Core"
-  blurb: "How molecular simulations are built and analysed: potential energy surfaces and force fields, Monte Carlo, molecular dynamics, thermostats and barostats, and transport properties."
+  blurb: "How a molecular simulation is built and how it goes wrong: force fields and their limits, Metropolis Monte Carlo, Verlet integration and the choice of time step, thermostats and barostats that sample the intended ensemble, and error bars and transport coefficients from trajectories."
   tagline: "Molecular dynamics and Monte Carlo"
-  audience: "For students and early-career scientists who want to run and analyse atomistic simulations with understanding; read the statistical mechanics book first (Boltzmann distribution, ensembles, fluctuations) and be comfortable with calculus, probability and basic Python."
+  audience: "People who run GROMACS, LAMMPS or a similar code and want to be able to justify every line of the input file. Read the statistical mechanics book first."
   outcomes:
     - "Explain how force fields approximate the Born–Oppenheimer energy surface, and where they fail"
     - "Sample equilibrium ensembles with Metropolis Monte Carlo and molecular dynamics"
@@ -183,9 +183,9 @@
   tone: green
   icon: curve
   level: "Advanced"
-  blurb: "Why important events are rare in simulations, and how to sample them anyway: energy landscapes and rates, free-energy methods, adaptive biasing, tempering, path sampling and machine-learned approaches."
+  blurb: "Free energies and rates for events that plain molecular dynamics never reaches: transition states and rate theory, FEP and thermodynamic integration, umbrella sampling and WHAM, metadynamics and OPES, replica exchange, path sampling, Markov state models and learned collective variables."
   tagline: "Free energies and rare events"
-  audience: "For graduate students and early-career researchers who run molecular dynamics and need free energies or rates; it assumes basic statistical mechanics (Boltzmann distribution, partition function, free energy) and some hands-on MD."
+  audience: "Researchers who need a binding free energy, a barrier or a rate. Assumes the Boltzmann distribution, free energy and some hands-on MD."
   outcomes:
     - "Locate transition states and minimum energy paths with NEB, string and dimer methods"
     - "Predict rates from barriers with transition-state theory, recrossing corrections and Kramers' theory"
@@ -217,9 +217,9 @@
   tone: rose
   icon: crystal
   level: "Advanced"
-  blurb: "Machine learning for atomistic materials science: the history and theory of interatomic potentials, how to build and validate them, universal models, and generative and differentiable methods."
+  blurb: "Machine-learned interatomic potentials from the inside: descriptors and symmetry, kernel and neural-network potentials, equivariant message passing, training data and validation, universal foundation models and where they fail, active learning, generative models for crystals and differentiable simulation."
   tagline: "Interatomic potentials and generative models"
-  audience: "For graduate students and early-career researchers in computational materials science or chemistry who already know potential energy surfaces, basic molecular dynamics, how a neural network is trained, and Python with NumPy."
+  audience: "Researchers building or using an MLIP who already know potential energy surfaces, basic MD, how a neural network is trained, and NumPy."
   outcomes:
     - "Explain how interatomic potentials evolved from pair potentials to universal machine-learned models"
     - "Build symmetric descriptors and train a neural-network potential on energies and forces"

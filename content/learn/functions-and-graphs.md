@@ -8,6 +8,16 @@ objectives:
   - "Compute half-lives and doubling times from an exponential rate constant"
   - "Extract a power-law exponent or rate constant by straightening data on logarithmic axes"
   - "Interpret the amplitude, period, centre and width parameters of sinusoids and Gaussians"
+cover: "cover.svg"
+milestones:
+  - year: 1614
+    text: "John Napier publishes the first table of logarithms"
+  - year: 1637
+    text: "René Descartes publishes La Géométrie, describing curves by algebraic equations"
+  - year: 1748
+    text: "Leonhard Euler's Introductio in analysin infinitorum builds analysis around functions"
+  - year: 1822
+    text: "Joseph Fourier's theory of heat writes functions as sums of sines"
 track: calc
 weight: 1
 level: Foundation
@@ -35,6 +45,10 @@ Functions in science carry **units**. In $T_F = 1.8\,T_C + 32$ the input is in �
 A graph is drawn on two perpendicular axes. The horizontal axis carries the input, conventionally $x$, and the vertical axis the output, $y = f(x)$. The point where the axes cross is the **origin**, $(0, 0)$. Every point on the curve has coordinates $(x, f(x))$.
 
 Several features of a function can be read directly from its graph. Where the curve crosses the vertical axis, the input is zero, so that height is $f(0)$, the **intercept**. Where the curve crosses the horizontal axis the output is zero; these inputs are the **roots** or **zeros** of the function and solving the equation $f(x) = 0$ means finding them. Where the curve rises from left to right the function is **increasing**, and where it falls it is **decreasing**. The highest and lowest points of a hump or a dip are **maxima** and **minima**, and they matter enormously in science: a stable arrangement of atoms is a minimum of the energy, and the barrier a chemical reaction must cross is a maximum along the reaction path. A curve may also approach a straight line without ever reaching it, as $1/x$ approaches the horizontal axis when $x$ becomes large; such a line is an **asymptote**.
+
+{{< fig src="anatomy.svg" alt="Graph of f(x) = (x squared minus 1) times e to the minus x, with its intercept, two roots, a local minimum, a local maximum and a horizontal asymptote labelled" caption="Every feature named above on one curve. The roots are at $x = \pm 1$, the intercept is $f(0) = -1$, the stationary points satisfy $x^2 - 2x - 1 = 0$, so they sit at $x = 1 \pm \sqrt 2$, and the exponential factor drags the curve onto the asymptote $y = 0$ from above." >}}
+
+The function in the figure, $f(x) = (x^2 - 1)\,e^{-x}$, shows how each feature comes from a different part of the formula. The roots belong to the polynomial factor, because $e^{-x}$ is never zero. The intercept is a single evaluation, $f(0) = (0 - 1) \times 1$. The asymptote is a contest between the two factors: for large $x$ the polynomial grows like $x^2$ but the exponential shrinks faster, so the product goes to zero (the section on growth rates below makes this precise). Locating the extrema exactly needs the derivative of [the next chapter](../derivatives/). Reading a formula factor by factor before plotting it is also the quickest way to catch a sign error in a potential or a misplaced bracket in an analysis script.
 
 Graphs can be transformed in predictable ways, and recognising these transformations makes new functions look familiar. Replacing $f(x)$ by $f(x) + c$ moves the whole graph up by $c$. Replacing $f(x)$ by $f(x - h)$ moves it to the right by $h$, which surprises many people at first: the output that used to occur at $x = 0$ now occurs at $x = h$. Multiplying the output, $a\,f(x)$, stretches the graph vertically by the factor $a$, and a negative $a$ also flips it upside down. Multiplying the input, $f(kx)$, squeezes the graph horizontally by the factor $k$. A Gaussian peak centred at $\mu$ with width $\sigma$, for example, is just the standard bell curve shifted by $\mu$ and stretched by $\sigma$.
 
@@ -97,6 +111,20 @@ Before electronic calculators, these rules made logarithms the standard tool for
 
 A logarithm grows without limit, but extraordinarily slowly: $\ln x$ reaches 10 only when $x$ exceeds 22 000, and 100 only when $x$ exceeds $10^{43}$. Each multiplication of $x$ by $e$ adds exactly one to $\ln x$, which is the logarithmic version of the exponential's constant doubling time.
 
+### Which grows fastest
+
+Logarithms, powers and exponentials form a strict hierarchy for large inputs: any positive power of $x$ eventually beats $\ln x$, and $e^x$ eventually beats any power of $x$. "Eventually" can take a while, which is why the hierarchy surprises people.
+
+{{< note type="try" title="Pause and predict" >}}
+Which is larger at $x = 10$: $x^5$ or $e^x$? And at $x = 20$? Decide before reading on.
+
+At $x = 10$, $x^5 = 100\,000$ while $e^{10} \approx 22\,026$, so the power is ahead by a factor of 4.5. At $x = 20$, $x^5 = 3.2 \times 10^6$ while $e^{20} \approx 4.9 \times 10^8$, so the exponential is ahead by a factor of 150. The two cross at $x \approx 12.7$, the solution of $x = 5 \ln x$.
+{{< /note >}}
+
+{{< fig src="race.svg" alt="Six curves on a logarithmic vertical axis for x from 1.5 to 25: ln x, square root of x, x, x squared, x to the fifth and e to the x, with e to the x crossing x to the fifth near x = 12.7" caption="On a logarithmic vertical axis an exponential is a straight line and every power law bends over, so the exponential must cross every power eventually. Here $e^x$ passes $x^5$ at $x \approx 12.7$ and is ahead by a factor of $10^4$ at $x = 25$." >}}
+
+The logarithmic vertical axis explains the result. Taking logarithms, $\ln e^x = x$ grows linearly while $\ln x^n = n \ln x$ grows only logarithmically, so the gap $x - n\ln x$ must eventually become positive whatever $n$ is. Two consequences recur later. A power-law prefactor such as the $v^2$ in the [Maxwell distribution](../boltzmann-and-maxwell/) cannot rescue a state from its Boltzmann factor $e^{-E/k_BT}$, so every such distribution has a tail that falls to zero. And an algorithm whose cost grows like $2^N$ is unusable for large $N$ even if it beats an $N^5$ algorithm for small $N$; grid integration in many dimensions, in [the integrals chapter](../integrals/), is the case that matters for simulation.
+
 ## Logarithmic axes and laws from data
 
 The rules of logarithms give a powerful way of discovering laws in data. Take the logarithm of both sides of a power law, $y = A x^n$:
@@ -113,9 +141,44 @@ The figure below contains real data on the orbits of the eight planets: the size
 
 This technique is routine in research. The decay of a correlation function is plotted on semi-log axes to extract a relaxation time; the mean-squared displacement of a diffusing particle is plotted on log–log axes to check that it grows linearly with time; the error of a numerical method is plotted against its step size on log–log axes to measure its order of accuracy, as you will see in [the chapter on derivatives](../derivatives/).
 
+### Worked example: an activation energy from rate data
+
+Not every law is straightened by logarithms alone. The Arrhenius law, $k = A\,e^{-E_a/RT}$, written here per mole with the gas constant $R = 8.314$ J mol⁻¹ K⁻¹, is an exponential in $1/T$, not in $T$. Taking logarithms gives
+
+$$
+\ln k = \ln A - \frac{E_a}{R}\,\frac{1}{T},
+$$
+
+a straight line when $\ln k$ is plotted against $1/T$, with slope $-E_a/R$ and intercept $\ln A$. Svante Arrhenius proposed the law in 1889 from measurements of the acid-catalysed inversion of sucrose, and this plot, now called an **Arrhenius plot**, has been the standard way of reporting temperature-dependent rates ever since.
+
+The figure below uses nine simulated rate constants measured every 10 K from 280 to 360 K, generated from $E_a = 53$ kJ mol⁻¹ and $A = 10^{10}$ s⁻¹ with 6 % random scatter, roughly the precision of a good kinetic experiment. Against $T$ the points curve sharply upwards. Against $1000/T$ their logarithms fall on a line, and a least-squares fit gives a slope of $-6387$ K, so $E_a = 6387\ \text{K} \times 8.314$ J mol⁻¹ K⁻¹ $= 53.1$ kJ mol⁻¹, within 0.2 % of the value used to generate the data.
+
+{{< fig src="arrhenius.svg" alt="Two panels: left, nine rate constants rising steeply with temperature from 280 to 360 K; right, the logarithm of the same rate constants against 1000 over T, falling on a straight line" caption="The same nine points on two sets of axes. Plotting $\ln k$ against $1/T$ straightens the Arrhenius law, and the slope, $-E_a/R$, returns $E_a = 53.1$ kJ mol⁻¹ from data generated with 53 kJ mol⁻¹." >}}
+
+{{< note type="practice" title="Back of the envelope" >}}
+A chemist's rule of thumb says that a reaction near room temperature runs about twice as fast for every 10 K rise. What activation energy does that imply? Two points on the Arrhenius line give $\ln(k_2/k_1) = (E_a/R)(1/T_1 - 1/T_2)$. With $k_2/k_1 = 2$, $T_1 = 298$ K and $T_2 = 308$ K,
+
+$$
+E_a = \frac{R \ln 2}{1/298 - 1/308} = \frac{8.314 \times 0.693}{1.09 \times 10^{-4}}\ \text{J mol}^{-1} \approx 53\ \text{kJ mol}^{-1},
+$$
+
+or 0.55 eV per molecule. The rule of thumb is therefore a statement about one particular barrier height, and it fails for reactions with much smaller or larger barriers: a process with $E_a = 100$ kJ mol⁻¹ speeds up by a factor of 3.7 over the same 10 K.
+{{< /note >}}
+
+{{< note type="practice" title="From the lab" >}}
+In computational materials science the same plot is used for transport. The diffusion coefficient of lithium in a candidate solid electrolyte is computed from molecular dynamics at several temperatures, typically 600 to 1200 K because diffusion at room temperature is too slow to observe in nanoseconds, and $\ln D$ is plotted against $1/T$ to obtain the migration barrier. The room-temperature value is then an extrapolation along the line. With a barrier of 0.3 eV, going from 1000 K to 300 K lowers $D$ by a factor of $e^{(0.3\ \text{eV}/k_B)(1/300 - 1/1000)\,\text{K}^{-1}} \approx 3400$, so a small error in the slope becomes a large error in the prediction. The usual check is that the points lie on one straight line: a kink signals a change of mechanism or a phase transition, and extrapolating across it is not valid.
+{{< /note >}}
+
+{{< note type="warn" title="Myth" >}}
+**Myth:** data that look straight on log–log axes follow a power law.
+**Reality:** logarithmic axes compress curvature, and almost any smooth, monotonic data spanning less than one or two decades look roughly straight. Clauset, Shalizi and Newman (2009) re-examined two dozen data sets reported to follow power laws and found that for several of them a log-normal or a power law with an exponential cut-off fitted as well or better. Before trusting an exponent, check that the data span two or three decades, that the fit residuals show no systematic curvature, and that the slope is stable when the fit window moves. The mean-squared displacement of a diffusing atom is the routine example: at short times it grows as $t^2$ (ballistic motion) and only later as $t^1$, so a fit across the crossover gives an exponent between 1 and 2 that describes neither regime.
+{{< /note >}}
+
 ## Periodic functions
 
 Many phenomena repeat: vibrations of atoms, alternating currents, the seasons, waves of light. The basic repeating functions are the **sine** and **cosine**. Imagine a point moving anticlockwise at a steady rate around a circle of radius 1 centred on the origin. If the angle it has turned through, measured from the positive horizontal axis, is $\theta$, then its height is $\sin\theta$ and its horizontal position is $\cos\theta$. As the point goes round and round, its height rises and falls forever, repeating every full turn of $2\pi$ radians (360°).
+
+{{< fig src="unitcircle.svg" alt="Left: a unit circle with a point at an angle of one radian, its height drawn as an orange vertical segment and its horizontal position as a blue segment. Right: the sine curve from 0 to 2 pi, with the same height marked at theta equals 1" caption="The height of a point on a circle of radius 1 is $\sin\theta$. At $\theta = 1$ radian the teal arc is exactly as long as the radius and the height is $\sin 1 = 0.84$; carrying that height across for every angle traces the sine curve, which repeats after one full turn, $2\pi$." >}}
 
 A general oscillation has an amplitude, a frequency and a phase:
 
@@ -128,7 +191,7 @@ $$ \textcolor{#f08c2e}{y} = \textcolor{#845ef7}{A}\sin(\textcolor{#845ef7}{\omeg
 
 Angles in science are measured in **radians**, defined so that an angle of $\theta$ radians cuts off an arc of length $\theta$ on a circle of radius 1. A full turn is $2\pi$ radians. Radians are not an arbitrary convention: as with the base $e$ for exponentials, they are the unit for which the derivative of $\sin\theta$ is exactly $\cos\theta$, with no awkward conversion factor.
 
-Sinusoids describe any system that is pulled back towards equilibrium with a force proportional to its displacement, such as a mass on a spring or an atom vibrating in a molecule, as [the chapter on motion](../motion-and-phase-space/) shows. A remarkable theorem of Fourier says that essentially any periodic signal, however jagged, can be written as a sum of sines and cosines of different frequencies, which is why vibrational spectra, X-ray diffraction and much of signal processing are analysed in terms of sinusoids.
+Sinusoids describe any system that is pulled back towards equilibrium with a force proportional to its displacement, such as a mass on a spring or an atom vibrating in a molecule, as [the chapter on motion](../motion-and-phase-space/) shows. A theorem of Fourier says that essentially any periodic signal, however jagged, can be written as a sum of sines and cosines of different frequencies, which is why vibrational spectra, X-ray diffraction and much of signal processing are analysed in terms of sinusoids.
 
 ## The Gaussian
 
@@ -155,6 +218,7 @@ Finally, many quantities depend on more than one input. The potential energy of 
 - A function assigns exactly one output to each input in its domain. A graph is the set of all input–output pairs.
 - Linear functions add a constant amount per step; exponentials multiply by a constant factor per step and have fixed doubling times or half-lives; power laws scale by a fixed factor when the input is scaled.
 - Logarithms invert exponentials and turn products into sums. On log–log axes power laws become straight lines with slope equal to the power; on semi-log axes exponentials become straight lines.
+- The exponential eventually outgrows every power, and every power outgrows the logarithm. Choosing axes that turn a law into a line, such as $\ln k$ against $1/T$ for Arrhenius rates, reads its parameters from a slope and an intercept.
 - Sinusoids describe oscillations, Gaussians describe peaks and random spreads, and complicated functions are usually compositions of these simple families.
 {{< /note >}}
 
@@ -179,6 +243,10 @@ Finally, many quantities depend on more than one input. The potential energy of 
   options: ["10", "7", "e⁷"]
   answer: 1
   why: "ln(ab) = ln a + ln b = 5 + 2 = 7."
+- q: "Rate constants plotted as ln k against 1/T give a straight line of slope −6000 K. What is the activation energy? (R = 8.314 J mol⁻¹ K⁻¹)"
+  options: ["About 6 kJ/mol", "About 50 kJ/mol", "About 720 kJ/mol"]
+  answer: 1
+  why: "The slope is −Ea/R, so Ea = 6000 K × 8.314 J mol⁻¹ K⁻¹ ≈ 49.9 kJ/mol."
 {{< /quiz >}}
 
 ## References and further reading
@@ -189,6 +257,8 @@ Finally, many quantities depend on more than one input. The potential energy of 
 2. K. F. Riley, M. P. Hobson and S. J. Bence, *Mathematical Methods for Physics and Engineering*, 3rd ed., Cambridge University Press (2006), chapter 1.
 3. M. L. Boas, *Mathematical Methods in the Physical Sciences*, 3rd ed., Wiley (2006), chapters 1–2.
 4. J. Kepler, *Harmonices Mundi*, Linz (1619), book V, where the third law is stated.
-5. S. Strogatz, *Infinite Powers: How Calculus Reveals the Secrets of the Universe*, Houghton Mifflin Harcourt (2019). A non-technical history of the ideas in this subject.
+5. S. Arrhenius, "Über die Reaktionsgeschwindigkeit bei der Inversion von Rohrzucker durch Säuren", *Zeitschrift für physikalische Chemie* **4**, 226–248 (1889).
+6. A. Clauset, C. R. Shalizi and M. E. J. Newman, "Power-law distributions in empirical data", *SIAM Review* **51**, 661–703 (2009).
+7. S. Strogatz, *Infinite Powers: How Calculus Reveals the Secrets of the Universe*, Houghton Mifflin Harcourt (2019). A non-technical history of the ideas in this subject.
 
 </div>

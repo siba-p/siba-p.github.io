@@ -8,6 +8,16 @@ objectives:
   - "Explain the iterator protocol behind for loops and use range, enumerate and zip"
   - "Build lists with comprehensions and stream large files with generators"
   - "Handle and raise specific exceptions instead of letting errors pass silently"
+cover: "cover.svg"
+milestones:
+  - year: 1966
+    text: "Corrado Böhm and Giuseppe Jacopini show sequence, selection and iteration suffice"
+  - year: 1968
+    text: "Edsger Dijkstra's letter 'Go To Statement Considered Harmful' appears in CACM"
+  - year: 2001
+    text: "Python 2.2 adds generators, PEP 255 by Schemenauer, Peters and Hetland"
+  - year: 2021
+    text: "Python 3.10 adds the match statement, designed by Brandt Bucher and Guido van Rossum"
 track: pycore
 weight: 3
 level: Foundation
@@ -80,6 +90,26 @@ Newton's method reaches full double precision in five iterations, roughly doubli
 
 Two precautions apply to every `while` loop. The condition must eventually become false, or the loop runs forever; in an iterative solver that may fail to converge, add a maximum number of iterations and raise an error if it is reached. And the tolerance must be achievable: asking for $|x^2 - a| < 10^{-20}$ can never succeed in double precision, because the rounding error of $x^2$ itself is larger than that. `x += 1` is shorthand for `x = x + 1`; the same augmented form exists for every operator (`-=`, `*=`, `/=`).
 
+{{< note type="practice" title="From the lab" >}}
+Every self-consistent field (SCF) cycle in density functional theory is a `while` loop with exactly these two safeguards. In VASP, `EDIFF` sets the change in total energy between electronic steps below which the loop stops (default $10^{-4}$ eV) and `NELM` caps the number of steps (default 60); in Quantum ESPRESSO the equivalents are `conv_thr` (default $10^{-6}$ Ry) and `electron_maxstep` (default 100). Hitting the cap is not an error that stops the program: VASP prints a warning and, in a relaxation, carries on to the next ionic step. A workflow script that collects energies should therefore check for convergence explicitly, for example by counting electronic steps per ionic step in the output, rather than assume that a finished run is a converged one.
+{{< /note >}}
+
+### Why Newton doubles the digits
+
+The difference between the two methods can be derived in one line. Write the current guess as $x = \sqrt a + e$, with error $e$. One Newton step gives
+
+$$x' - \sqrt a = \frac12\left(x + \frac{a}{x}\right) - \sqrt a = \frac{(x - \sqrt a)^2}{2x} = \frac{e^2}{2x}.$$
+
+The new error is proportional to the square of the old one, which is what **quadratic convergence** means: an error of $10^{-3}$ becomes about $10^{-6}$, then $10^{-12}$. For $\sqrt 2$ from $x = 1$ the cell above passes through errors of 0.41, 0.086, 0.0025, 2.1 × 10⁻⁶ and 1.6 × 10⁻¹²; the fifth step lands 2.2 × 10⁻¹⁶ from the true root, one unit in the last place of a double near 1.4, and no further step can improve on that. Bisection halves its bracketing interval on every pass whatever the function looks like, so after $k$ steps the width is $2^{-k}$ of the original: **linear convergence**, one binary digit per step. Since $2^{-34} \approx 5.8 \times 10^{-11}$ is the first power of two below $10^{-10}$, the loop needs 34 halvings.
+
+{{< note type="try" title="Pause and predict" >}}
+Start Newton's method for $\sqrt 2$ from $x = 1000$ instead of 1. How many iterations does the loop take now? Make a guess, then edit the cell above. The answer is 14. While $x \gg \sqrt a$, the term $a/x$ is negligible and each step simply halves $x$, so about ten steps go into getting from 1000 down to the neighbourhood of 1.4; only then does the error start to square. Quadratic convergence is a property of the last few steps, not of the whole run.
+{{< /note >}}
+
+{{< fig src="convergence.svg" alt="Semi-log plot of error against iteration. Newton from x = 1 falls from 0.4 to about 2e-16 in five steps. Newton from x = 1000 halves its error for about ten steps and then falls steeply. Bisection falls along a straight line, reaching the dashed 1e-10 level at step 34. A grey band below 2.2e-16 marks errors that double precision cannot reach." caption="The loops of the cell above, plotted. On a logarithmic axis linear convergence is a straight line and quadratic convergence a curve that steepens; neither can go below the spacing of doubles, which is why the tolerance must be achievable." >}}
+
+Practical solvers combine the two behaviours. Brent's method, behind `scipy.optimize.brentq`, keeps a bracketing interval as bisection does, so it cannot diverge, but takes interpolation steps that converge superlinearly whenever the function is well behaved; it is the safe default for a single root of a scalar equation, such as the chemical potential that fixes the electron count in a finite-temperature calculation.
+
 ## For loops and the iterator protocol
 
 The `for` loop is Python's main loop, and it works differently from the counting loops of C and Fortran. It does not count; it **iterates**: it takes any **iterable** object, a collection or a stream of values, and runs its block once for each value, binding the loop variable to each in turn.
@@ -115,6 +145,10 @@ for i, (el, m) in enumerate(zip(elements, masses), start=1):
 
 Writing `for i in range(len(elements)):` and then `elements[i]` works, but it is slower, longer and invites off-by-one errors; iterating directly over the items is the idiomatic style. Dictionaries are iterated with `.items()` for key–value pairs, `.keys()` or `.values()`.
 
+{{< note type="warn" title="Changing a list while looping over it" >}}
+`for v in data: if v < 0: data.remove(v)` looks as if it deletes every negative value. With `data = [-1, -2, 3]` it leaves `[-2, 3]`. The list iterator keeps an index: removing `-1` at index 0 shifts `-2` into index 0, and the next call to `next()` moves on to index 1, so `-2` is never examined. Build a new list instead, `data = [v for v in data if v >= 0]`, or with a NumPy array, `data = data[data >= 0]`. Dictionaries and sets are stricter: changing their size during iteration raises `RuntimeError`.
+{{< /note >}}
+
 ## Changing the course of a loop
 
 Three statements alter a loop from inside. `break` leaves the innermost loop immediately. `continue` abandons the rest of the current pass and goes on to the next one, which is handy for skipping comment lines when reading a file:
@@ -128,7 +162,15 @@ for line in open("data.txt"):
 
 The third is unusual: a loop may have an `else` clause, which runs if the loop finished normally, without a `break`. It reads awkwardly but expresses "searched everything and found nothing" exactly. In the prime-number example in the figure, the inner loop looks for a divisor of `n`; if it finds one it breaks, and if it finishes without breaking, the `else` block records `n` as prime. Step through it and notice how many times the inner loop runs for each `n`.
 
-Nested loops multiply their costs: a double loop over all pairs of $N$ atoms executes its body $N^2$ times, or $N(N - 1)/2$ if each pair is visited once with `for j in range(i + 1, N)`. In pure Python, where each pass costs many bytecode instructions, a double loop over 10 000 atoms (50 million pairs) takes tens of seconds; the same calculation done with NumPy arrays, or with a cell list that only visits nearby pairs ([the chapter on neighbour lists](../molecular-dynamics/)), takes a fraction of a second.
+The flowchart below collects the whole behaviour of a `for` loop in one place. The loop is a call to `iter()` followed by repeated calls to `next()`; `continue` jumps back to the next call early; `break` leaves through a separate exit. The `else` block hangs off the exit taken when `next()` raises `StopIteration`, which is why `break`, leaving by the other exit, skips it.
+
+{{< fig src="forloop.svg" alt="Flowchart beside the code of a for loop that uses continue, break and else. it = iter(data) leads to x = next(it), then to the loop body, which returns to next(it) for the next pass. A dashed continue path returns to next(it) early. When next raises StopIteration, control passes to the else block and then to after(). A break path from the body goes straight to after(), bypassing the else block." caption="Every for loop is this flowchart. The else block runs only on the StopIteration exit: the loop ran out of values without being stopped by break." >}}
+
+Nested loops multiply their costs: a double loop over all pairs of $N$ atoms executes its body $N^2$ times, or $N(N - 1)/2$ if each pair is visited once with `for j in range(i + 1, N)`. In pure Python, where each pass costs many bytecode instructions, a double loop over 10 000 atoms (50 million pairs) takes five to ten seconds on a recent CPython merely to visit the pairs and test a distance, and longer on older versions or in the browser; the same calculation done in compiled code, or with a cell list that only visits nearby pairs ([the chapter on neighbour lists](../molecular-dynamics/)), takes a fraction of a second.
+
+{{< fig src="pairs.svg" alt="Log-log plot of the time to visit every pair against the number of atoms N, from 125 to 2000. The pure-Python double loop rises with slope two; a dashed line extends it to an open circle at N = 10 000, labelled with the extrapolated time of several seconds. A NumPy version that handles one row of pairs at a time is several times faster." caption="Measured with CPython 3.13 on a shared workstation, counting pairs closer than 1 in a random box of side 10. Doubling N quadruples the time; the cost per pair, 100 to 200 ns here, depends on the machine and its load." >}}
+
+The figure measures it. Doubling N quadruples the time, exactly as $N(N - 1)/2$ predicts, and the cost per pair is set by the dozen or so bytecode instructions in the inner loop body. Moving the inner loop into NumPy, one row of pairs per pass of the outer loop, cuts the cost several-fold, but the outer Python loop and a few microseconds of overhead per row remain. A fully vectorised version that builds the $N \times N$ matrix of distances in one expression removes the Python loop altogether, at the price of memory: $8N^2$ bytes per matrix, 800 MB for 10 000 atoms. The lasting fix is algorithmic. A cell list sorts atoms into boxes one cutoff wide and compares each atom only with those in its own and neighbouring boxes, reducing the work from order $N^2$ to order $N$.
 
 ## Comprehensions and generators
 
@@ -159,6 +201,22 @@ for atoms in frames("traj.xyz"):             # one frame in memory at a time
     ...
 ```
 
+A generator object remembers where it stopped, so it can be consumed only once: after `for atoms in frames(path)` has run to the end, a second loop over the same generator object does nothing, because the generator is exhausted. Call `frames(path)` again to start afresh, or store the values in a list if they fit in memory and are needed twice.
+
+{{< note type="practice" title="From the lab" >}}
+A VASP run writes the energy after every ionic step to its OUTCAR file, on lines containing `free  energy   TOTEN`, and the OUTCAR of a long relaxation or MD run can reach gigabytes. A generator streams it in constant memory:
+
+```python
+def toten(path):
+    with open(path) as f:
+        for line in f:
+            if "free  energy   TOTEN" in line:
+                yield float(line.split()[-2])     # the line ends in: = -123.45678901 eV
+```
+
+`energies = list(toten("OUTCAR"))` keeps only the numbers, and a loop over `toten(path)` that stops with `break` once the energy drops below a threshold never reads more of the file than it needs.
+{{< /note >}}
+
 ## Exceptions
 
 Not every change of course is planned. When an operation cannot be carried out, such as opening a file that does not exist, converting `"abc"` to a float or dividing by zero, Python **raises an exception**. Raising abandons the current block and every enclosing block and function call, unwinding the call stack frame by frame, until a matching handler is found. If none is found, the program stops and prints a **traceback** listing the frames that were active, most recent call last, which is the first thing to read when debugging.
@@ -177,6 +235,10 @@ finally:
 ```
 
 Catch the specific exception you expect, never a bare `except:`, which also swallows typing mistakes and keyboard interrupts. Your own code should **raise** exceptions when it is given impossible input, such as `raise ValueError(f"temperature must be positive, got {T}")`: failing loudly at the point of the error is far better than producing a plausible-looking wrong number hours later. The common built-in exceptions are worth recognising: `TypeError` (wrong type of object), `ValueError` (right type, bad value), `IndexError` and `KeyError` (missing position or key), `FileNotFoundError`, `ZeroDivisionError`, and `NameError` (a name that was never bound, often a misspelling).
+
+{{< note type="warn" title="Myth" >}}
+**Myth:** `try` blocks are slow, so check every condition before acting. **Reality:** since Python 3.11, entering a `try` block costs nothing when no exception is raised; the compiler records where the handler is in a table instead of executing set-up instructions. Raising and catching an exception does cost something, about half a microsecond for a failed `float("abc")` on a current machine, roughly ten times a successful conversion. The Python style called EAFP, "easier to ask forgiveness than permission", therefore suits rare failures, such as the occasional corrupt field in a data file. When failure is common, as when most keys looked up are absent, a direct test such as `if key in counts:` is clearer and faster.
+{{< /note >}}
 
 ## A complete loop: a random walk
 

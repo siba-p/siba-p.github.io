@@ -8,6 +8,16 @@ objectives:
   - "Estimate thermal populations, zero-point energies and the kinetic isotope effect of a bond"
   - "Explain the correspondence principle by comparing quantum and classical probability densities"
   - "Choose between classical and quantum nuclei using ħω/kBT and the thermal wavelength"
+cover: "cover.svg"
+milestones:
+  - year: 1900
+    text: "Planck introduces energy quanta to explain black-body radiation"
+  - year: 1907
+    text: "Einstein explains the falling heat capacity of solids with quantised oscillators"
+  - year: 1924
+    text: "De Broglie proposes that every particle has a wavelength h/p"
+  - year: 1926
+    text: "Schrödinger publishes his wave equation and solves the hydrogen atom"
 track: physics
 weight: 2
 level: Foundation
@@ -47,11 +57,19 @@ $$ \psi_n(x) = \sqrt{\tfrac{2}{L}}\,\sin\frac{n\pi x}{L}, \qquad \textcolor{#d4a
 
 Three consequences matter for materials. Energy is **quantised**. The lowest energy is **not zero**: squeezing a particle into a small space forces short wavelengths and therefore kinetic energy, the reason electrons do not collapse into the nucleus. And the spacing falls as $1/L^2$, so in a big box the levels are so close that the energy looks continuous. Quantum dots exploit the $1/L^2$ law: the smaller the nanocrystal, the larger its gap and the bluer its light.
 
+{{< note type="practice" title="From the lab" >}}
+Colloidal CdSe nanocrystals are the standard example. Bulk CdSe has a band gap of about 1.7 eV and emits at the red edge of the visible, near 710 nm; crystals a few nanometres across emit anywhere from blue to red, set by their diameter alone. Louis Brus wrote the quantitative model in 1984 by adding the particle-in-a-sphere confinement energies of the electron and the hole, $\hbar^2\pi^2/2R^2$ divided by each carrier's effective mass, to the bulk gap and subtracting their Coulomb attraction, which scales only as $1/R$. Because the effective masses in semiconductors are fractions of the free-electron mass, confinement in a 2 nm dot raises the gap by tenths of an electronvolt, enough to move the emission across the visible spectrum. Alexei Ekimov, who first observed size-dependent colours in glass-embedded nanocrystals, Brus, and Moungi Bawendi, whose 1993 hot-injection synthesis made monodisperse dots routine, shared the 2023 Nobel Prize in Chemistry. In practice the measured absorption onset is used in reverse, through empirical sizing curves, to determine the diameter of a batch of dots.
+{{< /note >}}
+
 ### How big are the steps?
 
 Two numbers show why the same formula describes very different physics. For an electron confined to a box 1 nm wide, a typical quantum-dot size, $E_1 = h^2/8mL^2 = 0.38$ eV, and the first gap is $E_2 - E_1 = 3E_1 = 1.1$ eV, the energy of a near-infrared photon and more than 40 times the thermal energy $k_BT$ (25.9 meV at room temperature). Electrons in nanostructures are quantum through and through.
 
 Now put a nitrogen molecule, of mass $4.65 \times 10^{-26}$ kg, in a box 1 cm wide, a fair model of translation in a gas. Its ground level is $E_1 = 1.2 \times 10^{-38}$ J, about $3 \times 10^{-18}\,k_BT$ at 300 K. Thermal energy reaches levels up to $n \approx \sqrt{k_BT/E_1} \approx 6 \times 10^8$, and there neighbouring rungs are separated by $2nE_1 \approx 3 \times 10^{-9}\,k_BT$. No experiment could resolve steps that fine: the translation of molecules in a gas is classical to an excellent approximation. The vibrations of chemical bonds turn out to be the opposite case.
+
+{{< note type="practice" title="Back of the envelope" >}}
+Shrink the box to 1 Å, the size of an atom or a bond, and compare three particles. For an electron $E_1 = h^2/8mL^2 = 37.6$ eV, nearly 1,500 times $k_BT$ at 300 K: electrons in molecules are always in their quantum ground state, which is why electronic structure methods such as density functional theory usually solve for the electronic ground state and let temperature enter through the motion of the nuclei. A proton, 1,836 times heavier, has $E_1 = 0.020$ eV, or 0.79 $k_BT$: borderline. A carbon atom has $E_1 = 0.0017$ eV, or 0.07 $k_BT$, and moves classically. One formula with three masses explains the standard division of labour in simulation: quantum electrons, mostly classical nuclei, and special care for hydrogen.
+{{< /note >}}
 
 ## The harmonic oscillator
 
@@ -72,6 +90,10 @@ Choose the harmonic oscillator with $\omega = 1$ and set $k_BT = 0.1$: the groun
 
 Zero-point energy is measurable and important. It is why liquid helium does not freeze at normal pressure, it shifts reaction barriers and bond lengths, and it makes deuterated molecules react more slowly than ordinary ones (the kinetic isotope effect), because the heavier isotope has a lower $\tfrac12\hbar\omega$.
 
+{{< note type="warn" title="Myth" >}}
+**Myth:** at absolute zero the atoms stand still. **Reality:** a ground-state oscillator has a Gaussian spread of positions with standard deviation $\sqrt{\hbar/2\mu\omega}$, and half of its zero-point energy is kinetic. For a C–H stretch at 3000 cm⁻¹, with $\mu = 0.930$ u, the spread is 0.078 Å, 7 % of the 1.09 Å bond length, at any temperature up to several hundred kelvin. Bond lengths from diffraction are averages over this motion, and an optimised geometry from a quantum chemistry code, which sits at the bottom of the well, is not the same quantity as a measured one.
+{{< /note >}}
+
 ### Worked example: the kinetic isotope effect
 
 Replace the hydrogen of a C–H bond by deuterium. The force constant, set by the electrons, stays the same, but the reduced mass rises from $\mu_{\mathrm{CH}} = (12 \times 1.008)/13.008 = 0.930$ u to $\mu_{\mathrm{CD}} = (12 \times 2.014)/14.014 = 1.725$ u. Since $\omega = \sqrt{k/\mu}$, the stretch frequency falls by a factor $\sqrt{1.725/0.930} = 1.36$, from about 3000 cm⁻¹ to about 2200 cm⁻¹. The zero-point energies are then about 1500 and 1100 cm⁻¹, a difference of 400 cm⁻¹, or 4.8 kJ/mol.
@@ -83,6 +105,22 @@ $$
 $$
 
 Measured primary isotope effects for breaking C–H bonds at room temperature are indeed a few, up to about 7. They are smaller when the transition state keeps part of the zero-point energy, and much larger values are taken as evidence that the hydrogen tunnels through the barrier, a still more quantum effect. Classical statistical mechanics predicts that equilibrium structures and populations do not depend on isotopic mass at all, and that rates change only through the speed of crossing the barrier, by at most about $\sqrt 2$ for hydrogen against deuterium.
+
+{{< fig src="kie.svg" alt="A reaction energy profile with a well and a barrier of about 38 kilojoules per mole; inside the well an orange C–H zero-point level at 17.9 and a blue C–D level at 13.2 kilojoules per mole, with arrows from each level up to the transition-state energy" caption="The isotopes share one potential energy surface, but the C–D bond sits 4.8 kJ/mol lower in the well because of its smaller zero-point energy. If the transition state keeps no zero-point energy in this mode, deuterium faces a barrier higher by that amount, and $k_\mathrm{H}/k_\mathrm{D} \approx 6.8$ at 300 K. The profile is illustrative; the zero-point energies are those of the worked example." >}}
+
+### Tunnelling
+
+{{< note type="try" title="Pause and predict" >}}
+A classical oscillator with the ground-state energy $\tfrac12\hbar\omega$ never moves beyond its turning points. What fraction of the time does the quantum ground state spend outside them: none, about 1 %, or about 16 %?
+{{< /note >}}
+
+The answer is 15.7 %, the value of $\operatorname{erfc}(1)$ for the Gaussian ground state. A wavefunction does not stop at a turning point; inside a barrier it decays as $e^{-\kappa x}$ with $\kappa = \sqrt{2m(V - E)}/\hbar$, and if the barrier is thin enough some amplitude emerges on the other side. For a barrier of width $a$ the transmission probability is approximately $e^{-2\kappa a}$, exponential in both the width and the square root of the mass.
+
+Take a barrier 0.2 eV above the particle's energy and 0.5 Å wide, the scale of a hydrogen transfer between two oxygen or carbon atoms. The exponent $2\kappa a$ is 0.23 for an electron, 9.8 for a proton, 13.9 for a deuteron and 33.9 for a carbon atom, so the tunnelling factors are 0.80, $5 \times 10^{-5}$, $9 \times 10^{-7}$ and $2 \times 10^{-15}$. Hydrogen tunnels about 60 times more readily than deuterium through the same barrier, far more than the zero-point effect alone, and heavier atoms essentially never tunnel at room temperature. This is why kinetic isotope effects well above 7 are read as a signature of tunnelling: in the enzyme soybean lipoxygenase-1, Judith Klinman's group measured $k_\mathrm{H}/k_\mathrm{D} \approx 80$ for the hydrogen transfer at room temperature.
+
+{{< fig src="tunnelling.svg" alt="Horizontal bar chart on a logarithmic axis of the tunnelling factor for an electron, a proton, a deuteron and a carbon atom through the same barrier; the factors are 0.8, 5.4 times ten to the minus 5, 9.4 times ten to the minus 7 and 1.9 times ten to the minus 15" caption="The tunnelling factor $e^{-2\kappa a}$ through a barrier 0.2 eV high and 0.5 Å wide. Doubling the mass from H to D lowers it 58-fold; carbon, twelve times heavier than H, is ten orders of magnitude further down." >}}
+
+In simulations, nuclear tunnelling is captured by path-integral methods such as ring-polymer molecular dynamics and instanton rate theory, or added to transition-state theory as a multiplicative correction such as the Wigner factor $1 + (\hbar\omega_b/k_BT)^2/24$, where $\omega_b$ is the imaginary frequency at the barrier top; the Wigner factor is accurate only when the correction is small.
 
 ## From quantum to classical
 
@@ -111,6 +149,8 @@ The numbers for real molecules are revealing. A C–H stretch vibrates at about 
 {{< note type="story" >}}
 Diamond was a known exception to the Dulong–Petit rule long before quantum theory: at room temperature its molar heat capacity is about 6.1 J mol⁻¹ K⁻¹, a quarter of the classical $3R = 24.9$ J mol⁻¹ K⁻¹, and H. F. Weber had measured it falling further on cooling. In 1907 Einstein treated each atom as three oscillators with Planck's quantised energies. With a single frequency corresponding to $\hbar\omega/k_B \approx 1300$ K, his formula gives 6.2 J mol⁻¹ K⁻¹ at room temperature and follows the trend of Weber's data, one of the first applications of quantum ideas to matter rather than to light.
 {{< /note >}}
+
+{{< fig src="diamond.svg" alt="Molar heat capacity of diamond against temperature from 0 to 2000 kelvin in the Einstein model; the curve rises from zero, passes 6.2 at 298 kelvin next to a measured point near 6.1, and approaches the dashed Dulong–Petit line at 24.9" caption="Einstein's model with a single frequency, ħω/$k_B$ = 1300 K, reproduces the room-temperature heat capacity of diamond (6.2 against about 6.1 J mol⁻¹ K⁻¹ measured) and reaches the classical 3R only above about 1500 K. At low temperature the model falls exponentially, too steeply; the real solid has a spread of frequencies, and Debye's 1912 model gives the observed $T^3$ law." >}}
 
 ### Translation, rotation and vibration side by side
 
@@ -154,6 +194,8 @@ print("classical MD: E_th/kBT = 1 and C/kB = 1 for every mode, ZPE = 0")
 
 The output shows the crossover. Modes below about 200 cm⁻¹ keep most of their classical thermal energy and heat capacity; a C–C stretch near 1000 cm⁻¹ already holds only 4 % of its classical thermal energy; and stiffer bonds are frozen while carrying zero-point energies of several $k_BT$.
 
+{{< fig src="modes.svg" alt="Two curves against vibrational wavenumber on a logarithmic axis from 5 to 4200 inverse centimetres: heat capacity over kB in blue and thermal energy over kBT in orange, both near 1 at low wavenumber and falling to zero above about 1500; markers for lattice, torsion, C–C, C=O and C–H modes" caption="The fraction of its classical heat capacity (blue) and thermal energy (orange) that a harmonic mode keeps at 300 K. The heat capacity survives to higher frequency than the energy, but both have vanished by 1700 cm⁻¹, where classical MD still assigns each mode the full $k_B$ and $k_BT$." >}}
+
 ## Is classical molecular dynamics allowed?
 
 Classical MD treats nuclei as points obeying Newton's laws, so it gives each vibration $k_BT$ of energy whether or not it should. A useful yardstick is the **thermal de Broglie wavelength**, the typical quantum blur of a particle at temperature $T$:
@@ -164,6 +206,8 @@ $$ \Lambda = \frac{h}{\sqrt{2\pi\,\textcolor{#845ef7}{m}\,k_B\textcolor{#e64980}
 - a hydrogen atom at 300 K: $\Lambda \approx 1.0$ Å, comparable to bond lengths, so quantum effects can matter
 {{< /eq >}}
 
+The same yardstick separates ordinary liquids from quantum ones. Helium at 4 K has $\Lambda = 4.4$ Å, larger than the 3.6 Å spacing between atoms in the liquid, and liquid helium is the textbook quantum liquid: it stays liquid down to absolute zero at normal pressure and becomes superfluid below 2.17 K. Conduction electrons at 300 K have $\Lambda = 43$ Å, more than ten times the spacing between them in a metal, which is why electrons in solids always need quantum statistics ([the chapter on the Boltzmann distribution](../boltzmann-and-maxwell/) returns to this).
+
 The verdict is that classical dynamics of nuclei is accurate for heavy atoms and for structure, diffusion and most thermodynamics at room temperature. It fails for light atoms (hydrogen, lithium), for high-frequency vibrations, for low temperatures and for heat capacities. The remedies are to constrain stiff bonds (as most biomolecular force fields do with bonds to hydrogen), to apply quantum corrections afterwards, or to use path-integral MD, which represents each quantum nucleus as a ring of classical beads.
 
 {{< note type="warn" >}}
@@ -172,6 +216,10 @@ Flexible classical water is the standard trap. Each water molecule has three int
 
 {{< note type="practice" >}}
 A quick test before trusting classical nuclei: compute $\hbar\omega/k_BT$ for the highest frequencies that matter to the property you want. Below about 1, a classical oscillator's heat capacity is within 10 % of the quantum value; above about 5, the mode holds less than 4 % of its classical thermal energy and should be constrained, corrected or treated quantum mechanically. Path-integral MD needs a number of beads comfortably larger than the largest $\hbar\omega/k_BT$ in the system, about 17 for the O–H stretch of water at 300 K, so around 32 beads are typical there.
+{{< /note >}}
+
+{{< note type="practice" title="From the lab" >}}
+Isotope substitution is the cleanest experimental test for nuclear quantum effects, because classical statistical mechanics predicts that equilibrium properties do not depend on the masses at all: with the same potential, classical H₂O and D₂O have identical structure, densities and melting points. Real heavy water melts at 3.8 °C and has its density maximum at 11.2 °C, against 0 °C and 4 °C for ordinary water. A simulation study of nuclear quantum effects therefore runs path-integral MD with both isotopes (codes such as i-PI drive the beads, with the forces from a force field, a machine-learned potential or DFT) and compares the isotope shifts, not the absolute values, with experiment, since the shifts are insensitive to small errors in the potential. Ring-polymer contraction, which evaluates the expensive long-range forces on fewer beads, and generalised Langevin thermostats such as PIGLET reduce the bead count to a handful and make such studies affordable with ab initio forces.
 {{< /note >}}
 
 {{< note type="key" >}}
@@ -206,6 +254,10 @@ A quick test before trusting classical nuclei: compute $\hbar\omega/k_BT$ for th
   options: ["It is comparable to $k_BT$", "It is a few per cent of $k_BT$", "It is a few billionths of $k_BT$, so translation is classical"]
   answer: 2
   why: "Near level $n \\approx \\sqrt{k_BT/E_1} \\approx 6 \\times 10^8$ the spacing is $2nE_1 \\approx 3 \\times 10^{-9}\\,k_BT$."
+- q: "Through the same thin barrier, how does the tunnelling factor of a deuteron compare with that of a proton?"
+  options: ["The same, because the barrier is the same", "Lower by a factor of about 60, because the decay constant grows as the square root of the mass", "Higher, because deuterium is heavier"]
+  answer: 1
+  why: "$e^{-2\\kappa a}$ with $\\kappa \\propto \\sqrt{m}$: for a 0.2 eV, 0.5 Å barrier the exponent rises from 9.8 to 13.9, a 58-fold drop. Isotope effects far above 7 point to tunnelling."
 {{< /quiz >}}
 
 ## References and further reading

@@ -8,6 +8,14 @@ objectives:
   - "Distinguish syntax errors caught before running from errors raised during execution"
   - "Interpret stack-machine bytecode, frames and the call stack behind a traceback"
   - "Explain why each Python operation costs far more than its compiled equivalent"
+cover: "cover.svg"
+milestones:
+  - year: 1991
+    text: "Guido van Rossum posts the first public Python release, 0.9.0, to alt.sources"
+  - year: 2022
+    text: "Python 3.11 ships Mark Shannon's specialising adaptive interpreter, described in PEP 659"
+  - year: 2024
+    text: "Python 3.13 adds Brandt Bucher's experimental JIT and Sam Gross's free-threaded build"
 track: pycore
 weight: 1
 level: Foundation
@@ -27,11 +35,23 @@ Python, as it is normally used, sits between the two. The program that runs Pyth
 
 Other implementations of the same language exist. PyPy compiles frequently executed parts of a program into machine code while it runs (just-in-time compilation) and is often several times faster on pure-Python loops. The Python inside this page is **Pyodide**: CPython itself, compiled to WebAssembly, the portable machine code that web browsers can run. When you press a run button on this site, it is the genuine CPython 3.12 interpreter that executes your code, just running inside the browser rather than directly on your operating system.
 
+{{< fig src="routes.svg" alt="Three lanes ending at one processor box. Fortran source is compiled to machine code before execution and runs directly. Python source is compiled to bytecode, which a virtual machine written in C carries out one instruction at a time. In the third lane an interpreter watches for hot loops and compiles them to machine code while the program runs." caption="Every route ends in machine code on the processor. The routes differ in when the translation happens and in what the processor actually executes: your program itself, or an interpreter acting on its behalf." >}}
+
+The three lanes of the figure differ in one respect that decides speed. In the first lane the processor executes instructions derived from *your* program, chosen by a compiler that knew every type in advance. In the second it executes the instructions of the CPython virtual machine, which reads your bytecode as data. In the third, a just-in-time compiler observes which loops run often and with which types, and only then emits machine code for them; Java's HotSpot virtual machine, the V8 JavaScript engine and PyPy all work this way. CPython 3.13 has taken a first step into the third lane, described at the end of the chapter.
+
+{{< note type="story" >}}
+Guido van Rossum started writing Python over the Christmas holidays of 1989 at the Centrum Wiskunde & Informatica (CWI) in Amsterdam, as a successor to ABC, a teaching language he had worked on there, and named it after the BBC series *Monty Python's Flying Circus*. He posted version 0.9.0 to the Usenet group alt.sources in February 1991. The source files that hold the evaluation loop, `ceval.c`, and the bytecode compiler, `compile.c`, already existed in that release; three decades of work have rewritten what is inside them more than once without changing the division of labour.
+{{< /note >}}
+
 ## Starting the interpreter
 
 When you type `python3 analyse.py` in a terminal, the shell asks the operating system to start a new process running the CPython executable, a file of machine code typically found at `/usr/bin/python3` or inside a conda environment, and passes it the argument `analyse.py` ([the chapter on how bash works](../how-bash-works/) describes this in detail). CPython initialises itself: it sets up its memory allocator, creates the built-in objects such as `int`, `print` and `None`, and imports a few essential modules. Then it reads your file and the pipeline below begins.
 
 There are other ways to give CPython code. Typing `python3` with no file starts the **interactive interpreter**, or REPL (read–evaluate–print loop), which compiles and runs each statement as you enter it and prints the value of each expression. A **Jupyter notebook** sends cells of code to a long-running Python process called a kernel, which compiles and runs each cell when you execute it and keeps all names alive between cells. The cells on this site behave the same way: cells on one page share an interpreter, so a name defined in one cell can be used in the next.
+
+Whichever way the code arrives, it passes through the same stages, summarised in the figure below and taken one at a time in the sections that follow.
+
+{{< fig src="pipeline.svg" alt="Five boxes in a row: source text, tokens, syntax tree, code object and running program, joined by arrows labelled tokenizer, parser, compiler and virtual machine. A dashed path from source text to code object marks the pyc cache. Arrows below mark SyntaxError leaving from the tokenizer and parser, and run-time exceptions leaving from the running program." caption="The CPython pipeline for one line of code. A syntax error stops the pipeline before the virtual machine starts, so no line of the file runs; an exception raised while running arrives after every earlier line has already done its work, including any files it wrote." >}}
 
 ## From characters to tokens
 
@@ -53,6 +73,10 @@ If the tokens do not form a valid program, parsing fails and Python reports a `S
 
 The third stage, the **compiler**, walks the syntax tree and emits bytecode. Bytecode is a list of simple instructions, each two bytes long (some followed by a few bytes of cache space), for an imaginary machine that does not exist in hardware: the CPython virtual machine. Open the bytecode stage of the figure. The assignment `x = 3` becomes two instructions, `LOAD_CONST 3` and `STORE_NAME x`; the expression `2 * (x + 4)` becomes "load 2, load x, load 4, add, multiply" in exactly the order the tree prescribes, so that the addition happens before the multiplication.
 
+The order follows from how the compiler walks the tree: **depth first, children before parents**, a post-order traversal. To emit code for a `BinOp` node it first emits the code for its left operand, then for its right operand, then the operator. A stack machine needs exactly this order, because an operator can only run once both of its operands are on the stack. The figure numbers the nodes of the tree in the order the compiler visits them and shows the value stack after each of the six resulting instructions, with `x` bound to 3. The stack never holds more than three values for this statement. The compiler works out that maximum for every code object, stores it as `co_stacksize` (3 here), and each frame reserves exactly that much stack space when it is created, so the virtual machine never has to check for or grow a full stack while it runs.
+
+{{< fig src="treestack.svg" alt="Top: the syntax tree of y = 2 * (x + 4), with an Assign node at the root, the target Name y, and nested BinOp nodes for multiplication and addition; the nodes are numbered 1 to 6 in post-order. Bottom: six snapshots of the value stack: [2], [2, 3], [2, 3, 4], [2, 7], [14], and finally empty with y bound to 14." caption="Bytecode is the syntax tree read children first. With x = 3 the stack peaks at three values; the addition and the multiplication then collapse it to 14, which STORE_NAME binds to y." >}}
+
 The compiled result is a **code object**, containing the bytecode, the table of constants it uses (here 3, 2, 4 and `None`), the names it refers to, and a table mapping each instruction back to a line of the source, which is how error messages can tell you the line where something went wrong. Every function has a code object of its own, compiled once when the module is compiled.
 
 Compiling is fast, but not free, so CPython caches the bytecode of imported modules. The first time you `import mymodule`, CPython writes the compiled code to a file such as `__pycache__/mymodule.cpython-312.pyc`, and later imports load the `.pyc` file directly if the source has not changed. That is the origin of the `__pycache__` directories that appear next to your code. You can look at any bytecode yourself with the standard `dis` module:
@@ -61,6 +85,10 @@ Compiling is fast, but not free, so CPython caches the bytecode of imported modu
 import dis
 dis.dis("y = 2 * (x + 4)")
 {{< /py >}}
+
+{{< note type="warn" title="Myth" >}}
+**Myth:** keeping `__pycache__`, or distributing `.pyc` files, makes a program run faster. **Reality:** a `.pyc` file holds exactly the bytecode the compiler would have produced anyway, so the virtual machine executes it at the same speed. The saving is only the tokenise, parse and compile work at import time, typically milliseconds per module; the Python tutorial says the same in its section on compiled files. The script named on the command line is never cached at all, only the modules it imports. A slow program is slow in the evaluation loop or in the libraries it calls.
+{{< /note >}}
 
 ## The virtual machine
 
@@ -78,7 +106,27 @@ The function-call program shows **frames**. A function definition, `def square(a
 
 Each bytecode instruction is carried out by C code that typically executes dozens to hundreds of machine instructions. The work is not only the arithmetic itself. To execute `BINARY_OP +` the interpreter must fetch and decode the instruction, check the types of both operands (they could be integers, floats, strings, lists or objects of a class you defined), find the right addition routine for those types, check whether the result fits, create a new object to hold it, and adjust reference counts. A compiled Fortran loop adding two arrays of numbers spends perhaps one or two machine instructions per element, because the compiler knew in advance that every element is a 64-bit float. The flexibility of Python, where any name may refer to any type of object at any moment, is paid for at every step.
 
+### Measuring the overhead
+
+{{< note type="try" title="Pause and predict" >}}
+A script runs `for x in xs: s = s + x * x` over 200 000 floats at its top level. You indent the same lines into `def main():` and call `main()`. Does the loop get faster, slower, or stay the same, and by roughly how much? The right panel of the next figure has the measurement and the paragraph after it the reason.
+{{< /note >}}
+
+The cost can be measured directly. The left panel of the figure below times three ways of adding up N floats with CPython 3.13 on a Linux workstation: an explicit `for` loop, the built-in `sum()`, and NumPy's `a.sum()` on an array. The `for` loop costs about 20 ns per element at every size. At a 3 GHz clock that is some 60 processor cycles for one addition, spent dispatching the six instructions of each pass (`FOR_ITER`, `STORE_FAST`, a combined load of `s` and `x`, `BINARY_OP`, `STORE_FAST` and `JUMP_BACKWARD`), checking types, and allocating a new float object for every partial sum. `sum()` runs the same loop in C without dispatching any bytecode and needs about 7 ns per element; it still has to follow a pointer to each element and unpack a float object. NumPy works on a contiguous buffer of raw doubles and reaches 0.2 to 0.3 ns per element for large arrays, nearly a hundred times faster than the loop. For short inputs the order reverses: each NumPy call carries roughly a microsecond of fixed cost for argument parsing, type dispatch and creating the result, so below about a hundred elements `sum()` on a list is as fast or faster.
+
+{{< fig src="overhead.svg" alt="Left: log-log plot of time per element against the number of floats N for a Python for loop, about 20 ns flat; built-in sum, about 7 ns; and NumPy sum, falling from about 100 ns at N = 10 to about 0.3 ns for large N. Right: bar chart of time per iteration for the loop s = s + x * x, about three times longer at module level than inside a function." caption="Measured with CPython 3.13 on a shared Linux workstation; absolute times vary between machines and runs, the ratios much less. NumPy pays about a microsecond per call and then a fraction of a nanosecond per element." >}}
+
+The right panel tests a claim made earlier in this chapter. The same loop runs three to four times faster inside a function than at the top level of a script. At module level, every read and write of `s` and `x` is a `LOAD_NAME` or `STORE_NAME`, a dictionary lookup keyed by a string; inside a function the compiler has already assigned each local variable a numbered slot, and `LOAD_FAST` and `STORE_FAST` are array indexing. Wrapping the body of a script in a `main()` function is the cheapest optimisation available in Python.
+
+{{< note type="practice" title="Back of the envelope" >}}
+Write a Lennard-Jones molecular dynamics code in pure Python for 10 000 atoms with about 50 neighbours each inside the cutoff. One step evaluates 10 000 × 50 / 2 = 250 000 pairs. At roughly 0.5 µs per pair for the distance, the energy, three force components and their accumulation (merely visiting a pair costs 0.1 to 0.2 µs, as [the chapter on control flow](../python-control-flow/) measures), a step takes about 0.13 s, and 1 ns of trajectory at a 2 fs time step, 500 000 steps, takes about 63 000 s: 17 hours. LAMMPS needs of order a microsecond per atom per step on one core for a Lennard-Jones liquid, about 0.01 s per step here, and finishes the same run in under an hour and a half. A factor of ten to a hundred, on every step, is why the inner loops of every production MD and electronic-structure code are written in C, C++ or Fortran.
+{{< /note >}}
+
 This is not a reason to avoid Python; it is a reason to use it well. The usual pattern in scientific computing is to write the overall logic in Python and to hand the heavy numerical loops to compiled code: a NumPy operation on an array of a million numbers is a single Python-level instruction that runs a compiled C loop internally, so the interpreter's overhead is paid once rather than a million times ([the chapter on NumPy](../numpy-arrays/) explains how). Machine-learning frameworks such as PyTorch work the same way, with Python describing the computation and compiled kernels on the GPU doing it.
+
+{{< note type="practice" title="From the lab" >}}
+In a typical computational materials workflow, Python sits on top of compiled engines. ASE or pymatgen build the structures and write the input files, VASP or Quantum ESPRESSO (Fortran) or LAMMPS (C++) do the expensive work, and Python parses the output. Profiling such a workflow with `python -m cProfile -s cumtime workflow.py` usually shows nearly all of the wall time inside a call that waits for the external program or inside NumPy, and a few per cent in Python itself, so tuning the Python is wasted effort. The exceptions are analysis scripts that loop in pure Python over every atom of every frame of a long trajectory. Those loops are worth rewriting with NumPy array operations or compiling with Numba, whose `@njit` decorator translates a numerical Python function into machine code through the LLVM compiler the first time it is called.
+{{< /note >}}
 
 CPython itself has also become much faster. Since version 3.11 it has been a **specialising adaptive interpreter** (PEP 659): after an instruction has run a few times, CPython replaces it with a specialised version for the types it has actually seen, such as an addition that assumes two floats, guarded by a quick check. Version 3.13 added an experimental just-in-time compiler and an optional build without the global interpreter lock, which is discussed with parallelism in [the chapter on performance](../python-performance/).
 

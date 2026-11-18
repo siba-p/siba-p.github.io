@@ -8,6 +8,16 @@ objectives:
   - "Run a query-by-committee campaign with trust levels and a stopping rule"
   - "Compare committee disagreement with Gaussian-process variance as measures of uncertainty"
   - "Estimate the DFT budget of an active-learning campaign against direct ab initio MD"
+cover: "cover.svg"
+milestones:
+  - year: 1992
+    text: "Seung, Opper and Sompolinsky propose query by committee"
+  - year: 1998
+    text: "Jones, Schonlau and Welch publish efficient global optimisation with expected improvement"
+  - year: 2017
+    text: "Podryabinkin and Shapeev select training data for moment tensor potentials by extrapolation grade"
+  - year: 2020
+    text: "Burger and colleagues' mobile robotic chemist runs 688 experiments in eight days"
 track: practice
 weight: 4
 level: Advanced
@@ -58,6 +68,8 @@ $$
 
 with $\Phi$ and $\phi$ the standard normal distribution and density, and a small margin $\xi$. The first term rewards a high mean, the second a large uncertainty; EI balances them automatically and has no exploration parameter to tune, which is why it is the most common default.
 
+A worked example shows the balance. Let the best measurement so far be $y^* = 0.62$, with $\xi = 0.01$, and compare three candidate points. At the first the model predicts $\mu = 0.63$ with $\sigma = 0.01$: it is almost certainly a hair better than the incumbent, but $z = 0$ and $a_{\text{EI}} = 0.01 \times 0.399 = 0.004$. At the second, $\mu = 0.60$ and $\sigma = 0.10$: $z = -0.3$, the first term is $-0.03 \times 0.382 = -0.011$, the second $0.10 \times 0.381 = 0.038$, and $a_{\text{EI}} = 0.027$. At the third, far from any data, $\mu = 0.40$ and $\sigma = 0.25$: $z = -0.92$ and $a_{\text{EI}} = -0.041 + 0.065 = 0.024$. The near-certain small gain scores six times less than either uncertain point, and a point with a mean 0.22 below the incumbent scores almost as well as one 0.02 below it, because its wider distribution reaches further above $y^*$. UCB with $\kappa = 4$ would rank the same three points 0.67, 1.00 and 1.40, preferring the most remote one by a wide margin.
+
 **For active learning**, the simplest acquisition is the uncertainty itself, $a(\mathbf x) = \sigma(\mathbf x)$, or for an ensemble of potentials, the disagreement between members on a candidate configuration. Configurations that maximise it are sent to DFT.
 
 In the lab, notice that the narrow global peak near $x = 0.72$ is invisible to the model until an experiment happens to land near it; EI finds it because, after the obvious peak is mapped, the remaining uncertainty elsewhere becomes worth exploring. The readout compares the gap to the true optimum with the average gap reached by **random search** after the same number of experiments.
@@ -78,6 +90,10 @@ $$ \textcolor{#f08c2e}{\epsilon_F} = \max_i \sqrt{\Big\langle \big\lVert \textco
 
 Two thresholds turn the score into a decision. Below a lower trust level $\epsilon_{\text{lo}}$ a frame is **accurate** and skipped. Between the two levels it is a **candidate** for DFT. Above an upper level $\epsilon_{\text{hi}}$ it is **failed** and also skipped, because such frames usually come from a trajectory that has already gone astray, with atoms in unphysical positions, and computing them wastes DFT time or does not converge at all. Typical values are a few hundredths and a few tenths of an eV/Å, with $\epsilon_{\text{lo}}$ set a little above the committee's spread on held-out structures whose errors are acceptable.
 
+{{< note type="practice" title="From the lab" >}}
+In DP-GEN the two levels are the input keys `model_devi_f_trust_lo` and `model_devi_f_trust_hi`. During exploration, LAMMPS runs with all committee models loaded at once and writes, for every saved frame, the largest, smallest and mean force deviation to a file (`model_devi.out`); the selection step reads the largest force deviation and sorts frames into the three bins. A common starting pair is 0.05 and 0.15 eV/Å, adjusted after the first iteration: if almost every frame lands in *candidate*, the lower level sits below the committee's irreducible spread; if hardly any do while validation errors remain large, it sits too high. FLARE, MTP and pacemaker follow the same pattern with their own uncertainty measures and a single threshold that pauses the simulation.
+{{< /note >}}
+
 ### Gaussian-process variance
 
 A Gaussian-process potential provides an uncertainty without a committee. FLARE (Vandermause and colleagues, 2020) runs molecular dynamics with a Gaussian-process force field and watches the predicted uncertainty of every atom's force. When it exceeds a threshold, the simulation pauses, DFT is called on the current frame, the most uncertain atomic environments are added to the model, and the run carries on: the training set is built by the very simulation it serves.
@@ -90,6 +106,8 @@ $$
 
 which depends on where the training data are (through the kernel matrix $\mathbf K$ and the kernels $\mathbf k_*$ between the new point and the data) but **not on their labels**. Variance-driven selection is therefore a space-filling design in the metric of the kernel: it goes where data are sparse, whether or not the energy surface there is difficult, until the hyperparameters are refitted. A committee's disagreement does depend on the labels, so it can notice that one region is harder than another. But it costs four or five times as much to train and evaluate, and members that share an architecture and a data set can agree confidently and be wrong together. Linear models offer a third measure, the D-optimality extrapolation grade of moment tensor potentials (Podryabinkin and Shapeev, 2017), which, like the GP variance, depends only on where the data are ([kernel and linear potentials](../kernel-and-linear-potentials/)). None of the three is guaranteed to be calibrated; all are best used to rank configurations.
 
+{{< fig src="gp-labels.svg" alt="Two panels with the same six training inputs and the same shaded uncertainty band. Left: a smooth sine target fitted closely, largest error 0.09. Right: a rough target with extra oscillations, fitted poorly, largest error 0.66, although the band is identical" caption="Same inputs, same kernel (squared exponential, length scale 0.12), same band: the predictive variance cannot tell that the right-hand target is rougher. The largest error grows from 0.09 to 0.66, while the band stays at most ±0.96 in both panels. Only refitting the hyperparameters, or a committee whose members see the labels, can notice the difference." >}}
+
 ### A realistic campaign
 
 A typical campaign for one material, say an elemental metal near its melting point, has the following shape. The numbers are representative, not prescriptive.
@@ -100,9 +118,15 @@ A typical campaign for one material, say an elemental metal near its melting poi
 4. **Label and retrain.** Compute the selected frames with DFT, add them, and retrain every member.
 5. **Stop or extend.** When nearly all frames in every exploration condition, say 99 per cent, fall below $\epsilon_{\text{lo}}$ for two or three successive iterations, the potential has converged *for those conditions*. Extend the conditions (surfaces, vacancies, higher pressures) and repeat, or stop and validate.
 
+{{< fig src="loop.svg" alt="Flow diagram: seed DFT data, train a committee of four models, explore with MD, score every frame by force deviation, sort frames into accurate, candidate and failed bins between two trust levels, send candidates to DFT, add them to the data and retrain" caption="One iteration of a committee campaign. Only the middle bin, between the trust levels $\epsilon_{\text{lo}}$ and $\epsilon_{\text{hi}}$, costs DFT time; frames in the other two bins are discarded." >}}
+
 The arithmetic shows why the loop is worth the trouble. Ten iterations of up to 200 frames plus the seed make about 2,000 DFT calculations. Ab initio MD covering the same conditions directly, say 20 runs of 10 ps with 2 fs steps, needs 100,000 DFT force evaluations, about fifty times more, and still oversamples the uninformative configurations near equilibrium. The committee certifies only that its members agree on what was explored, so the final potential still needs the physical validation of [the chapter on training and validation](../mlip/).
 
 The cell below runs a miniature campaign. The "DFT" reference is a Morse bond curve. The pool is 2,000 bond lengths drawn as a hot MD simulation would visit them, crowded near equilibrium with rare compressed and stretched frames. The committee is five ridge-regression models that differ only in the width of their Gaussian basis functions. Starting from three calculations near equilibrium, it repeatedly sends the frame with the largest spread to "DFT", and stops when the largest spread anywhere in the pool falls below 0.02 eV.
+
+{{< note type="try" title="Pause and predict" >}}
+Before running the cell, guess which bond length the committee will ask about first: the equilibrium region where most frames lie, the stretched tail, or the compressed wall? And how many calculations will it need before the five models agree to within 0.02 eV on all 2,000 frames?
+{{< /note >}}
 
 {{< py title="query by committee on a bond curve" >}}
 import numpy as np
@@ -140,11 +164,19 @@ stopped after 11 DFT calls; worst error on the pool 0.052 eV
 
 The committee goes straight for the extremes: the most compressed frame in the pool (0.84 Å), then stretched bonds out to the tail at 2.36 Å, configurations that random picks rarely include. After eleven calculations its worst error anywhere in the pool is 0.052 eV. Eleven frames chosen at random leave a worst error of 0.56 eV, ten times larger, because the model must extrapolate to the rare frames. Notice too that the committee stopped with its largest spread below 0.02 eV while its true worst error was 0.052 eV: the spread ranked the frames correctly but underestimated the error by a factor of two and a half. It is a ranking, not an error bar.
 
+{{< fig src="campaign.svg" alt="Left: a Morse bond curve with three grey seed points near the minimum and eight orange numbered queries spread from 0.84 to 2.36 Å, above a log-scale histogram of the 2,000 pool frames crowded near 1.2 Å. Right: largest error on the pool against number of DFT calculations, for random selection (flat near 0.57 eV) and for the committee (falling to 0.052 eV), with the committee spread dashed below" caption="The committee asks about the sparsely populated wings of the pool, not the crowded middle. Its true worst error drops to 0.052 eV at the ninth calculation, when the query at 0.96 Å pins down the repulsive wall; random picks stall near 0.57 eV. The dashed spread lies below the true error at every stage and does not even fall monotonically." >}}
+
+The learning curve on the right of the figure holds two further lessons. First, progress is uneven. The worst error sits at about 0.27 eV for two iterations and then falls fivefold in one step, because the error is dominated by a single region, the steep wall between 0.84 Å and the seeds, and nothing improves until a query lands there. Second, the spread is a poor guide to *how much* error is left: after the first query it rises from 0.39 to 0.48 eV, as fitting the extreme frame at 0.84 Å makes the members disagree more elsewhere. For random selection the worst error in 31 of 50 draws sits at that same 0.84 Å frame, and in the rest in the stretched tail beyond 2 Å. Only 80 of the 2,000 frames lie below 1 Å, so eleven random picks include one only about a third of the time.
+
 {{< note type="warn" title="Common mistakes in active-learning campaigns" >}}
 - **Thresholds chosen in a vacuum.** A lower trust level below the committee's spread on well-described structures spends DFT time on noise; one far above it lets real errors through. Calibrate it on a test set first.
 - **Taking the top of the ranking.** The most uncertain frames are often consecutive snapshots of one event. Select a diverse subset.
 - **Labelling exploded frames.** Frames with enormous disagreement are usually unphysical. They belong in the failed bin, not in the training set.
 - **Stopping because the committee agrees.** Agreement certifies only the conditions explored. A potential converged for the bulk crystal knows nothing about its surface.
+{{< /note >}}
+
+{{< note type="warn" title="Myth" >}}
+**Myth:** active learning always beats random sampling. **Reality:** its advantage is largest when the pool is skewed and the configurations that matter are rare, as in the bond-curve campaign, where 4 per cent of the frames hold most of the error. When the pool already matches the conditions of the production runs and the model is data-hungry everywhere, random selection is a strong baseline and costs nothing to compute. A second catch follows from the first: an actively chosen training set over-represents the hard cases, so errors measured on held-out frames *from that set* overstate the error on typical frames, and errors measured on random frames from the pool understate it in the rare regions. Keep a separate test set drawn from the conditions you will simulate, and report errors by region (crystal, liquid, surface) instead of one average.
 {{< /note >}}
 
 ## Beyond the textbook loop

@@ -8,6 +8,16 @@ objectives:
   - "Explain why squared error learns slowly from confident mistakes in a sigmoid neuron"
   - "Trace Rosenblatt's perceptron rule by hand on a small data set"
   - "Diagnose runaway weights on separable data and slow training from unscaled inputs"
+cover: "cover.svg"
+milestones:
+  - year: 1958
+    text: "Rosenblatt's perceptron learns its weights on an IBM 704 at the Cornell Aeronautical Laboratory"
+  - year: 1960
+    text: "Widrow and Hoff train ADALINE with the least-mean-squares delta rule"
+  - year: 1962
+    text: "Novikoff bounds the number of mistakes the perceptron rule can make"
+  - year: 2018
+    text: "Soudry and co-workers show gradient descent drifts towards the maximum-margin boundary"
 track: neuron
 weight: 2
 level: Foundation
@@ -39,6 +49,14 @@ $$ \textcolor{#e64980}{\mathcal L}(\textcolor{#12a594}{\mathbf w}, \textcolor{#8
 
 Look at what one term does. If the label is 1 and the neuron says $\hat y = 0.99$, the cost is $-\ln 0.99 \approx 0.01$. If it says $0.5$, the cost is $0.69$. If it confidently says $0.01$, the cost is $4.6$, and it grows without limit as the prediction approaches 0. Cross-entropy punishes confident mistakes severely, which is exactly what we want from a classifier.
 
+### Reading a loss value
+
+The name comes from information theory. Claude Shannon measured the information in an event of probability $p$ as $-\log p$, the **surprise**: certain events carry none, rare ones a lot. Cross-entropy is the average surprise of the true labels under the model's probabilities, in nats when the logarithm is natural; divide by $\ln 2 = 0.693$ to get bits. A loss of exactly $\ln 2$ is therefore one bit per example, the surprise of a fair coin.
+
+{{< note type="practice" title="Back of the envelope" >}}
+Exponentiate a cross-entropy and it becomes readable: $e^{-\mathcal L}$ is the geometric mean of the probabilities the model assigns to the correct labels. A loss of 0.381 means the model gives the true label 0.68 on a typical example; 0.256 means 0.77; 0.05 means 0.95. The baseline to beat is not always $\ln 2$. A model that knows only the base rate $p$ of the positive class, and predicts $p$ for every example, scores $-[p\ln p + (1-p)\ln(1-p)]$, the entropy of the labels. With 5% positives that is 0.199, so on such data a training loss of 0.2 means the descriptors have contributed nothing yet.
+{{< /note >}}
+
 ## The gradient, in one line
 
 To go downhill we need the slope of $\mathcal L$ with respect to every weight. Here the sigmoid and the logarithm cancel in a way that is almost too neat. Use the chain rule on one example, with $z = \mathbf w\cdot\mathbf x + b$:
@@ -51,6 +69,16 @@ $$ \frac{\partial\,\textcolor{#e64980}{\ell}}{\partial \textcolor{#12a594}{w_j}}
 
 The meaning is intuitive. If the neuron says 0.9 for an example that is really 0, the error $\hat y - y = 0.9$ is large and positive, so every weight whose input was positive is pushed down. If the prediction is right, the error is near zero and nothing changes. Learning is driven by mistakes.
 
+The cancellation behind the one-line formula takes one line to check:
+
+$$
+\frac{\partial\ell}{\partial\hat y}\,\frac{\partial\hat y}{\partial z} = \Big[-\frac{y}{\hat y} + \frac{1-y}{1-\hat y}\Big]\,\hat y(1-\hat y) = -y(1-\hat y) + (1-y)\,\hat y = \hat y - y .
+$$
+
+It is not a coincidence. Linear regression with squared error has the same gradient, $(\hat y - y)\,x_j$, and so does a softmax output trained with multi-class cross-entropy. In the language of generalised linear models, each pairs an output function with the negative log-likelihood of the matching noise model (Gaussian for a linear output, Bernoulli for the sigmoid, categorical for the softmax), a pairing statisticians call the **canonical link**, and for every such pair the gradient reduces to prediction minus observation, times input.
+
+The bias gradient carries a useful consequence. At the minimum of the unregularised loss, $\partial\mathcal L/\partial b = \frac1N\sum_i(\hat y_i - y_i) = 0$, so the average predicted probability equals the fraction of positive labels in the training set. A logistic model trained on a library in which 5% of compounds are stable predicts, averaged over that library, exactly 5%. If the model is applied where the base rate differs, say $p' = 30\%$ instead of $p = 5\%$, while the descriptors within each class are distributed as before, its probabilities are off by a constant in the log-odds, and only the bias term needs correcting: adding $\ln[p'/(1-p')] - \ln[p/(1-p)]$ to $b$ moves the prior from $p$ to $p'$.
+
 ## Why not squared error?
 
 Squared error served [linear regression](../learning-from-data/) well, so why not use it here? Try it. With $\ell = \tfrac12(\hat y - y)^2$ the same chain rule gives
@@ -61,6 +89,8 @@ $$ \frac{\partial \textcolor{#e64980}{\ell}}{\partial \textcolor{#d4a017}{z}} = 
 {{< /eq >}}
 
 The extra factor $\hat y(1-\hat y)$ is the trouble. Take an example labelled 1 that the neuron gets badly wrong, with $z = -5$ and so $\hat y = 0.0067$. The cross-entropy slope with respect to $z$ is $\hat y - y = -0.993$, almost as large as it can be. The squared-error slope is $-0.993 \times 0.0067 \times 0.993 = -0.0066$, about 150 times smaller. A neuron trained with squared error learns most slowly from exactly the examples it gets most wrong, the opposite of what a good student, or a good classifier, should do. The logarithm in cross-entropy cancels the flat tails of the sigmoid precisely. There is a second problem: the squared error of a sigmoid is not a convex function of the weights, and its landscape has flat plateaus where gradient descent stalls, whereas cross-entropy gives a single bowl.
+
+{{< fig src="ce-vs-se.svg" alt="Left, the loss of one example labelled 1 against the weighted sum z, for cross-entropy, which rises steadily for negative z, and for squared error, which flattens at 0.5. Right, the magnitude of each loss's slope on a logarithmic axis, with values 0.993 and 0.0066 marked at z equal to minus 5" caption="One example with label 1. Left: squared error saturates at 0.5 on the wrong side ($z < 0$, shaded), so a badly wrong prediction costs little more than a mildly wrong one, while cross-entropy keeps rising. Right: at $z = -5$ the cross-entropy slope is 0.993 and the squared-error slope 0.0066, 150 times smaller." >}}
 
 The cell below makes the comparison concrete. It prints both slopes for an example labelled 1 at several values of $z$, then trains a one-input neuron on two overlapping clusters, starting from a weight of −4 that makes it confidently wrong about almost every point, and counts the gradient-descent steps each loss needs to classify 95% of the points correctly.
 
@@ -89,6 +119,8 @@ for loss in ["cross-entropy", "squared"]:
 
 With the same learning rate, cross-entropy recovers in 6 steps and squared error needs 272. The squared-error neuron is not stuck for ever, but it spends most of its time crawling off a plateau of its own making. In a network, where many neurons can saturate at once, the effect compounds, which is why classifiers are almost always trained with cross-entropy.
 
+{{< fig src="training-curves.svg" alt="Two panels on a logarithmic step axis. Left, the weight w over 1000 steps: under cross-entropy it rises from minus 4 past zero within a few steps; under squared error it stays near minus 4 for about 200 steps and then jumps. Right, accuracy: cross-entropy reaches 95 percent at step 6, squared error at step 272" caption="The experiment of the cell above, recorded at every step. Under squared error the weight sits on a plateau near its starting value of $-4$ for some 200 steps, because almost every point is confidently misclassified and contributes a slope near zero; under cross-entropy those same points drive the fastest learning." >}}
+
 ## Walking downhill
 
 **Gradient descent** repeats one update: compute the average gradient over the data and step against it,
@@ -97,7 +129,7 @@ $$
 \textcolor{#12a594}{\mathbf w} \leftarrow \textcolor{#12a594}{\mathbf w} - \eta\, \frac1N\sum_i (\hat y_i - y_i)\,\mathbf x_i, \qquad \textcolor{#845ef7}{b} \leftarrow \textcolor{#845ef7}{b} - \eta\,\frac1N\sum_i (\hat y_i - y_i),
 $$
 
-where $\eta$, the **learning rate**, sets the step size.
+where $\eta$, the **learning rate**, sets the step size. With millions of examples, averaging over all of them for every step is wasteful, and practical training estimates the gradient from a small random **mini-batch** instead; [the gradient-descent chapter](../gradient-descent/) covers that and the optimisers built on it.
 
 {{< widget name="neuronlearn" title="A neuron learning to separate two classes" caption="Left: the data and the neuron's current boundary and probabilities. Right: the loss for every pair of weights (darker is lower, at the current bias), with the path the weights have taken. Press Train. Then add points of either class by clicking, or try a learning rate of 3." >}}
 
@@ -127,6 +159,18 @@ $$
 
 with $\partial\mathcal L/\partial b = 0$ because the four errors cancel. One step with $\eta = 1$ moves the weights to $\mathbf w = (0.5, 0.375)$. The new predictions are 0.71 and 0.73 for the stable compounds and 0.38 and 0.32 for the unstable ones, all on the correct side of 0.5, and the loss falls from 0.693 to 0.381. A second step brings it to 0.256. Each step is smaller than the one before, because the errors that drive it shrink as the predictions improve.
 
+### How large a step is safe?
+
+For one neuron the safe learning rate can be estimated before training. The curvature of the cross-entropy is its matrix of second derivatives, $\mathbf H = \frac1N\sum_i \hat y_i(1-\hat y_i)\,\tilde{\mathbf x}_i\tilde{\mathbf x}_i^{\top}$, where $\tilde{\mathbf x} = (1, x_1, x_2, \dots)$ includes the constant input that multiplies the bias. Since $\hat y(1-\hat y) \le 1/4$, the curvature never exceeds a quarter of the largest eigenvalue $\lambda_{\max}$ of the input second-moment matrix $\frac1N\sum_i\tilde{\mathbf x}_i\tilde{\mathbf x}_i^{\top}$, and gradient descent on a convex bowl is stable for any step below 2 divided by the largest curvature. Hence
+
+$$
+\eta < \frac{8}{\lambda_{\max}} .
+$$
+
+The bound is tight at the start of training, when every prediction is 0.5. For the four compounds above, $\lambda_{\max} = 1.82$, so any $\eta$ up to 4.4 is safe and the step of 1 used there is comfortably inside. For standardised, uncorrelated inputs, $\lambda_{\max} = 1$ and $\eta$ up to 8 is safe.
+
+Now leave one descriptor unscaled: a synthesis temperature in kelvin with mean 1000 K and standard deviation 200 K. Its second moment is about $1.04\times10^{6}$, the bound falls to $\eta < 8\times10^{-6}$, and along a standardised descriptor, where the curvature is at most $1/4$, each step now removes only about $2\times10^{-6}$ of the remaining error. Reaching the minimum takes of order a million steps instead of tens. This is the long thin valley described in the next section, put into numbers, and standardisation removes it in one line of code.
+
 ## Two things that go wrong already
 
 - **Perfectly separable data.** If a straight line separates the classes exactly, the loss can always be lowered by making the weights larger and the boundary sharper, so they grow forever. In the lab, whenever the readout shows every point classified correctly, keep training and watch $\lVert\mathbf w\rVert$ keep increasing. The cure is **regularisation**, a penalty on large weights, discussed in [the generalisation chapter](../generalisation/).
@@ -139,9 +183,19 @@ with $\partial\mathcal L/\partial b = 0$ because the four errors cancel. One ste
 - For a few features and a few thousand examples, use a library solver such as the default `lbfgs`, which needs no learning rate. Hand-written gradient descent is for understanding, and for networks.
 {{< /note >}}
 
+{{< note type="warn" title="Myth" >}}
+**Myth:** a well-trained classifier drives the loss to zero. **Reality:** when the classes overlap, the lowest achievable cross-entropy is well above zero. Take the two clusters of the Python cell above: one-dimensional Gaussians centred at $\pm1.5$ with standard deviation 0.7. Even the best possible classifier, which is itself a sigmoid neuron with $w = 2 \times 1.5/0.7^2 = 6.1$ and $b = 0$, misclassifies 1.6% of new points and has an expected cross-entropy of 0.043. The cell's own run, at 3,000 steps, reaches a training loss of 0.022, below that floor, because its sample of 100 points happens to overlap less than the population does; in a network with enough parameters, a training loss far below the floor usually means the model has memorised its training set. The number to watch is the loss on held-out data, the subject of [the generalisation chapter](../generalisation/).
+{{< /note >}}
+
+{{< note type="practice" title="From the lab: a stability classifier on imbalanced data" >}}
+A typical screening task labels hypothetical compounds stable if their DFT energy above the convex hull is below some tolerance, such as 25 meV per atom, roughly the thermal energy at room temperature, and unstable otherwise. In such libraries stable compounds are often a small minority; take 5%. Three consequences follow from this chapter. A neuron that calls everything unstable is 95% accurate, so accuracy is useless as a headline number; report precision and recall for the stable class instead. The know-nothing loss is 0.199, not 0.693, so a training loss of 0.2 is no achievement. And the optimiser starts more sensibly from a bias of $\ln(0.05/0.95) = -2.94$ than from zero, which avoids spending the first hundred steps learning only the base rate. If missing a stable compound costs more than testing an unstable one, weight the positive examples more heavily in the loss, or lower the decision threshold below 0.5, rather than discarding unstable examples.
+{{< /note >}}
+
 ## The perceptron rule
 
 Rosenblatt's original perceptron used a step function and an even simpler update: for each misclassified example, add $\eta\,\mathbf x_i$ to the weights if it should have fired, and subtract it if it should not. He proved that if the classes can be separated by a line at all, this rule finds one in a finite number of steps (the **perceptron convergence theorem**). Logistic regression replaces the hard step by a smooth sigmoid so that *every* example, not only misclassified ones, contributes a gradient, and the output becomes a calibrated probability.
+
+The rule is itself gradient descent, applied one example at a time to a different loss. Write the labels as $t = 2y - 1 = \pm1$ and define the **perceptron criterion**, $E = -\sum_{\text{misclassified}} t_i\, z_i$, which is positive and falls as misclassified points move towards the right side. Its gradient for one misclassified example is $-t_i\,\mathbf x_i$, and a stochastic step of size $\eta$ adds $\eta\, t_i\,\mathbf x_i$: Rosenblatt's update. Two years after the perceptron, Bernard Widrow and Ted Hoff at Stanford trained ADALINE, a neuron whose weights were adjusted, example by example, to reduce the squared error between its linear output $z$ and a target of $\pm1$, before any threshold was applied. Their **delta rule**, $\mathbf w \leftarrow \mathbf w - \eta\,(z - t)\,\mathbf x$, also called least mean squares, is stochastic gradient descent on squared error for a linear model, and it still adapts the filters of echo cancellers and channel equalisers.
 
 {{< note type="story" >}}
 Rosenblatt's perceptron first ran as a program on an IBM 704 at the Cornell Aeronautical Laboratory, and the press took it very seriously: in July 1958 *The New York Times* reported that the Navy expected the machine to “walk, talk, see, write, reproduce itself and be conscious of its existence”. The purpose-built Mark I Perceptron that followed had a 20 × 20 grid of photocells for an eye, and its adjustable weights were potentiometers turned by electric motors. Learning, in that machine, was literally the turning of knobs.
@@ -159,6 +213,8 @@ The rule is simple enough to run with a pencil. Return to the TiO₂ spectra of 
 | 1 | S4 | (1, 0.3, 0.6) | 0 | −0.15 | 0 | none | (0, 0.5, −0.5) |
 | 2 | S1 to S4 | | | 0.4, −0.3, 0.2, −0.15 | 1, 0, 1, 0 | none | (0, 0.5, −0.5) |
 
+{{< fig src="perceptron-steps.svg" alt="Three panels of the unit square with four spectra S1 to S4. In the first the whole square is orange and S2 is ringed; in the second the whole square is blue and S3 is ringed; in the third a diagonal line separates S1 and S3 below it from S2 and S4 above it, with the weight vector drawn as an arrow" caption="The trace in the table, drawn. Orange shading marks where the neuron outputs 1 (anatase). With $\mathbf w = 0$ it calls everything anatase and S2 is wrong; subtracting S2 overshoots, and everything is called rutile; adding S3 puts the boundary on the diagonal $x_1 = x_2$, where it stops with S4 only 0.15 from the line in $z$." >}}
+
 After two mistakes and two corrections, a full pass makes no errors and learning stops. The learned rule, $0.5x_1 - 0.5x_2 \ge 0$, reads “anatase if the 144 cm⁻¹ band is at least as strong as the 447 cm⁻¹ band”: the same boundary as the hand-built neuron of the previous chapter, whose weights were 4 and −4. Novikoff's 1962 proof even puts a number on “finite”: if every input vector has length at most $R$ and some unit-length weight vector separates the classes with every point at least a distance $\gamma$ from the boundary, the rule makes at most $(R/\gamma)^2$ mistakes, however many examples there are.
 
 Notice also what the perceptron does *not* do. Once every point is on the right side it stops, however close a point sits to the line; S4 has $z = -0.15$, barely on the rutile side. Logistic regression keeps working on every point. On separable data its weights grow without limit, as described above, but their direction turns, ever more slowly, towards the boundary with the widest possible margin between the classes (Soudry et al., 2018).
@@ -169,6 +225,7 @@ Notice also what the perceptron does *not* do. Once every point is on the right 
 - Gradient descent steps the weights downhill on the loss landscape; for one neuron that landscape is a convex bowl.
 - Squared error multiplies the error by the sigmoid's slope, so a confidently wrong neuron barely learns; cross-entropy removes that factor.
 - The perceptron rule updates only on mistakes and stops at the first separating line it finds; logistic regression keeps improving every margin.
+- Read losses against the right baseline: $e^{-\mathcal L}$ is the typical probability given to the true label, and a model that knows only the base rate already scores the entropy of the labels.
 {{< /note >}}
 
 {{< quiz >}}
@@ -196,6 +253,10 @@ Notice also what the perceptron does *not* do. Once every point is on the right 
   options: ["Adds $\\eta\\,\\mathbf x$ to the weights", "Subtracts $\\eta\\,\\mathbf x$ from the weights", "Nothing, because only examples labelled 1 cause updates"]
   answer: 1
   why: "The update is $\\mathbf w \\leftarrow \\mathbf w + \\eta\\,(y - \\hat y)\\,\\mathbf x$ with $y - \\hat y = -1$, so $\\mathbf x$ is subtracted, which lowers $z$ for that example and for inputs like it."
+- q: "Inputs are standardised and uncorrelated. Using the bound $\\eta < 8/\\lambda_{\\max}$, what is the largest safe learning rate for a sigmoid neuron with cross-entropy?"
+  options: ["About 0.01", "About 8", "Any value, because the loss is convex"]
+  answer: 1
+  why: "The second-moment matrix of $(1, x_1, x_2, \\dots)$ is the identity, so $\\lambda_{\\max} = 1$. The curvature is at most a quarter of that, and gradient descent is stable for steps below 2 divided by the curvature. Convexity alone does not prevent overshooting."
 {{< /quiz >}}
 
 ## References and further reading
@@ -209,5 +270,7 @@ Notice also what the perceptron does *not* do. Once every point is on the right 
 5. G. Sanderson (3Blue1Brown), *Neural networks*, chapter 2, “Gradient descent, how neural networks learn” (2017).
 6. M. A. Nielsen, *Neural Networks and Deep Learning*, Determination Press (2015), chapter 3, on the learning slowdown of the quadratic cost and how cross-entropy cures it; free online.
 7. D. Soudry, E. Hoffer, M. S. Nacson, S. Gunasekar and N. Srebro, “The implicit bias of gradient descent on separable data,” *Journal of Machine Learning Research* **19**, 1–57 (2018).
+8. B. Widrow and M. E. Hoff, “Adaptive switching circuits,” *IRE WESCON Convention Record*, part 4, 96–104 (1960).
+9. C. E. Shannon, “A mathematical theory of communication,” *Bell System Technical Journal* **27**, 379–423 and 623–656 (1948).
 
 </div>

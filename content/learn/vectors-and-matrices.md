@@ -8,6 +8,16 @@ objectives:
   - "Explain why matrix multiplication composes transformations and does not commute"
   - "Interpret the determinant as an area or volume factor and spot matrices that cannot be inverted"
   - "Find eigenvectors and eigenvalues, and relate them to normal modes and principal components"
+cover: "cover.svg"
+milestones:
+  - year: 1844
+    text: "Hermann Grassmann publishes his Ausdehnungslehre, an algebra of vectors in any dimension"
+  - year: 1858
+    text: "Arthur Cayley's memoir defines matrix multiplication as composition of linear substitutions"
+  - year: 1925
+    text: "Max Born and Pascual Jordan recast Heisenberg's quantum mechanics as matrix algebra"
+  - year: 1961
+    text: "John Francis publishes the QR algorithm for computing eigenvalues"
 track: linalg
 weight: 1
 level: Foundation
@@ -56,6 +66,10 @@ $$ \textcolor{#4c6ef5}{\mathbf a} \cdot \textcolor{#f08c2e}{\mathbf b} = a_x b_x
 
 The equality of the two formulas, one algebraic and one geometric, is the law of cosines in disguise. It means the angle between two vectors can be computed from their components: $\cos\theta = \mathbf a \cdot \mathbf b / (|\mathbf a||\mathbf b|)$. Bond angles in a molecule are computed exactly this way from atomic coordinates.
 
+The derivation takes two lines. The algebraic dot product distributes over addition like ordinary multiplication, so $|\mathbf a - \mathbf b|^2 = (\mathbf a - \mathbf b)\cdot(\mathbf a - \mathbf b) = |\mathbf a|^2 + |\mathbf b|^2 - 2\,\mathbf a\cdot\mathbf b$. The law of cosines, applied to the triangle with sides $\mathbf a$, $\mathbf b$ and $\mathbf a - \mathbf b$, says that the same squared length is $|\mathbf a|^2 + |\mathbf b|^2 - 2|\mathbf a||\mathbf b|\cos\theta$. Comparing the two expressions gives $\mathbf a\cdot\mathbf b = |\mathbf a||\mathbf b|\cos\theta$.
+
+As a worked example, take the gas-phase geometry of water with the oxygen at the origin and the hydrogens at $(0.757, 0.586, 0)$ and $(-0.757, 0.586, 0)$ Å. The two O–H vectors have dot product $-0.757^2 + 0.586^2 = -0.2297$ Å², and each has length $\sqrt{0.757^2 + 0.586^2} = 0.9573$ Å, so $\cos\theta = -0.2297/0.9164 = -0.2506$ and $\theta = 104.5°$, the experimental H–O–H angle. Analysis tools such as MDAnalysis and VMD compute every angle in a trajectory this way, and the same formula with four atoms and two cross products gives dihedral angles.
+
 The geometric meaning is a **projection**. $\mathbf a \cdot \mathbf b / |\mathbf a|$ is the length of the shadow that $\mathbf b$ casts onto the line through $\mathbf a$. In the figure, select the dot product and rotate $\mathbf b$ around: the shadow is longest when the vectors are aligned, vanishes when they are perpendicular, and becomes negative when $\mathbf b$ points backwards. Physics uses this constantly. The work done by a force $\mathbf F$ over a displacement $\mathbf d$ is $\mathbf F \cdot \mathbf d$, since only the component of the force along the motion does work. Machine learning uses it as a measure of similarity: two feature vectors with a large positive dot product point in similar directions, and the **cosine similarity** $\cos\theta$ compares them regardless of their lengths. The attention mechanism of [transformers](../transformers/) decides how much one word should attend to another by taking dot products of vectors that represent them.
 
 ## Matrices as transformations
@@ -89,6 +103,16 @@ $$
 
 which exists only when $ad - bc \ne 0$. That quantity has a geometric meaning of its own.
 
+To see non-commutativity in numbers, take the 90° rotation $\mathbf R = \begin{pmatrix}0&-1\\1&0\end{pmatrix}$ and the shear $\mathbf S = \begin{pmatrix}1&1\\0&1\end{pmatrix}$. Rotating first and shearing second gives $\mathbf S\mathbf R = \begin{pmatrix}1&-1\\1&0\end{pmatrix}$; shearing first gives $\mathbf R\mathbf S = \begin{pmatrix}0&-1\\1&1\end{pmatrix}$. The first sends $\hat{\mathbf i}$ to $(1, 1)$, the second to $(0, 1)$. Both products have determinant 1, as they must, since neither factor changes areas, but the shapes they produce point in different directions.
+
+{{< fig src="composition.svg" alt="An F-shaped figure on a grid, its image after rotating by 90 degrees then shearing, and its image after shearing then rotating; the two results differ" caption="The same two matrices applied in opposite orders. Dashed outlines show the shape after the first step; teal and pink arrows are the columns of the product, the images of $\hat{\mathbf i}$ and $\hat{\mathbf j}$." >}}
+
+Two rules follow from reading products as compositions. Undoing a sequence of steps means undoing them in reverse order, like taking off shoes before socks, so $(\mathbf A\mathbf B)^{-1} = \mathbf B^{-1}\mathbf A^{-1}$; the transpose obeys the same reversal, $(\mathbf A\mathbf B)^{\mathsf T} = \mathbf B^{\mathsf T}\mathbf A^{\mathsf T}$. And because area factors multiply, $\det(\mathbf A\mathbf B) = \det\mathbf A\,\det\mathbf B$, a fact the next section uses.
+
+{{< note type="story" >}}
+The word *matrix* was introduced by James Joseph Sylvester in 1850, and Arthur Cayley's memoir of 1858 defined the product of two matrices as the matrix of two linear substitutions performed in succession, which is the definition used here. Matrices entered physics in 1925. Werner Heisenberg's first paper on quantum mechanics multiplied arrays of transition amplitudes by a rule whose order mattered, which troubled him; Max Born recognised the rule as matrix multiplication, and with Pascual Jordan rewrote the theory in matrix form later that year. The non-commutativity Heisenberg worried about is the root of the uncertainty principle he derived in 1927.
+{{< /note >}}
+
 ## The determinant
 
 Watch the gold square in the transformation figure. It starts as the unit square with area 1, and the matrix turns it into a parallelogram. Every other region of the plane is scaled by the same factor, since the transformed grid cells are all identical parallelograms. That factor is the **determinant**:
@@ -108,6 +132,20 @@ Many problems ask the reverse question: given the output $\mathbf b$, which inpu
 
 In practice, inverses are rarely computed. Computers solve linear systems by **Gaussian elimination**, subtracting multiples of equations from one another until the system becomes triangular and can be solved from the bottom up; in matrix language this is a factorisation $\mathbf M = \mathbf L\mathbf U$ into lower- and upper-triangular pieces. Fitting a straight line or a polynomial to data by least squares, the first algorithm of [machine learning](../learning-from-data/), comes down to solving a linear system, the **normal equations** $\mathbf X^{\mathsf T}\mathbf X\,\mathbf w = \mathbf X^{\mathsf T}\mathbf y$. Gaussian processes, Kriging and kernel methods require solving systems with thousands of unknowns, and the Cholesky factorisation used for them is a specialised version of elimination for symmetric matrices.
 
+### Nearly singular systems
+
+A determinant that is not zero but small causes trouble of its own. Consider $x + y = 2$ and $x + 1.001\,y = 2.001$, whose solution is $x = y = 1$. Change the second right-hand side by one part in two thousand, to 2.002, and the solution jumps to $x = 0$, $y = 2$. Geometrically, each equation is a line in the plane and the solution is where the lines cross. When the lines are nearly parallel, a small shift of either moves the crossing point a long way along them.
+
+The amplification factor is the **condition number** $\kappa(\mathbf M)$, the ratio of the largest to the smallest singular value (for a symmetric matrix, of the largest to the smallest eigenvalue magnitude). A relative error $\epsilon$ in $\mathbf b$ can become a relative error of up to $\kappa\epsilon$ in $\mathbf x$. The system above has $\kappa = 4002$. In double precision, with $\epsilon \approx 10^{-16}$, a condition number of $10^{10}$ leaves about six trustworthy digits, and one near $10^{16}$ leaves none.
+
+{{< fig src="conditioning.svg" alt="Two panels of lines in the plane: perpendicular lines whose uncertainty bands cross in a small square, and nearly parallel lines whose bands overlap in a long thin region" caption="The same uncertainty of ±0.1 in each entry of $\mathbf b$ gives a solution uncertainty of ±0.1 when the lines cross at right angles and ±1.1 when they are nearly parallel ($\kappa = 22$). The determinant shrinks from −2 to 0.2." >}}
+
+Ill-conditioning is common in practice. Fitting a polynomial of degree 10 to data on $[0, 1]$ by least squares gives a design matrix $\mathbf X$ with a condition number near $2 \times 10^7$ and normal equations near $4 \times 10^{14}$ (for 50 evenly spaced points), because the columns $x^9$ and $x^{10}$ are almost parallel vectors, and forming $\mathbf X^{\mathsf T}\mathbf X$ squares the condition number of $\mathbf X$. Descriptor sets for materials, in which density, molar volume and lattice parameter all carry the same information, behave the same way. The standard remedies are to standardise each feature to zero mean and unit variance, to solve least-squares problems by QR factorisation or the singular value decomposition rather than the normal equations (`numpy.linalg.lstsq` uses the SVD), and to add a ridge term $\lambda\mathbf I$, which raises every eigenvalue of $\mathbf X^{\mathsf T}\mathbf X$ by $\lambda$ and caps the condition number.
+
+{{< note type="warn" title="Myth" >}}
+"To solve $\mathbf M\mathbf x = \mathbf b$, compute $\mathbf M^{-1}$ and multiply." For an $n \times n$ matrix, an LU factorisation costs about $\tfrac23 n^3$ operations and forming the inverse from it about $\tfrac43 n^3$ more, so the inverse is roughly three times as expensive and also less accurate. `numpy.linalg.solve` and `scipy.linalg.cho_solve` factorise and back-substitute. Compute an inverse only when its entries are themselves the answer, as for the covariance matrix of fitted parameters.
+{{< /note >}}
+
 ## Eigenvectors and eigenvalues
 
 Most vectors are knocked off their line by a transformation: in the figure, the blue vector $\mathbf v$ and its image $\mathbf M\mathbf v$ usually point in different directions. But for many matrices there are special directions that are only stretched or shrunk, never turned. A vector $\mathbf u$ along such a direction satisfies
@@ -119,7 +157,9 @@ $$ \mathbf M\,\textcolor{#845ef7}{\mathbf u} = \textcolor{#d4a017}{\lambda}\,\te
 - the eigenvalues solve the characteristic equation $\det(\mathbf M - \lambda\mathbf I) = 0$; for $2 \times 2$ matrices, $\lambda^2 - (a + d)\lambda + (ad - bc) = 0$
 {{< /eq >}}
 
-Tick "show eigenvectors" in the transformation figure. For the symmetric matrix $\begin{pmatrix}2&1\\1&2\end{pmatrix}$, the two dashed purple lines along the diagonals are the eigen-directions: vectors on the line $y = x$ are stretched by 3, vectors on the line $y = -x$ are left alone (eigenvalue 1), and every other vector is a mixture and gets turned. The shear has only one eigen-direction, the horizontal axis. A rotation by 90° has none at all: every direction is turned, and the eigenvalues are complex numbers. Tick "what happens to a circle" as well, and you will see the unit circle become an ellipse whose axes, for a symmetric matrix, lie exactly along the eigenvectors, with semi-axes equal to the eigenvalues.
+For the symmetric matrix $\begin{pmatrix}2&1\\1&2\end{pmatrix}$ the characteristic equation is $\lambda^2 - 4\lambda + 3 = 0$, with roots $\lambda = 3$ and $\lambda = 1$. Substituting $\lambda = 3$ into $(\mathbf M - 3\mathbf I)\mathbf u = 0$ gives $-u_x + u_y = 0$, so $\mathbf u \propto (1, 1)$; $\lambda = 1$ gives $u_x + u_y = 0$, so $\mathbf u \propto (1, -1)$. Two checks are always available: the eigenvalues add up to the trace, $3 + 1 = 2 + 2$, and multiply to the determinant, $3 \times 1 = 4 - 1$.
+
+Tick "show eigenvectors" in the transformation figure. For the symmetric matrix $\begin{pmatrix}2&1\\1&2\end{pmatrix}$, the two dashed purple lines along the diagonals are the eigen-directions: vectors on the line $y = x$ are stretched by 3, vectors on the line $y = -x$ are left alone (eigenvalue 1), and every other vector is a mixture and gets turned. The shear has only one eigen-direction, the horizontal axis. A rotation by 90° has none at all: every direction is turned, and the eigenvalues are complex numbers. Tick "what happens to a circle" as well, and you will see the unit circle become an ellipse whose axes, for a symmetric matrix, lie exactly along the eigenvectors, with semi-axes equal to the absolute values of the eigenvalues.
 
 **Symmetric matrices**, those equal to their own transpose ($M_{ij} = M_{ji}$), are especially well behaved, and they are the ones that matter most in science. Their eigenvalues are always real, and their eigenvectors can always be chosen to be mutually perpendicular. Using the eigenvectors as a new basis, the matrix becomes diagonal: the transformation is just a stretch along each eigen-direction. This **spectral decomposition**, $\mathbf M = \mathbf Q\boldsymbol\Lambda\mathbf Q^{\mathsf T}$ with $\mathbf Q$ the matrix of eigenvectors and $\boldsymbol\Lambda$ the diagonal matrix of eigenvalues, appears across the sciences:
 
@@ -129,11 +169,39 @@ The **normal modes** of a molecule are the eigenvectors of its Hessian, the matr
 
 In **quantum mechanics** the allowed energies of a system are the eigenvalues of its Hamiltonian matrix, and the stationary states are its eigenvectors. Every electronic-structure calculation, from a Hückel model of benzene to density-functional theory, is at its heart a large symmetric eigenvalue problem.
 
+### Worked example: the stretching modes of CO₂
+
+Model carbon dioxide as three masses on a line, O–C–O, joined by two springs of stiffness $k$, and let $x_1, x_2, x_3$ be the displacements of the atoms along the axis. The energy is $V = \tfrac12 k(x_2 - x_1)^2 + \tfrac12 k(x_3 - x_2)^2$, and its Hessian is
+
+$$
+\mathbf K = k\begin{pmatrix} 1 & -1 & 0 \\ -1 & 2 & -1 \\ 0 & -1 & 1 \end{pmatrix}.
+$$
+
+Newton's equations $m_i\ddot x_i = -\sum_j K_{ij}x_j$ mix masses and stiffnesses, so the matrix to diagonalise is the mass-weighted Hessian $\mathbf M^{-1/2}\mathbf K\mathbf M^{-1/2}$, with $\mathbf M$ the diagonal matrix of masses. Its three eigenvalues are $\omega^2 = 0$, $k/m_{\mathrm O}$ and $(k/m_{\mathrm O})(1 + 2m_{\mathrm O}/m_{\mathrm C})$. The zero eigenvalue is a rigid translation: moving the whole molecule costs no energy. The second is the symmetric stretch, in which the carbon does not move at all. The third is the asymmetric stretch, in which both oxygens move one way and the carbon moves the other with $2m_{\mathrm O}/m_{\mathrm C} = 2.67$ times their amplitude, so that the centre of mass stays put.
+
+{{< fig src="co2-modes.svg" alt="Three rows showing the atoms O, C, O with displacement arrows for the translation, the symmetric stretch and the asymmetric stretch, with model and observed wavenumbers" caption="The eigenvectors of the mass-weighted Hessian of the spring model, converted to atomic displacements. Fixing $k$ from the symmetric stretch, the model puts the asymmetric stretch at 2566 cm⁻¹, 9 % above the observed 2349 cm⁻¹." >}}
+
+With the symmetric stretch at about 1340 cm⁻¹ (in the Raman spectrum it appears as a pair of bands at 1285 and 1388 cm⁻¹, split by a resonance with the overtone of the bending mode), the spring constant is $k = m_{\mathrm O}(2\pi c\tilde\nu)^2 \approx 1690$ N/m. The model then predicts the asymmetric stretch at $1340 \times \sqrt{1 + 2 \times 16/12} = 1340 \times 1.915 = 2566$ cm⁻¹; infrared spectroscopy finds it at 2349 cm⁻¹. The 9 % discrepancy is real physics: stretching one C=O bond changes the stiffness of the other, a coupling that adds off-diagonal terms to the Hessian. A stretch–stretch interaction constant of about 9 % of $k$ reproduces both frequencies.
+
+{{< note type="try" title="Pause and predict" >}}
+Replace carbon-12 by carbon-13. Which band shifts, and by how much? Decide before reading on.
+
+Only the asymmetric stretch moves. The carbon is stationary in the symmetric stretch, so its mass cannot enter that frequency. The ratio of the asymmetric frequencies is $\sqrt{(1 + 2 \times 15.995/13.003)/(1 + 2 \times 15.995/12.000)} = 0.9715$, which turns the observed 2349 cm⁻¹ into a predicted 2282 cm⁻¹. The ¹³CO₂ band is observed at 2283 cm⁻¹. The coupling constant cancels in the ratio, which is why the simple model does so well here. Isotope-ratio infrared spectrometers that measure ¹³C/¹²C in breath or in atmospheric CO₂ rely on this separation of about 66 cm⁻¹.
+{{< /note >}}
+
+{{< note type="practice" title="From the lab" >}}
+A frequency calculation in a quantum-chemistry or DFT code follows the same steps for $3N$ coordinates: optimise the geometry, build the Hessian (analytically, or by displacing each atom by about 0.01 Å in each direction and differencing the forces, which costs $6N$ force calculations), mass-weight it, diagonalise, and convert $\sqrt{\lambda}$ to wavenumbers. Six eigenvalues (five for a linear molecule) should be close to zero: three translations and three rotations. Values of 20 to 50 cm⁻¹ in their place, or small imaginary frequencies, usually mean the geometry was not optimised tightly enough or the integration grid is too coarse, and are fixed by re-optimising with tighter criteria before trusting the spectrum. The phonons of a crystal come from the same procedure applied to the dynamical matrix, as implemented in Phonopy.
+{{< /note >}}
+
 ## Matrices in machine learning and simulation
 
 A single layer of a neural network takes an input vector $\mathbf x$, multiplies it by a weight matrix $\mathbf W$, adds a bias vector and applies a nonlinear function to each component: $\mathbf h = \sigma(\mathbf W\mathbf x + \mathbf b)$. The matrix rotates, stretches and shears the input space; the nonlinearity bends it. Stacking such layers lets a network reshape space until classes that were tangled become separable, as [the chapter on how networks bend space](../networks-bend-space/) shows with the same kind of grid picture used above. Training a network means adjusting the entries of these matrices, and running one means doing matrix multiplications, which is why graphics processors, built to multiply matrices quickly, became the engines of deep learning.
 
-In molecular simulation, the simulation box is described by a $3 \times 3$ cell matrix whose columns are the box vectors; converting between Cartesian and fractional coordinates is multiplication by this matrix or its inverse, and the box volume is its determinant. Rotation matrices orient molecules, the stress and strain of a material are $3 \times 3$ symmetric matrices whose eigenvectors are the principal axes, and the moment of inertia tensor, diagonalised, gives a molecule's principal axes of rotation. In all of these the same few ideas recur: a matrix is a transformation, its columns are the images of the basis, its determinant scales volume, and its eigenvectors are the directions it leaves unturned.
+{{< note type="practice" title="Back of the envelope" >}}
+Multiplying two $n \times n$ matrices takes $n^3$ multiply–add pairs, $2n^3$ floating-point operations. For $n = 4096$ that is $1.4 \times 10^{11}$. A single CPU core sustaining a few times $10^{10}$ operations per second needs several seconds; a data-centre GPU running at $10^{14}$ operations per second in the reduced precision used for training needs about a millisecond. Dense diagonalisation also scales as $n^3$, so doubling the number of atoms in a conventional DFT calculation, whose Hamiltonian grows linearly with system size, makes the eigenvalue problem eight times more expensive. That cubic wall is the main reason DFT stops at a few thousand atoms, and the main motivation for [machine-learned potentials](../mlip/), whose cost grows linearly.
+{{< /note >}}
+
+In molecular simulation, the simulation box is described by a $3 \times 3$ cell matrix whose columns are the box vectors; converting between Cartesian and fractional coordinates is multiplication by this matrix or its inverse, and the box volume is its determinant. In two dimensions, a cell with edges $\mathbf a = (4, 0)$ Å and $\mathbf b = (1, 3)$ Å has cell matrix $\mathbf h = \begin{pmatrix}4&1\\0&3\end{pmatrix}$ and area $\det\mathbf h = 12$ Å². The fractional position $(0.5, 0.25)$ lies at $\mathbf h\,(0.5, 0.25)^{\mathsf T} = (2.25, 0.75)$ Å, and the Cartesian point $(4.5, 2.4)$ Å has fractional coordinates $\mathbf h^{-1}(4.5, 2.4)^{\mathsf T} = (0.925, 0.8)$, so it lies inside the cell. Periodic wrapping and the minimum-image convention are applied to fractional coordinates, by subtracting the nearest integer, and the result is mapped back with $\mathbf h$. For strongly tilted cells that rounding no longer guarantees the nearest image, which is why LAMMPS and GROMACS restrict how far a triclinic box may be tilted. Rotation matrices orient molecules, the stress and strain of a material are $3 \times 3$ symmetric matrices whose eigenvectors are the principal axes, and the moment of inertia tensor, diagonalised, gives a molecule's principal axes of rotation. In all of these the same few ideas recur: a matrix is a transformation, its columns are the images of the basis, its determinant scales volume, and its eigenvectors are the directions it leaves unturned.
 
 {{< note type="key" >}}
 - A vector is both an arrow and a list of components. Vectors add tip to tail and scale by stretching; linear combinations of basis vectors build every vector in the space.
@@ -164,6 +232,14 @@ In molecular simulation, the simulation box is described by a $3 \times 3$ cell 
   options: ["The diagonal elements are always zero", "Atoms are coupled: the independent vibrations are collective motions along the eigenvectors, and only in that basis is the Hessian diagonal", "Eigenvalues are always larger"]
   answer: 1
   why: "Normal modes are the eigenvectors; each oscillates independently with ω² equal to its (mass-weighted) eigenvalue."
+- q: "The system x + y = 2, x + 1.001y = 2.001 has condition number about 4000. What does that mean in practice?"
+  options: ["It has no solution", "A small relative error in the right-hand side can be amplified up to about 4000 times in the solution", "Gaussian elimination needs 4000 steps"]
+  answer: 1
+  why: "The lines are nearly parallel, so a tiny shift of one moves their crossing point far along them: changing 2.001 to 2.002 moves the solution from (1, 1) to (0, 2)."
+- q: "In ¹³CO₂, which stretching band shifts relative to ¹²CO₂?"
+  options: ["Only the symmetric stretch", "Only the asymmetric stretch", "Both, by the same factor"]
+  answer: 1
+  why: "The carbon atom does not move in the symmetric stretch, so its mass does not enter that frequency."
 {{< /quiz >}}
 
 ## References and further reading

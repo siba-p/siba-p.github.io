@@ -8,6 +8,16 @@ objectives:
   - "Choose an initial weight scale that keeps signals alive through many layers"
   - "Run a sound training recipe with a learning-rate schedule, validation set and early stopping"
   - "Explain why networks that predict energies need smooth activation functions"
+cover: "cover.svg"
+milestones:
+  - year: 1989
+    text: "Cybenko, and Hornik, Stinchcombe and White, prove one-hidden-layer networks are universal approximators"
+  - year: 1998
+    text: "LeCun, Bottou, Orr and Müller collect training advice in 'Efficient BackProp'"
+  - year: 2010
+    text: "Glorot and Bengio link the initial weight scale to vanishing signals"
+  - year: 2015
+    text: "Ioffe and Szegedy introduce batch normalisation"
 track: neuron
 weight: 5
 level: Core
@@ -61,7 +71,15 @@ Without the nonlinearity the whole stack would collapse into a single linear map
 
 ## Why networks can represent almost anything
 
-The **universal approximation theorem** (Cybenko 1989; Hornik, Stinchcombe and White 1989) states that a network with a single hidden layer and a non-polynomial activation can approximate any continuous function on a bounded domain to any accuracy, given enough neurons. It is an existence result: it says nothing about how many neurons are needed, or whether gradient descent will find the weights. In practice, **depth** is far more efficient than width: functions with repeated structure, such as sums over many atoms, can need exponentially fewer neurons when represented by several layers.
+The **universal approximation theorem** (Cybenko 1989; Hornik, Stinchcombe and White 1989) states that a network with a single hidden layer and a non-polynomial activation can approximate any continuous function on a bounded domain to any accuracy, given enough neurons. It is an existence result: it says nothing about how many neurons are needed, or whether gradient descent will find the weights. In practice, **depth** is far more efficient than width: functions with repeated structure, such as sums over many atoms, can need exponentially fewer neurons when represented by several layers. [Layers and representations](../networks-bend-space/) works through the standard example, a sawtooth built by composing folds.
+
+### Counting parameters and data
+
+A layer from $d_{\text{in}}$ to $d_{\text{out}}$ neurons has $d_{\text{in}}d_{\text{out}}$ weights and $d_{\text{out}}$ biases. The count settles two practical questions before any training: how much memory the model needs, and whether the data can pin it down.
+
+{{< note type="practice" title="Back of the envelope" >}}
+An atomic network of the Behler–Parrinello type reads, say, 30 symmetry functions and has two hidden layers of 25 neurons. It holds $30\times25 + 25 = 775$ parameters in the first layer, $25\times25+25 = 650$ in the second and $25 + 1 = 26$ in the output: 1451 in all, about 6 kB in single precision. A training set of 1000 DFT snapshots of a 64-atom cell supplies 1000 total energies but $1000\times64\times3 = 192{,}000$ force components. Fitted to energies alone, the model has more parameters than targets; fitted to forces as well, it has more than a hundred targets per parameter. This arithmetic is why nearly every interatomic potential trains on forces.
+{{< /note >}}
 
 ## Backpropagation: the gradient for the price of one extra pass
 
@@ -137,11 +155,19 @@ for step in range(2001):
         print(f"step {step:5d}   loss {loss.item():.2e}")
 ```
 
+{{< note type="practice" title="Check a hand-written gradient" >}}
+Any backward pass written by hand, and any custom layer added to a framework, should be compared once with central finite differences, $\partial L/\partial\theta \approx [L(\theta+h) - L(\theta-h)]/2h$, one parameter at a time in double precision with $h \approx 10^{-6}$. For the 16 first-layer weights of the NumPy network at its initial weights, the largest discrepancy is $2\times10^{-10}$ of the largest gradient. Replace the factor `(1 - a ** 2)` by `(1 - a)`, a typical slip, and the discrepancy jumps to 0.25, yet the loss still falls for a while, which is why such bugs survive unnoticed without the check.
+{{< /note >}}
+
 ## Initialisation and training in practice
 
 - **Initial weights must be random**, or every neuron in a layer receives the same gradient and they stay identical forever. Their *scale* matters too: too large and tanh neurons saturate (their gradient vanishes); too small and the signal dies out through the layers. Glorot (Xavier) initialisation uses variance $1/d_{\text{in}}$ or $2/(d_{\text{in}}+d_{\text{out}})$ for tanh; He initialisation uses $2/d_{\text{in}}$ for ReLU. Press *New initial weights* in the lab: different starting points reach different, comparably good fits, a reminder that the loss surface of a network has many minima.
 - **Standardise inputs and outputs**, for the conditioning reasons in [the gradient-descent lesson](../gradient-descent/).
 - **Monitor a validation set** and stop or decay the learning rate when it stops improving ([the lesson on generalisation](../generalisation/)).
+
+{{< note type="warn" title="Myth" >}}
+*A network with more parameters than training points must overfit.* Parameter count is a poor measure of effective capacity for networks trained by gradient descent. Chiyuan Zhang and colleagues (2017) showed that standard image classifiers can fit completely random labels, so their capacity is enormous, yet the same architectures generalise well on real labels. What decides overfitting in practice is the validation error, controlled by early stopping, weight decay and data, not the ratio of parameters to samples. The [generalisation chapter](../generalisation/) discusses the related double-descent curve.
+{{< /note >}}
 
 ### Why the scale of the initial weights matters
 
@@ -158,6 +184,10 @@ $$ \operatorname{Var}(z) = \textcolor{#4c6ef5}{d_{\text{in}}}\;\textcolor{#12a59
 With 200 inputs and weights of standard deviation $s = 1$, the pre-activations are spread $\sqrt{200} \approx 14$ times more widely than the inputs, and a tanh neuron fed numbers that large sits on one of its flat tails, where its slope is almost zero. With $s = 0.01$ the spread is multiplied by $0.01\sqrt{200} \approx 0.14$ in every layer, so after ten layers it is $0.14^{10} \approx 3\times10^{-9}$ of what it was. The choice $s^2 = 1/d_{\text{in}}$ makes the factor 1. That is the reasoning behind Glorot initialisation for tanh (Xavier Glorot and Yoshua Bengio, 2010) and behind He initialisation, $s^2 = 2/d_{\text{in}}$, for ReLU, where the extra factor of 2 makes up for the half of its inputs that a ReLU sets to zero (Kaiming He and colleagues, 2015).
 
 The cell sends 1000 random inputs through ten tanh layers of 200 neurons each and reports the spread of the activations and the fraction of saturated neurons, those with $|a| > 0.99$.
+
+{{< note type="try" title="Pause and predict" >}}
+Before running the cell, guess the answer for each scale. With a standard deviation of 1, will the activations after ten layers be larger or smaller than after one? With 0.01, by roughly what factor per layer will they shrink?
+{{< /note >}}
 
 {{< py title="Activations through ten layers" >}}
 import numpy as np
@@ -177,11 +207,15 @@ for name, std in [("std 1 (too large)", 1.0), ("std 0.01 (too small)", 0.01),
             print(f"  layer {layer:2d}: spread of activations {a.std():.4f}, saturated {sat:.0%}")
 {{< /py >}}
 
-With $s = 1$, 85 % of the neurons are saturated from the first layer on: the network produces plenty of output, but almost no gradient can pass back through the flat tails. With $s = 0.01$ the activations shrink towards zero within a few layers, and so do the gradients, which travel back through the same small weights. Only the Glorot scale keeps the signal alive, and even then it fades slowly, from 0.63 to 0.23 over ten layers, because tanh is flatter than a straight line away from zero. Multiply that scale by 5/3, the gain PyTorch recommends for tanh, and the spread settles at about 0.65. Normalisation layers, which rescale activations to zero mean and unit variance during training (batch normalisation, Sergey Ioffe and Christian Szegedy, 2015), and the residual connections described in [backpropagation](../backpropagation/) make deep networks far less sensitive to this choice, but they do not make it irrelevant.
+With $s = 1$, 85 % of the neurons are saturated from the first layer on: the network produces plenty of output, but almost no gradient can pass back through the flat tails. With $s = 0.01$ the activations shrink towards zero within a few layers, and so do the gradients, which travel back through the same small weights. Only the Glorot scale keeps the signal alive, and even then it fades slowly, from 0.63 to 0.23 over ten layers, because tanh is flatter than a straight line away from zero. Multiply that scale by 5/3, the gain PyTorch recommends for tanh, and the spread settles at about 0.65.
+
+{{< fig src="init-scale.svg" alt="Left: spread of activations against layer on a log scale for four weight scales; std 1 stays near 1, Glorot times 5/3 near 0.65, Glorot falls to 0.23 and std 0.01 falls to 3e-9. Right: histograms of layer-5 activations, U-shaped with spikes at plus and minus one for std 1 and bell-shaped for Glorot." caption="The cell's three scales, plus the tanh gain of 5/3. A spread that stays near 1 is not good news: for std 1 it means the neurons are pinned at $\pm1$ (right), where $\tanh' \approx 0$. The useful regime is a spread of order 0.3 to 0.7 with almost no saturated neurons." >}} Normalisation layers, which rescale activations to zero mean and unit variance during training (batch normalisation, Sergey Ioffe and Christian Szegedy, 2015), and the residual connections described in [backpropagation](../backpropagation/) make deep networks far less sensitive to this choice, but they do not make it irrelevant.
 
 ### A training recipe with typical values
 
 The defaults below are a sound starting point for a small or medium network trained on scientific data. Each is a place to start, not a law.
+
+{{< fig src="training-loop.svg" alt="Flow diagram: data split into 80 percent training, 10 percent validation and 10 percent test; an inner loop of mini-batch, forward pass, loss, backward pass and Adam update; an outer loop per epoch of validation, learning-rate schedule and patience-based stopping; finally the best weights are evaluated once on the test set." caption="The recipe as two nested loops. The inner loop only ever sees training data; the validation set steers the outer loop; the test set is touched once, at the end." >}}
 
 1. **Split first.** Set aside 10 to 20 % of the data for validation, and a test set if you can afford one, before looking at anything. When samples are correlated, as frames of one trajectory are, split by trajectory, composition or structural family rather than by sample ([generalisation](../generalisation/)).
 2. **Standardise** each input to zero mean and unit variance using the training set's statistics only, and scale the targets similarly. For total energies, subtracting a reference energy per atom of each element first is common.
@@ -196,6 +230,18 @@ The defaults below are a sound starting point for a small or medium network trai
 
 Plot training and validation loss against epochs, on a logarithmic axis. Four patterns cover most situations. If both curves fall and level off together, the model is fitting as well as its capacity and features allow, and a larger network or better inputs may help. If the training loss keeps falling while the validation loss turns upwards, the model is overfitting: stop early, add weight decay, collect more data or shrink the network. If the loss jumps upwards or becomes `NaN`, the learning rate is too high or the gradients are exploding: lower the rate or clip the gradients. If the loss barely moves from the start, the learning rate may be too low, the neurons may be saturated or dead from a poor initialisation, or the data pipeline may have a bug, such as targets shuffled separately from their inputs.
 
+### An overfitting run in numbers
+
+The second pattern is easy to produce on purpose. Draw 24 training points from $y = \sin 3x + \varepsilon$ on $[-1, 1]$, with Gaussian noise $\varepsilon$ of standard deviation 0.25 (variance 0.0625), and 200 validation points from the same distribution. Fit a one-hidden-layer network of 40 tanh neurons, 121 parameters, by full-batch Adam with $\eta = 3\times10^{-3}$ for 15,000 steps.
+
+{{< fig src="early-stopping.svg" alt="Left: training and validation mean squared error against optimisation step on log-log axes; validation reaches a minimum of 0.081 at step 898 and then rises to about 0.39, while training error keeps falling to 0.008, below the dashed noise variance line at 0.0625. Right: the 24 noisy points, the true sine curve, a smooth fit from step 898 and a wildly oscillating fit from step 15000." caption="Training error falls through the noise floor (dashed) while validation error turns upwards after step 898. The kept weights (teal) follow $\sin 3x$; the last weights (pink) thread through every noisy point." >}}
+
+The training error falls from 2.5 to 0.008, eight times *below* the noise variance. No model can predict noise, so a training error below the noise floor is direct evidence of memorisation. The validation error reaches its minimum, 0.081, at step 898, close to the floor of 0.0625 that a perfect model would reach, then climbs to 0.39 by the end, five times worse. Early stopping with any reasonable patience keeps the step-898 weights. In scientific data the noise floor is often known: the scatter of DFT energies with respect to $k$-point sampling and smearing, or the repeatability of an experimental measurement. If the training error of a potential is far below that scatter, the model is fitting numerical noise.
+
+### Choosing the size and the other hyperparameters
+
+Width, depth, learning rate, batch size and weight decay are **hyperparameters**, chosen by comparing validation errors. Three habits make the search efficient. Tune the learning rate first, on a logarithmic grid such as $10^{-4}, 3\times10^{-4}, 10^{-3}, 3\times10^{-3}$, because a poor rate hides everything else. Sample the others at random rather than on a grid: James Bergstra and Yoshua Bengio (2012) showed that when only a few hyperparameters matter, random search tries many more distinct values of each for the same budget. And grow the model until validation error stops improving, rather than starting large. For atomistic networks, two or three hidden layers of a few tens of neurons each per element are typical for descriptor-based potentials; message-passing models are larger ([neural-network potentials](../neural-network-potentials/)).
+
 {{< note type="warn" >}}
 - **Standardising with statistics of the whole data set**, validation and test points included, leaks information about them into training. Compute means and variances on the training set and reuse them everywhere.
 - **Forgetting evaluation mode.** Dropout and batch normalisation behave differently in training and in evaluation; in PyTorch, call `model.eval()` before validating and `model.train()` afterwards.
@@ -209,7 +255,12 @@ In molecular science a network often predicts an energy $E$, and the forces are 
 
 - **The activation must be smooth.** A ReLU network is piecewise linear, so its derivative is piecewise *constant* and jumps at every kink. Train ReLU on the bond-energy curve, then switch the lab to *Slope dy/dx*: the energy fit can look good, but its slope, the force, is a staircase, and molecular dynamics with such forces does not conserve energy. Interatomic potentials use tanh, SiLU or similar smooth activations.
 - **Fitting forces as well as energies** gives far more information per calculation: one DFT run of $N$ atoms yields one energy but $3N$ force components. This is the subject of [the lesson on interatomic potentials](../mlip/).
+- **Forces come almost free.** Finite differences would need $6N$ energy evaluations for the $3N$ force components of $N$ atoms: 6000 for a 1000-atom cell. Reverse-mode differentiation delivers all of them for the cost of about one extra backward pass, the same argument as for the gradient with respect to the weights.
 - **The step function** is a warning in the other direction: smooth networks round off discontinuities, and a network asked to fit one will overshoot (try tanh on the step with few neurons).
+
+{{< note type="practice" title="From the lab" >}}
+A typical loss for an interatomic potential combines both targets: $L = w_E \sum_s \big[(\hat E_s - E_s)/N_s\big]^2 + w_F \sum_s \sum_i \lVert \hat{\mathbf F}_i - \mathbf F_i \rVert^2/(3N_s)$, summed over structures $s$ of $N_s$ atoms. Dividing the energy error by $N_s$ stops large cells from dominating, and the ratio $w_F/w_E$ (values from 1 to 100, with energies in eV and forces in eV/Å, are common) trades energy accuracy against force accuracy. Training the force term requires differentiating through the force, which is itself a derivative, so the backward pass computes second derivatives of the network; frameworks do this automatically when the force is computed with `create_graph=True` in PyTorch. Report errors per atom for energies (meV/atom) and per component for forces (meV/Å), on a test set of structures not used in training ([interatomic potentials](../mlip/)).
+{{< /note >}}
 
 {{< note type="key" >}}
 - A neural network is a linear model whose features are themselves learned; nonlinear activations are what make depth worth having.
@@ -218,6 +269,7 @@ In molecular science a network often predicts an energy $E$, and the forces are 
 - Initial weights with variance about $1/d_{\text{in}}$ (Glorot) or $2/d_{\text{in}}$ (He) keep signals and gradients alive through many layers.
 - A sound default recipe: standardised data, Adam at about $10^{-3}$, a decaying learning rate, a validation set and early stopping, and a test set used once.
 - When the output is an energy, use smooth activations so that the forces are continuous.
+- A training error below the known noise level of the data means the model is memorising.
 {{< /note >}}
 
 {{< quiz >}}
@@ -245,6 +297,14 @@ In molecular science a network often predicts an energy $E$, and the forces are 
   options: ["The final weights, which fit the training data best", "The weights saved at the epoch with the lowest validation loss", "The weights from the epoch with the lowest test loss"]
   answer: 1
   why: "That is early stopping: the validation loss estimates performance on new data. Choosing by test loss would make the test set a second validation set and the reported error optimistic."
+- q: "Your DFT energies scatter by about 2 meV/atom when k-points and smearing are varied. Your potential reaches a training error of 0.3 meV/atom and a validation error of 6 meV/atom. What is the most likely diagnosis?"
+  options: ["The network is too small", "The network is fitting numerical noise in the training set", "The learning rate is too low"]
+  answer: 1
+  why: "A training error well below the noise floor of the data, with a much larger validation error, is the signature of memorisation. Stop earlier, regularise, or add data."
+- q: "Why do most interatomic potentials train on forces as well as energies?"
+  options: ["Forces are cheaper to compute than energies in DFT", "Each structure gives one energy but 3N force components, so forces supply far more data per calculation", "Energies cannot be learned by neural networks"]
+  answer: 1
+  why: "1000 snapshots of 64 atoms give 1000 energies but 192,000 force components, more than a hundred targets per parameter for a network of about 1500 parameters."
 {{< /quiz >}}
 
 ## References and further reading
@@ -267,5 +327,8 @@ In molecular science a network often predicts an energy $E$, and the forces are 
 14. S. Ioffe and C. Szegedy, “Batch normalization: accelerating deep network training by reducing internal covariate shift,” *Proceedings of ICML*, PMLR 37, 448–456 (2015).
 15. L. Prechelt, “Early stopping — but when?,” in G. B. Orr and K.-R. Müller (eds.), *Neural Networks: Tricks of the Trade*, Lecture Notes in Computer Science **1524**, Springer (1998).
 16. A. Karpathy, “A recipe for training neural networks,” karpathy.github.io (2019).
+17. Y. LeCun, L. Bottou, G. B. Orr and K.-R. Müller, “Efficient BackProp,” in G. B. Orr and K.-R. Müller (eds.), *Neural Networks: Tricks of the Trade*, Lecture Notes in Computer Science **1524**, Springer (1998).
+18. C. Zhang, S. Bengio, M. Hardt, B. Recht and O. Vinyals, “Understanding deep learning requires rethinking generalization,” *International Conference on Learning Representations* (ICLR) (2017).
+19. J. Bergstra and Y. Bengio, “Random search for hyper-parameter optimization,” *Journal of Machine Learning Research* **13**, 281–305 (2012).
 
 </div>

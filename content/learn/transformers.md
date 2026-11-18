@@ -8,6 +8,16 @@ objectives:
   - "Explain why self-attention needs positional encodings, and how rotary encodings work"
   - "Count the parameters of a transformer block and estimate how attention cost scales"
   - "Recognise transformers in protein, chemical-language and crystal-generation models"
+cover: "cover.svg"
+milestones:
+  - year: 2015
+    text: "Bahdanau, Cho and Bengio add learned attention to neural machine translation"
+  - year: 2017
+    text: "Vaswani and seven co-authors introduce the transformer, built on attention alone"
+  - year: 2019
+    text: "Devlin and colleagues publish BERT, a pre-trained transformer encoder"
+  - year: 2021
+    text: "Jumper and colleagues publish AlphaFold 2, built around the attention-based Evoformer"
 track: arch
 weight: 3
 level: Core
@@ -86,6 +96,16 @@ Without the scaling, C's weight on O rises from 0.51 to 0.67: the same scores, t
 
 If the components of $\mathbf q$ and $\mathbf k$ are independent with zero mean and unit variance, their dot product $\sum_{a=1}^{d_k} q_a k_a$ has variance $d_k$. For $d_k = 64$ the scores have a standard deviation of 8, the softmax saturates (one weight near 1, the rest near 0), and its gradients vanish. Dividing by $\sqrt{d_k}$ restores unit variance. It is a small detail with a large effect on trainability, and the same reasoning underlies careful weight initialisation ([the lesson on neural networks in practice](../neural-networks/)).
 
+The variance follows in one line. Each product $q_a k_a$ of independent zero-mean components has mean zero and variance $\mathbb E[q_a^2]\,\mathbb E[k_a^2] = 1$, and the variances of $d_k$ independent terms add: $\operatorname{Var}(\mathbf q\cdot\mathbf k) = d_k$. The gradient problem follows from the derivative of the softmax, $\partial\alpha_j/\partial s_l = \alpha_j(\delta_{jl} - \alpha_l)$. When one weight is close to 1 and the rest close to 0, every entry of this Jacobian is close to zero, so the loss sends almost no signal back to the scores, and through them to $\mathbf W_Q$ and $\mathbf W_K$. Layer normalisation and standard initialisation keep the components of $\mathbf q$ and $\mathbf k$ near unit variance at the start of training; afterwards the model is free to grow the norms of its projections and sharpen a head deliberately.
+
+{{< note type="try" title="Pause and predict" >}}
+Take 16 keys and one query, all with independent unit-variance components, and $d_k = 64$. Without the $1/\sqrt{d_k}$ factor, how many of the 16 keys does a typical query effectively attend to? With it?
+{{< /note >}}
+
+Measure the spread of the weights by the effective number of keys, $\exp\!\big(-\sum_j \alpha_j\ln\alpha_j\big)$, which is 1 for a one-hot weight vector and 16 for uniform weights. Averaged over 4,000 random draws, the unscaled softmax attends to 1.6 keys and gives its largest weight 0.84 on average; the scaled one attends to 10.8 keys with a largest weight of 0.25. The scaled value hardly changes between $d_k = 4$ and $d_k = 512$, which is the point of the factor: the sharpness of a fresh attention head no longer depends on its width.
+
+{{< fig src="scaling.svg" alt="Left: histograms of 64-dimensional query–key dot products, a wide orange one with standard deviation 8 and a narrow blue one with standard deviation 1 after division by 8. Right: effective number of keys attended out of 16 against key dimension, flat near 11 with scaling and falling from about 7 to about 1 without it." caption="Without the $1/\sqrt{d_k}$ factor the scores widen as $\sqrt{d_k}$ and the softmax collapses onto one key; with it, a randomly initialised head spreads its attention over about 11 of 16 keys at any width. Computed from 4,000 random queries per width." >}}
+
 ## Multi-head attention
 
 A single attention pattern can capture one kind of relationship. **Multi-head attention** runs $H$ attention operations in parallel, each with its own projections of width $d_k = d_{\text{model}}/H$, concatenates their outputs and mixes them with a final linear map:
@@ -95,6 +115,10 @@ $$
 $$
 
 Different heads can specialise, for example on local neighbours, on chemically similar tokens or on long-range partners, at the same total cost as one wide head.
+
+{{< note type="warn" title="Myth" >}}
+"More heads mean a bigger model." With $d_k = d_{\text{model}}/H$, each head's $\mathbf W_Q^h$ is a $d_{\text{model}}\times d_k$ matrix, and the $H$ of them together form one $d_{\text{model}}\times d_{\text{model}}$ matrix. BERT-base, with $d_{\text{model}} = 768$ and 12 heads of width 64, has exactly as many attention parameters as a single head of width 768 would. The cost of the scores is also unchanged: $H$ matrices of $n^2 d_k$ multiply-adds sum to $n^2 d_{\text{model}}$. What changes is the number of distinct attention patterns per layer, 12 in BERT-base, and the rank of each: a head of width 64 can express only rank-64 score matrices.
+{{< /note >}}
 
 ## Where am I? Positional encoding
 
@@ -106,6 +130,8 @@ $$
 
 **Rotary position embedding** (RoPE; Su et al.), used in most current language models, instead rotates each two-dimensional pair of query and key components by an angle proportional to the position, $\mathbf q_i \to \mathbf R(i\omega)\mathbf q_i$, $\mathbf k_j \to \mathbf R(j\omega)\mathbf k_j$. Since $\mathbf R(i\omega)^\top\mathbf R(j\omega) = \mathbf R\big((j-i)\omega\big)$, the score depends only on the **relative** position $j - i$, a property that generalises better to sequences longer than those seen in training. The lab's RoPE switch implements exactly this in two dimensions.
 
+The sinusoids are not arbitrary. Their wavelengths form a geometric progression from $2\pi$ to $10000\cdot2\pi$ positions; for $d = 512$ the fastest pair of components repeats every 6.3 tokens and the slowest every 62,800. Each (sin, cos) pair at frequency $\omega_a$ is a point on a circle, and moving $k$ positions along the sequence rotates it by the angle $k\omega_a$, a fixed linear map that does not depend on $p$. Vaswani and colleagues chose them for that property, which lets attention express relative offsets. RoPE uses the same frequencies, $\omega_a = 10000^{-2a/d}$, but applies the rotation to the queries and keys instead of adding it to the input, so that the relative offset appears directly in every score. BERT took a third route, a learned vector for each of 512 positions, which works well inside that range and has nothing to offer at position 513.
+
 For atoms in space the analogous information is geometry, not order: equivariant transformers (for example Equiformer) build attention weights from interatomic distances and directions instead of sequence positions.
 
 ## The transformer block
@@ -116,13 +142,19 @@ $$
 \mathbf X' = \mathbf X + \operatorname{MHA}\big(\operatorname{LN}(\mathbf X)\big), \qquad \mathbf X'' = \mathbf X' + \operatorname{MLP}\big(\operatorname{LN}(\mathbf X')\big).
 $$
 
+{{< fig src="block.svg" alt="Diagram of a pre-LN transformer block: a horizontal residual stream from X to X double-prime, with two branches, layer norm then multi-head attention (4d squared parameters) and layer norm then an MLP from d to 4d to d (8d squared parameters), each added back to the stream" caption="A pre-LN block reads from the residual stream, normalises, transforms and adds the result back. Attention moves information between tokens; the MLP, which holds two thirds of the parameters, works on each token alone." >}}
+
 Attention mixes information *between* positions; the position-wise MLP (typically four times wider than the model) transforms each position *independently*. Residual connections let gradients flow through dozens of layers. A **causal mask**, which sets scores to $-\infty$ for $j > i$ (try it in the lab), stops each position from seeing the future, and turns the model into an **autoregressive** generator trained to predict the next token. That one change separates encoder models (BERT-like, for representation and property prediction) from decoder models (GPT-like, for generation).
+
+Layer normalisation (Ba, Kiros and Hinton, 2016) acts on each token separately: it subtracts the mean of the token's $d$ features, divides by their standard deviation, and applies a learned scale and shift, $\operatorname{LN}(\mathbf x) = \boldsymbol\gamma\odot(\mathbf x-\mu)/\sigma + \boldsymbol\beta$. The original transformer normalised *after* each residual addition, $\mathbf X' = \operatorname{LN}\big(\mathbf X + \operatorname{MHA}(\mathbf X)\big)$; the pre-LN form above normalises only the input of each branch and leaves the residual stream untouched, so a clean identity path runs from the first block to the last. The two objectives differ as much as the masks. BERT is trained to recover 15 per cent of the tokens that have been hidden or replaced, using context on both sides; GPT-style models are trained to predict every next token. Both minimise a cross-entropy, and a useful sanity check follows: a chemical language model over a vocabulary of 40 SMILES tokens that guesses uniformly has a loss of $\ln 40 \approx 3.7$ nats per token, so a training curve that starts far from 3.7 points to a bug in the data pipeline or the initialisation.
 
 {{< note type="story" >}}
 Attention entered neural networks through machine translation. Dzmitry Bahdanau, Kyunghyun Cho and Yoshua Bengio (2015) let a recurrent translation model look back over all the words of the source sentence, with learned weights, at every step of writing the output, instead of squeezing the whole sentence into one fixed vector. Two years later Ashish Vaswani and seven co-authors, most of them at Google, removed the recurrence altogether, kept attention, MLPs and residual connections, and titled the paper accordingly: “Attention is all you need”. Their larger model trained in three and a half days on eight GPUs and set new records for English-to-German and English-to-French translation. Within two years its encoder and decoder had become the templates for BERT and GPT.
 {{< /note >}}
 
 **A connection worth noticing.** Self-attention is message passing on a *complete* graph whose edge weights $\alpha_{ij}$ are computed on the fly from the node features. A transformer is a graph neural network that has not been told which atoms are neighbours and learns it instead. The price is the $\mathcal O(n^2)$ cost of comparing every pair, which limits sequence length; GNNs with a cut-off are $\mathcal O(n)$.
+
+{{< fig src="graphs.svg" alt="The same fourteen atoms drawn twice. Left: edges only between atoms closer than a cut-off, with the cut-off circle around one atom. Right: lines from one atom to all thirteen others, with widths proportional to its attention weights." caption="A graph network fixes its edges by distance before it sees any features (a). Self-attention connects every pair and computes each edge weight from the content (b); the widths shown are the weights of one query in a randomly initialised attention layer." >}}
 
 ### Counting parameters and cost
 
@@ -139,13 +171,37 @@ BERT-base (Devlin et al., 2019) has 12 blocks of width 768: $12 \times 12 \times
 
 Computation scales differently. The weights act on each token separately, so their cost grows linearly with the sequence length $n$, but the attention scores form an $n \times n$ matrix in every head of every layer: a million scores for 1,000 tokens, ten billion for 100,000. Doubling the length quadruples the attention cost, which is why long sequences need memory-efficient kernels such as FlashAttention (Dao et al., 2022), and why a protein of 1,000 residues costs about eleven times more attention than one of 300.
 
+Which term dominates depends on the ratio of sequence length to width. Per layer and per token, the weights cost two floating-point operations per parameter, $24d^2$ in all; the scores $\mathbf Q\mathbf K^\top$ and the weighted sum of values each cost $n d$ multiply-adds, $4nd$ operations. The fraction of a layer's work spent on attention is therefore
+
+$$
+f = \frac{4n^2 d}{4n^2 d + 24 n d^2} = \frac{n}{n + 6d},
+$$
+
+which reaches one half at $n = 6d$: 4,608 tokens for a width of 768. At BERT's 512 tokens attention takes 10 per cent of the operations; for a 1,000-residue protein, 18 per cent; at 32,768 tokens, 88 per cent. Memory turns over sooner than arithmetic: one $32{,}768\times32{,}768$ score matrix in 16-bit numbers occupies 2.1 GB, for every head of every layer.
+
+{{< fig src="cost.svg" alt="Left: log-log plot of operations per layer against sequence length for width 768, with a straight weight line of slope one and an attention line of slope two crossing at 4,608 tokens. Right: percentage of operations spent on attention against sequence length for widths 256, 768 and 2,048, each an S-shaped curve passing 50 per cent at six times the width." caption="For short sequences the projections and MLPs dominate; attention takes over beyond $n = 6d$. Dashed lines mark BERT's 512-token limit and a 1,000-residue protein, both well inside the weight-dominated regime for $d = 768$." >}}
+
+{{< note type="warn" title="Myth" >}}
+"FlashAttention makes attention linear." It computes exact attention, with the same $n^2 d$ multiply-adds. What it removes is the $n\times n$ score matrix in GPU main memory: it processes queries and keys in tiles that fit in on-chip memory and keeps running softmax statistics, so memory grows linearly in $n$ and far fewer bytes move between memory levels. The speed-up comes from that reduced memory traffic. Methods that change the scaling itself, by restricting attention to local windows or by approximating the softmax, compute a different function and must be validated as such.
+{{< /note >}}
+
+{{< note type="practice" title="Back of the envelope" >}}
+Check $12d^2$ on a science model. ESM-2 with 650 million parameters has 33 blocks of width 1,280: $33 \times 12 \times 1280^2 = 6.49\times10^8$. Its vocabulary of amino-acid and special tokens has only a few dozen entries, so the embedding table adds almost nothing, and the formula accounts for essentially the whole model.
+{{< /note >}}
+
 ## Transformers in molecular and materials science
 
 - **Protein structure and language models.** AlphaFold 2's Evoformer uses attention over multiple-sequence alignments and residue pairs; protein language models such as ESM-2 learn structure-aware representations from sequences alone.
-- **Chemical language models** trained on SMILES or SELFIES strings predict properties and generate molecules autoregressively.
+- **Chemical language models** trained on SMILES or SELFIES strings predict properties and generate molecules autoregressively. Tokenisation matters here: a SMILES tokeniser must keep `Cl` and `Br` as single tokens, treat bracket atoms such as `[nH]` or `[C@@H]` as units, and handle ring-closure digits, and a generated string can still be invalid, for example with an unclosed ring or a pentavalent carbon. SELFIES (Krenn et al., 2020) was designed so that every string decodes to a valid molecule.
 - **Crystal generation.** CrystaLLM trains a GPT-style model on millions of CIF files and generates plausible crystal structures as text.
 - **Text mining.** Language models pre-trained on the materials literature, such as MatSciBERT (Gupta et al., 2022), pull compositions, properties and processing conditions out of papers at a scale no human reader can match.
 - **Attention inside scientific models.** Attention layers are often combined with other architectures; the model I used to predict polymer–surface adhesion free energies combines a convolutional encoder for the surface pattern, a recurrent (GRU) encoder for the polymer sequence and a transformer-style attention module ([research](../../research/)).
+
+{{< note type="practice" title="From the lab" >}}
+A common protein workflow uses a pretrained language model as a fixed feature extractor. Run each sequence through ESM-2 (650M), take the 1,280-number representation of every residue from the last layer, average over residues, and fit a ridge regression or a small MLP to a few hundred measured values, such as melting temperatures or expression levels. The decisive step is the split: homologous sequences in both training and test sets inflate the test score, so practitioners cluster sequences by identity, often at 30 to 50 per cent with tools such as MMseqs2, and keep whole clusters on one side of the split. The same logic applies to materials, where near-duplicate compositions leak across random splits ([generalisation](../generalisation/)).
+{{< /note >}}
+
+Transformers have weak built-in assumptions: no locality, no notion of distance, no symmetry beyond permutation. With millions of training sequences that is an advantage; with the few thousand labelled examples typical of a materials property, graph networks and kernel methods with the right symmetries usually match or beat them, and transformers earn their place through pretraining on large unlabelled corpora.
 
 {{< note type="warn" title="Reading attention maps as explanations" >}}
 It is tempting to plot a trained model's attention weights and read them as the chemistry the model has discovered: this residue attends to that one, so they must interact. Be careful. Jain and Wallace (2019) showed, for text classifiers, that very different attention patterns can give the same predictions, and that attention weights often disagree with other measures of which inputs matter. A model has many heads and layers, and the values and MLPs transform whatever attention mixes. Treat an attention map as a hypothesis to test, for example by perturbing the inputs it highlights, not as evidence.
@@ -197,6 +253,7 @@ In real models use `torch.nn.MultiheadAttention` or `torch.nn.functional.scaled_
 - Self-attention treats its input as a set; order enters only through positional encodings, such as sinusoids or rotary embeddings.
 - A block is attention plus a position-wise MLP with residuals and layer norm, about $12d^2$ parameters; attention cost grows as $n^2$.
 - Self-attention is message passing on a complete graph whose edge weights are computed from the content.
+- Attention's share of a layer's work is n/(n + 6d): it dominates only beyond about six times the model width.
 {{< /note >}}
 
 {{< quiz >}}
@@ -228,6 +285,14 @@ In real models use `torch.nn.MultiheadAttention` or `torch.nn.functional.scaled_
   options: ["2", "4", "It does not change"]
   answer: 1
   why: "There is one score for every pair of positions, $n^2$ in all, so doubling $n$ multiplies the number of scores by four."
+- q: "A model of width 768 switches from 12 attention heads to 24. What happens to the number of attention parameters?"
+  options: ["It doubles", "It stays the same, because each head becomes half as wide", "It halves"]
+  answer: 1
+  why: "With $d_k = d/H$, the per-head projections together always form $d \\times d$ matrices, so the count stays $4d^2$."
+- q: "For a model of width $d = 768$, at roughly what sequence length do the attention scores cost as many operations as all the weight matrices of a layer?"
+  options: ["About 768 tokens", "About 4,600 tokens", "About 590,000 tokens"]
+  answer: 1
+  why: "The attention share is $n/(n + 6d)$, which equals one half at $n = 6d = 4{,}608$."
 {{< /quiz >}}
 
 ## References and further reading
@@ -248,5 +313,7 @@ In real models use `torch.nn.MultiheadAttention` or `torch.nn.functional.scaled_
 12. T. Gupta, M. Zaki, N. M. A. Krishnan and Mausam, “MatSciBERT: a materials domain language model for text mining and information extraction,” *npj Computational Materials* **8**, 102 (2022).
 13. S. Jain and B. C. Wallace, “Attention is not explanation,” *Proceedings of NAACL-HLT* (2019).
 14. R. Xiong et al., “On layer normalization in the transformer architecture,” *Proceedings of ICML* (2020).
+15. J. L. Ba, J. R. Kiros and G. E. Hinton, “Layer normalization,” arXiv:1607.06450 (2016).
+16. M. Krenn, F. Häse, A. Nigam, P. Friederich and A. Aspuru-Guzik, “Self-referencing embedded strings (SELFIES): a 100% robust molecular string representation,” *Machine Learning: Science and Technology* **1**, 045024 (2020).
 
 </div>

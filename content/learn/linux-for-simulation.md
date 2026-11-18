@@ -8,6 +8,16 @@ objectives:
   - "Write a Slurm job script whose cores, threads, memory and time match the program"
   - "Estimate wall time, core-hours and storage for a run from a short benchmark"
   - "Run a parameter sweep as a job array, then diagnose and resubmit failed tasks"
+cover: "cover.svg"
+milestones:
+  - year: 1994
+    text: "Thomas Sterling and Donald Becker build Beowulf, a cluster of commodity PCs, at NASA"
+  - year: 1995
+    text: "Tatu Ylönen writes SSH after a password-sniffing attack at his university"
+  - year: 1996
+    text: "Andrew Tridgell and Paul Mackerras describe the rsync algorithm"
+  - year: 2003
+    text: "Yoo, Jette and Grondona describe Slurm, developed at Lawrence Livermore"
 track: toolbox
 weight: 4
 level: Foundation
@@ -19,6 +29,14 @@ prereqs: ["linux-shell"]
 ## How a cluster is organised
 
 A high-performance computing (HPC) cluster is many computers (**nodes**) connected by a fast network and sharing file systems. You log in to a **login node**, which is shared by everyone and meant for editing, compiling and submitting work. The calculations run on **compute nodes**, which you reach only through the **scheduler** (usually Slurm, sometimes PBS or LSF): you describe the resources you need in a **job script**, submit it, and the scheduler starts it when the resources are free.
+
+{{< fig src="cluster.svg" alt="Schematic of a cluster. A laptop connects by ssh to two login nodes. From a login node, sbatch hands a job to the Slurm controller, which runs it on a grid of compute nodes, some with GPUs, joined by a fast interconnect. Below, three shared file systems, home, scratch and project, are mounted on every node." caption="The parts of a cluster that a user meets. You touch the login nodes directly and the compute nodes only through the scheduler; the shared file systems look the same from every node, while each compute node also has a private local disk." >}}
+
+The numbers set the working habits. A current CPU node typically has two processors with 32 to 64 cores each and 256 to 512 GB of memory; a GPU node adds four or eight accelerators with 40 to 80 GB of memory each. The nodes are joined by an interconnect such as InfiniBand, with 100 to 400 Gb/s per link and latencies of one to two microseconds, about ten times lower than ordinary Ethernet. That latency is what lets a molecular dynamics code exchange halo atoms between nodes every 2 fs time step. The login nodes, by contrast, are a handful of machines shared by hundreds of users, which is why the rule below exists.
+
+{{< note type="story" title="Clusters from shop-floor parts" >}}
+In 1994 Thomas Sterling and Donald Becker, working at NASA's Goddard Space Flight Center, connected sixteen ordinary PCs with Ethernet and ran Linux on them. Their Beowulf cluster showed that commodity hardware, free software and message passing could do work that previously needed a purpose-built supercomputer. Within about a decade, clusters of this kind made up most of the TOP500 list of the world's fastest machines, and almost all of them now run Linux.
+{{< /note >}}
 
 {{< note type="warn" title="The first rule of shared clusters" >}}
 Do not run simulations on the login node. It slows the machine down for every other user and the processes are usually killed automatically. Short tests belong in an interactive job (`srun --pty …` or `salloc`), everything else in a batch job.
@@ -43,7 +61,9 @@ Host cluster
     ProxyJump gateway.university.edu      # only if you must go through a gateway first
 ```
 
-Now `ssh cluster`, `scp file cluster:` and `rsync … cluster:` all work, and so does the remote mode of editors such as VS Code. Protect the private key with a passphrase and keep it readable only by you (`chmod 600`).
+Now `ssh cluster`, `scp file cluster:` and `rsync … cluster:` all work, and so does the remote mode of editors such as VS Code. Protect the private key with a passphrase and keep it readable only by you (`chmod 600`). An agent (`ssh-add` once per session; on macOS, `UseKeychain yes` in the config) holds the unlocked key so that the passphrase is typed once, not at every login. Two more config lines save time on sites with slow logins or two-factor authentication: `ControlMaster auto` with `ControlPath ~/.ssh/cm-%r@%h:%p` lets later `ssh`, `scp` and `rsync` calls reuse the first authenticated connection.
+
+SSH replaced `telnet` and `rlogin`, which sent passwords across the network in plain text. Tatu Ylönen wrote the first version in 1995 at the Helsinki University of Technology after a password-sniffing attack on its network; the free OpenSSH implementation followed in 1999 and is what nearly every cluster runs today.
 
 Port forwarding lets you use a remote service in your local browser, for example a Jupyter notebook running on the cluster:
 
@@ -61,6 +81,8 @@ rsync -avzP --exclude '*.trr' --exclude '*.cpt' cluster:~/project/runs/ runs/   
 rsync -avn --delete runs/ cluster:~/backup/runs/              # -n: dry run first, ALWAYS with --delete
 ```
 
+rsync is fast on a second run because of the algorithm Andrew Tridgell and Paul Mackerras published in 1996: for a file that exists on both sides, the receiver sends checksums of fixed-size blocks, and the sender finds matching blocks at any offset with a cheap rolling checksum, so only the changed bytes travel. By default rsync skips files whose size and modification time already match; `-c` compares full checksums instead, which is slower but catches silent corruption.
+
 A trailing slash on the source (`runs/`) copies the *contents* of the directory; without it (`runs`) it copies the directory itself. Pack many small files before moving or archiving them, and check that the copy is intact:
 
 ```bash
@@ -69,6 +91,10 @@ sha256sum runs_2026-10.tar.gz > runs_2026-10.sha256   # on macOS: shasum -a 256
 sha256sum -c runs_2026-10.sha256            # verify after transfer
 tar -xzf runs_2026-10.tar.gz                # x extract
 ```
+
+{{< note type="practice" title="Back of the envelope" >}}
+The temperature series planned below produces 120 GB of trajectories. Over a campus link that sustains 100 MB/s, copying them takes 1,200 s, twenty minutes. Over home broadband at 10 MB/s it takes three and a half hours, which is why analysis usually runs on the cluster and only reduced data (energies, RDFs, a few hundred frames) travels. The file count matters as much as the volume: per-file overheads of a few milliseconds turn a directory of one million 10 kB files (only 10 GB) into an hour of transfer. One `tar` file avoids that.
+{{< /note >}}
 
 ## Sessions that survive a dropped connection
 
@@ -134,6 +160,21 @@ sacct -u $USER -S 2026-10-01 --format=JobID,JobName,Elapsed,State,ExitCode   # h
 
 **Job arrays** run the same script many times with different inputs, with the index in `$SLURM_ARRAY_TASK_ID`: the natural way to run a temperature series or a set of independent replicas (tick the option in the builder).
 
+### How the scheduler chooses the next job
+
+Slurm orders pending jobs by a **priority** computed from several weighted factors, set by each site: how long the job has waited (age), how much the user's group has used recently compared with its share (fair-share, with past usage decaying over a half-life of typically a week), the job's size, and the partition and quality of service. `sprio -u $USER` shows the factors for your pending jobs and `sshare` your fair-share standing. A group that has burned through its share this week sees its jobs sink below those of a group that has been idle.
+
+Strict priority order would leave nodes idle. If the top job needs all eight nodes of a partition, those nodes must drain as running jobs finish, and every node that frees up early would sit empty until the last one is done. **Backfilling** fills those gaps. The scheduler computes when the top job can start, reserves the nodes for that moment, and then lets lower-priority jobs start now, but only if they will finish before the reservation or use nodes the reservation does not need. David Lifka introduced this scheme, now called EASY backfilling, for the IBM SP at Argonne National Laboratory in 1995; Slurm's backfill scheduler extends it by planning reservations for many pending jobs, not just the first.
+
+{{< fig src="backfill.svg" alt="Gantt chart of eight nodes over 46 hours. Two grey jobs are already running. A blue job needing all eight nodes for 12 hours gets a reservation at 9 hours. Three short teal jobs start earlier in the gaps and finish before 9 hours. A pink job asking for two nodes for 24 hours cannot fit before the reservation and starts only at 21 hours." caption="A simulation of EASY backfilling on eight nodes. J1 has the highest priority and reserves the whole partition from 9 h; the short jobs J3, J4 and J5 run in the gaps before then, while J2, which asked for 24 hours, would delay J1 and so waits until 21 h despite outranking the short jobs." >}}
+
+The scheduler knows only the time you *request*, so the request decides whether your job can backfill. J2 in the figure would have started at once on two idle nodes had it asked for under nine hours. This is the practical case for splitting a long run into checkpointed segments of a few hours each, and for asking for the time a job needs plus a margin of 10 to 20 per cent, rather than the partition maximum.
+
+{{< note type="warn" title="Myth" >}}
+**Myth:** asking for the maximum time and memory is harmless, because you are charged only for what the job uses.
+**Reality:** most sites do charge the elapsed time, but the request still costs you. A 48-hour request cannot backfill into a 6-hour gap, and on a busy machine it can wait days longer than the same job asking for 8 hours. An inflated `--mem` can stop the job fitting on nodes that are partly occupied. Look at `sacct`'s Elapsed and MaxRSS for a finished run and set the next request from them.
+{{< /note >}}
+
 ## Where to keep files
 
 Clusters usually have several file systems with different purposes:
@@ -146,6 +187,13 @@ Clusters usually have several file systems with different purposes:
 | node-local disk (`$TMPDIR`) | very I/O-heavy temporary files during a job | erased when the job ends |
 
 Check your usage with `quota`, `du -sh *` or the site's own tool, and copy anything you need to keep off scratch promptly.
+
+Scratch on a large cluster is usually a **parallel file system** such as Lustre or IBM Storage Scale (GPFS). Lustre stripes each file across many object storage servers, so one large file can be read and written at tens of gigabytes per second, while a separate metadata server keeps track of names, sizes and permissions. Every `open`, `stat` and `ls -l` is a request to that metadata server, shared by every user of the machine. Sites therefore set quotas on the *number* of files (inodes) as well as on bytes, and `lfs quota -u $USER /scratch` shows both on Lustre.
+
+{{< note type="warn" title="Myth" >}}
+**Myth:** scratch is the fastest disk on the cluster, so it is fast for everything.
+**Reality:** it is fast for large sequential reads and writes and slow for many small operations. A workflow that writes one 2 kB file per frame for 100,000 frames, or a Python environment of 50,000 small files imported by every task of a 500-task array, can slow the whole file system for everyone. Write trajectories in large binary files (`.xtc`, `.dcd`, HDF5), keep conda environments in home or project space or in a container image, and put files that a single job hammers on the node-local `$TMPDIR`, copying results back at the end of the job.
+{{< /note >}}
 
 ## A day on the cluster
 
@@ -217,6 +265,12 @@ done
 
 `aftercorr` links consecutive arrays task by task: segment 2 at 320 K starts as soon as segment 1 at 320 K has finished successfully, whatever happens at the other temperatures. With `afterok`, one failed temperature would hold up every later segment of the series. Because `-maxh` lets mdrun stop on its own, each segment exits with status 0 and counts as a success.
 
+{{< fig src="segments.svg" alt="Timeline of five temperature rows over 100 hours. The rows for 300 to 330 K each show four segments of 23.3 hours reaching 47, 93, 140 and 186 ns, and a short fifth segment reaching 200 ns at 100 hours. The 340 K row shows a first segment that fails after under four minutes and four dashed segments that never start." caption="The worked example drawn to scale: at 48 ns/day, each 23.3-hour segment adds 46.5 ns, so the fifth needs only 6.9 hours. With `aftercorr`, the failure at 340 K blocks only its own row. Real queues add waiting time between segments." >}}
+
+{{< note type="practice" title="Scaling test before a big run" >}}
+The 48 ns/day benchmark was measured on one GPU. Before asking for more, measure the speed-up $S(N) = t_1 / t_N$ on $N$ = 1, 2 and 4 GPUs or 1, 2, 4 and 8 CPU nodes and compute the parallel efficiency $E = S/N$. If two GPUs gave 80 ns/day, $E = 80/(2 \times 48) = 0.83$; if four gave 110 ns/day, $E = 0.57$, and the extra two GPUs buy 30 ns/day for the same charge as the first two. Many centres ask proposals to show efficiency above about 50 to 70 per cent at the requested size. For a five-temperature series, five one-GPU jobs running side by side are almost always a better use of an allocation than one temperature at a time on five GPUs. [The performance chapter](../python-performance/) explains why the efficiency falls, with Amdahl's law.
+{{< /note >}}
+
 ### When a task fails
 
 The next morning, `sacct -j 4817352 -X --format=JobID,State,ExitCode,Elapsed` shows the first segment's record:
@@ -248,6 +302,10 @@ grep -n -B 2 -A 8 'Fatal error' T340/md.log
 ```
 
 Here GROMACS stopped after a cascade of LINCS warnings: the 340 K system blew up within its first few thousand steps, the classic sign of a starting structure not equilibrated at that temperature or a time step too long for it. Once it is fixed, `sbatch --array=4 tseries.sh` reruns that task alone. Its queued follow-up segments can now never start (`squeue` shows the reason `DependencyNeverSatisfied`); cancel them with `scancel` and chain new ones the same way.
+
+{{< note type="practice" title="From the lab" >}}
+Make every job record what it ran, so that a result can be traced back months later without guesswork. Three lines near the top of the script do it: `module list 2>&1` (the loaded versions, which `module` prints on standard error), `git -C "$SLURM_SUBMIT_DIR" rev-parse HEAD` (the commit of your scripts and inputs, if they are under version control), and `sha256sum md.tpr` (a fingerprint of the exact input). All three go into the job's own log next to the hostname and date. When two runs that should agree do not, comparing these lines usually finds the cause in minutes: a different GROMACS build, an edited topology, or a `.tpr` regenerated while the job was queued.
+{{< /note >}}
 
 {{< note type="warn" title="Four ways a job script fails" >}}
 - **The log directory does not exist.** Slurm does not create the directory named in `--output`; the job fails at once and leaves no log to explain why.
@@ -293,6 +351,8 @@ When you meet an unfamiliar command line in a tutorial or a colleague's script, 
 - Benchmark first, then estimate wall time, segments, core-hours and storage before submitting a series.
 - Job arrays run sweeps; `sacct`'s State and ExitCode, then the logs, tell you why a task failed.
 - Scratch is fast but temporary: copy off what you need to keep.
+- Backfilling starts short jobs in gaps before a reservation, so accurate time requests start sooner.
+- Parallel file systems are fast for large files and slow for many small ones: tar, use binary formats, use `$TMPDIR`.
 {{< /note >}}
 
 {{< quiz >}}
@@ -320,6 +380,18 @@ When you meet an unfamiliar command line in a tutorial or a colleague's script, 
   options: ["Resubmit the whole array with twice the memory", "Read that task's logs, fix the cause, and rerun only that index, for example with `sbatch --array=4`", "Ask for a longer time limit"]
   answer: 1
   why: "Status 1 with no signal, after a few minutes, means the program stopped itself with an error: an input or physics problem, not a resource limit. The completed tasks need not be rerun."
+- q: "A large job holds a reservation that starts in 6 hours. Two equal-priority jobs each need one of the currently idle nodes: A requests 4 hours, B requests 24 hours. Which can start now?"
+  options: ["Both", "Only A, because it finishes before the reservation", "Neither, because the large job has higher priority"]
+  answer: 1
+  why: "Backfilling lets a lower-priority job start only if it cannot delay the reservation. A ends before it; B would still occupy a node the reservation needs."
+- q: "Which output pattern is kindest to a Lustre scratch file system?"
+  options: ["One small text file per frame", "One large binary trajectory file per run", "One directory per frame"]
+  answer: 1
+  why: "Every file costs metadata operations on a server shared by all users. Large files are striped over many storage servers and read and written quickly."
+- q: "Two GPUs give 80 ns/day where one gave 48 ns/day. What is the parallel efficiency?"
+  options: ["About 0.6", "About 0.83", "About 1.67"]
+  answer: 1
+  why: "Speed-up S = 80/48 = 1.67; efficiency E = S/N = 1.67/2 = 0.83."
 {{< /quiz >}}
 
 ## References and further reading
@@ -332,5 +404,8 @@ When you meet an unfamiliar command line in a tutorial or a colleague's script, 
 4. W. Shotts, *The Linux Command Line*, 2nd ed., No Starch Press (2019), chapters on networking, archiving and shell scripts.
 5. B. P. Hogan, *tmux 3: Productive Mouse-Free Development*, Pragmatic Bookshelf (2023).
 6. GROMACS documentation, “Getting good performance from mdrun,” manual.gromacs.org, for choosing ranks, threads and GPU offload.
+7. A. B. Yoo, M. A. Jette and M. Grondona, “SLURM: Simple Linux Utility for Resource Management,” in *Job Scheduling Strategies for Parallel Processing*, Lecture Notes in Computer Science **2862**, 44–60, Springer (2003).
+8. A. Tridgell and P. Mackerras, “The rsync algorithm,” Technical Report TR-CS-96-05, Australian National University (1996).
+9. D. A. Lifka, “The ANL/IBM SP scheduling system,” in *Job Scheduling Strategies for Parallel Processing*, Lecture Notes in Computer Science **949**, 295–303, Springer (1995).
 
 </div>

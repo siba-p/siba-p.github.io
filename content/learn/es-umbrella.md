@@ -8,6 +8,16 @@ objectives:
   - "Diagnose gaps in histogram overlap and repair them with extra windows"
   - "Compare WHAM, MBAR and umbrella integration for joining windows into one profile"
   - "Estimate error bars that account for autocorrelation, using bootstrapping over histograms"
+cover: "cover.svg"
+milestones:
+  - year: 1977
+    text: "Torrie and Valleau introduce umbrella sampling with non-Boltzmann sampling distributions"
+  - year: 1992
+    text: "Kumar, Rosenberg, Bouzida, Swendsen and Kollman publish WHAM for biomolecules"
+  - year: 2005
+    text: "Kästner and Thiel introduce umbrella integration"
+  - year: 2008
+    text: "Shirts and Chodera publish MBAR, removing the histogram bins"
 track: rl-free
 weight: 2
 level: Advanced
@@ -18,6 +28,10 @@ lab: "Run a row of umbrella windows across a barrier and reconstruct the free-en
 ## The idea: make the improbable probable
 
 A free-energy profile $F(s) = -k_BT\ln P(s)$ along a collective variable can be computed from a histogram of $s$, but only where the simulation goes. Across a barrier of 10 or 20 $k_BT$, the probability density at the top is $e^{-10}$ to $e^{-20}$ times that in the well, so an unbiased simulation never samples it. In 1977 Glenn Torrie and John Valleau proposed adding a **bias potential** that makes the improbable regions probable, and then removing the effect of the bias analytically. They called the bias an *umbrella* because it spreads sampling over a region that the natural distribution would leave uncovered.
+
+{{< note type="practice" title="Back of the envelope" >}}
+How long would plain MD wait for a 20 $k_BT$ barrier? Transition-state theory gives a rate of at most $(k_BT/h)\,e^{-20}$, and $k_BT/h = 6.25\times10^{12}$ s⁻¹ at 300 K, so the mean waiting time is at least $e^{20}/(6.25\times10^{12}\ \text{s}^{-1}) \approx 80$ µs. That is a lower bound: diffusive recrossing and friction in solution lower the prefactor, often by orders of magnitude, and one crossing gives no statistics. Converging a profile needs dozens of crossings, which puts plain MD into the tens of milliseconds. The 17-window umbrella plan of the worked example below costs about 0.34 µs in total.
+{{< /note >}}
 
 The commonest form today uses a series of **windows**: separate simulations, each with a harmonic restraint that holds the collective variable near a different centre $s_k$,
 
@@ -39,6 +53,10 @@ $$
 where $f_k = -k_BT\ln\langle e^{-\beta w_k}\rangle$ is an unknown constant, the free energy of switching on the bias. Each window therefore gives the free-energy profile over its own narrow range, but shifted by an unknown constant. The whole problem of analysis is to determine the constants $f_k$ so that the pieces join up, which is possible only where neighbouring windows **overlap**: where both sample the same values of $s$.
 
 Think of a panorama stitched from photographs taken with unknown exposures. Each window photographs a narrow strip of the landscape: its shape is right, but its brightness, $f_k$, is arbitrary. Where two photographs share scenery, matching the shared part fixes their relative exposure, and a chain of such matches carries one level from end to end. Where two share nothing, no software can tell how the strips relate.
+
+The relation itself takes two lines to derive. The biased ensemble has the Boltzmann weight $e^{-\beta[U(\mathbf x) + w_k(\xi(\mathbf x))]}$, and because the bias depends on the coordinates only through $\xi$, it factors out of the integral over all configurations that share the value $s$: $P_k^{\text b}(s) \propto P(s)\,e^{-\beta w_k(s)}$. The proportionality constant is fixed by normalisation and equals the ratio of the unbiased and biased partition functions, which is $\langle e^{-\beta w_k}\rangle^{-1}$. Nothing in this argument depends on the bias being harmonic; any function of $s$ works, and the harmonic form is chosen only because it is easy to control and easy to place.
+
+{{< fig src="unbias.svg" alt="Three panels: a spring added to a free-energy curve producing a narrow histogram; seventeen noisy profile pieces scattered at random heights; the same pieces joined onto the true profile" caption="From windows to a profile, computed for the worked example below with 1500 samples per window. Each window gives a piece of $F(s)$ with the right shape but an arbitrary offset; WHAM finds the seventeen offsets from the bins that neighbours share, and the joined profile matches the true one to within 0.9 kJ/mol." >}}
 
 ## The weighted histogram analysis method
 
@@ -73,6 +91,10 @@ $$ \langle s\rangle_k \approx s_k - \frac{\textcolor{#f08c2e}{F'(s_k)}}{\textcol
 - $\textcolor{#f08c2e}{F'}$: the local slope, which pushes the window downhill; $\textcolor{#12a594}{F''}$: the local curvature, negative near a barrier top
 - on flat ground $\sigma = \sqrt{k_BT/\kappa}$; if $\kappa + F'' \le 0$ the window has no stable centre at all
 {{< /eq >}}
+
+{{< note type="try" title="Pause and predict" >}}
+The crest of the worked example below has curvature $F'' \approx -790$ kJ mol⁻¹ nm⁻². A window centred there with $\kappa = 1000$ kJ mol⁻¹ nm⁻² is wider than one on flat ground. By how much? Decide before reading on. The card gives $\sigma^2 = k_BT/(\kappa + F'') = 2.494/210$ nm², so $\sigma \approx 0.11$ nm, more than twice the flat-ground 0.050 nm. The exact distribution of the window nearest the crest, centred at 1.10 nm in the cell below, is narrower, 0.069 nm, because the curvature is that negative only at the very top: a few hundredths of a nanometre away it turns positive, and the flanks hold the window in. Both numbers point the same way: windows spread out at barrier tops, and that is where their shapes are least Gaussian.
+{{< /note >}}
 
 Two Gaussian histograms of equal width $\sigma$ whose means are $d$ apart share a fraction $2\Phi(-d/2\sigma)$ of their area, where $\Phi$ is the standard normal cumulative distribution: 0.62 at $d = \sigma$, 0.32 at $2\sigma$, 0.13 at $3\sigma$ and 0.05 at $4\sigma$. A spacing of about $2\sigma$ is a comfortable working target.
 
@@ -117,6 +139,12 @@ print(f"{len(c2)} windows: worst overlap {ovl.min():.2f}, valley {valley:.2f}")
 {{< /py >}}
 
 Sixteen windows leave one weak junction, between 1.00 and 1.10 nm, with an overlap of 0.15 and a valley at 35 % of the typical height. A seventeenth window centred at 1.05 nm, whose histogram settles at 0.995 nm in the middle of the gap, lifts these to 0.29 and 72 %. Stiffening the two windows beside the gap to 2000 kJ mol⁻¹ nm⁻² instead lowers their overlap to 0.08: narrower histograms need closer neighbours. Change `kappa=1000.0` to `500.0` and the overlap looks better (0.34), but the valley deepens to 19 % and the window at 1.10 nm spreads to 0.14 nm, sampling both sides of a crest whose curvature its spring no longer beats. At 20 ns per window, the 17-window plan costs about a third of a microsecond, run as 17 independent jobs.
+
+{{< fig src="plan.svg" alt="Top: the worked-example profile rising from 0.5 nm to a crest at 1.08 nm and a plateau, with arrows showing windows sliding downhill. Middle: sixteen bell-shaped window histograms plus an orange seventeenth. Bottom: the summed histogram with a valley near 1.0 nm that the seventeenth window fills" caption="The window plan of the worked example, computed from the exact biased distributions. Windows on the rising flank slide about 0.08 nm downhill; the pair straddling the crest slide apart, leaving a valley in the summed histogram at 35 % of its median. One extra window centred at 1.05 nm settles at 0.995 nm and lifts the valley to 72 %." >}}
+
+{{< note type="warn" title="Myth" >}}
+**Myth:** stiffer springs are the safe choice, because they hold every window exactly where it was put. **Reality:** a stiffer spring narrows each histogram as $\sigma = \sqrt{k_BT/\kappa}$, so at fixed spacing the overlap falls. In the worked example, doubling κ beside the gap lowers its overlap from 0.15 to 0.08. A spring needs to be stiff enough to beat the local curvature and slope, and no stiffer; past that point every increase in κ must be paid for with more windows, roughly as $\sqrt{\kappa}$.
+{{< /note >}}
 
 ### Setting up a window
 
@@ -163,6 +191,8 @@ PRINT ARG=d,r.bias STRIDE=50 FILE=COLVAR_110
 
 Real histograms are noisy and real profiles unknown, but the same checks apply. Plot all the histograms with their sum: a valley in the sum marks a weak junction, and one near zero a gap; the overlap matrix that MBAR returns gives the same verdict in numbers. Plot each window's mean minus its centre: the curve traces $-F'/(\kappa + F'')$ and jumps where the slope changes sign, which is where gaps open. Compare each window's histogram from the two halves of its run: one that moves has not equilibrated, and one that is bimodal or unusually wide has a spring weaker than the local curvature, or a slow motion the coordinate misses.
 
+{{< fig src="diagnose.svg" alt="Left: shared area of two Gaussian windows falling from 1 to near 0 as their spacing grows from 0 to 5 standard deviations. Right: window mean minus centre against centre, negative on the rising flank, jumping to positive just past 1 nm, then zero on the plateau" caption="Left: the overlap of two equal Gaussian windows, $2\Phi(-d/2\sigma)$, with the shaded working target near $2\sigma$. Right: the shift of each window of the worked example, every 0.05 nm. The dots follow $-F'/(\kappa + F'')$ on the flank and the plateau; at the crest they jump from −0.085 to +0.03 nm, which is where the gap opens." >}}
+
 The repair is almost always more windows, not different springs. Since a window's shift is about $-F'/\kappa$ where the curvature is small, the existing windows measure the local slope, $F' \approx \kappa\,(s_k - \langle s\rangle_k)$, and show where to centre a new one so that its histogram, not its centre, lands in the gap: on a rising stretch, uphill of the gap. Start it from a neighbouring window's frame near the target value. A window that keeps jumping between two values points to the hidden barriers discussed below.
 
 {{< note type="practice" >}}
@@ -203,6 +233,14 @@ Errors also accumulate along the coordinate. Each junction between windows adds 
 A typical umbrella-sampling study proceeds as follows. Generate starting configurations along the collective variable, usually from a short steered-MD pull or from an interpolated path. Run each window long enough for its distribution to converge, discarding an initial equilibration period. Check the overlap of neighbouring histograms and add windows where it is poor. Combine with WHAM or MBAR, and estimate errors by bootstrapping or by block averaging over time ([trajectory analysis](../trajectory-analysis/)), remembering that consecutive samples are correlated. Finally, check convergence by comparing profiles from the first and second halves of the data.
 
 The most dangerous pitfall is not visible in the histograms: slow degrees of freedom orthogonal to the collective variable. If, at fixed $s$, the system has two configurations separated by a barrier the window never crosses, each window samples only one of them, every histogram looks fine, and the profile is wrong. This is the hidden-barrier problem of [the chapter on collective variables](../es-collective-variables/). Running windows from different starting configurations, or combining umbrella sampling with replica exchange between windows, helps detect and reduce it.
+
+A concrete test for hidden barriers is hysteresis. Generate the starting frames twice, once by pulling the ligand out and once by pushing it back in, and run the windows from both sets. If the two profiles agree within their error bars, the windows have forgotten where they came from. If they differ by several $k_BT$ in a stretch of the coordinate, a slow orthogonal motion, for example a loop that closes behind the ligand or a side chain that flips, has been carried in from the starting structure. The repair is to add that motion as a second coordinate, to run the windows much longer, or to exchange configurations between neighbouring windows: Hamiltonian replica exchange between umbrella windows, described in [the chapter on replica exchange](../es-replica-exchange/), lets a configuration that has relaxed in one window move to its neighbours.
+
+{{< note type="practice" title="From the lab" >}}
+- **Permeation through membranes.** Siewert-Jan Marrink and Herman Berendsen (1994) described water crossing a lipid bilayer with the inhomogeneous solubility–diffusion model: a free-energy profile and a position-dependent diffusion coefficient along the bilayer normal together give the permeability. Today the profile is usually computed by umbrella sampling, with windows every 0.1 nm from bulk water to the bilayer centre, for drugs, gases and ions alike.
+- **Crystal nucleation.** Stefan Auer and Daan Frenkel (2001) applied umbrella sampling to the size of the largest crystalline cluster in a supersaturated hard-sphere fluid, obtained the height of the nucleation barrier, and combined it with a kinetic prefactor from unbiased runs to predict absolute nucleation rates for colloids. The coordinate is an integer cluster size, which shows that umbrella sampling needs only a computable order parameter, not a geometric distance.
+- **Ion pairs and binding.** The profile of Na⁺ and Cl⁻ in water along their separation has a contact minimum near 0.28 nm and a solvent-separated minimum about 0.2 nm further out; it is a standard test of water models and of the Jacobian correction, because the $-2k_BT\ln r$ term is large at these distances.
+{{< /note >}}
 
 Umbrella sampling remains among the most widely used free-energy methods, because it is simple, robust and easy to parallelise: every window is an independent simulation. Its limitations are that the collective variable and the window placement must be chosen in advance, and that the cost grows quickly with the number of collective variables. The adaptive methods of the next chapters, metadynamics and its relatives, construct the bias on the fly instead.
 
@@ -254,5 +292,7 @@ Umbrella sampling remains among the most widely used free-energy methods, becaus
 6. M. R. Shirts and J. D. Chodera, "Statistically optimal analysis of samples from multiple equilibrium states", *Journal of Chemical Physics* **129**, 124105 (2008).
 7. J. S. Hub, B. L. de Groot and D. van der Spoel, "g_wham—a free weighted histogram analysis implementation including robust error and autocorrelation estimates", *Journal of Chemical Theory and Computation* **6**, 3713–3720 (2010).
 8. J. Kästner and W. Thiel, "Bridging the gap between thermodynamic integration and umbrella sampling provides a novel analysis method: 'Umbrella integration'", *Journal of Chemical Physics* **123**, 144104 (2005).
+9. S. J. Marrink and H. J. C. Berendsen, "Simulation of water transport through a lipid membrane", *Journal of Physical Chemistry* **98**, 4155–4168 (1994).
+10. S. Auer and D. Frenkel, "Prediction of absolute crystal-nucleation rate in hard-sphere colloids", *Nature* **409**, 1020–1023 (2001).
 
 </div>

@@ -1,0 +1,20 @@
+{{- /* A static figure drawn by tools/figures/<slug>.py. Usage:
+{{< fig src="name.svg" alt="What the image shows" caption="What to notice, Markdown and $maths$ allowed" >}}
+       The file lives in static/img/learn/<chapter slug>/. Figures share the chapter's figure numbering with the
+       interactive figures and open full size when clicked. */ -}}
+{{- $slug := .Page.File.ContentBaseName -}}
+{{- $src := .Get "src" -}}
+{{- $path := printf "img/learn/%s/%s" $slug $src -}}
+{{- $file := printf "static/%s" $path -}}
+{{- $w := "" }}{{ $h := "" -}}
+{{- if fileExists $file }}
+  {{- with findRESubmatch `viewBox="[-\d.]+ [-\d.]+ ([\d.]+) ([\d.]+)"` (readFile $file) 1 }}{{ $w = index (index . 0) 1 }}{{ $h = index (index . 0) 2 }}{{ end -}}
+{{- else }}
+  {{- warnf "fig: %s is missing (used in %s)" $file .Page.File.Path -}}
+{{- end }}
+<figure class="sfig{{ with .Get "class" }} {{ . }}{{ end }}">
+  <a class="sfig-plate" href="{{ $path | relURL }}" data-zoom aria-label="Open the figure full size">
+    <img src="{{ $path | relURL }}" alt="{{ .Get "alt" }}" loading="lazy" decoding="async"{{ with $w }} width="{{ math.Round (float .) }}" height="{{ math.Round (float $h) }}"{{ end }}>
+  </a>
+  {{ with .Get "caption" }}<figcaption><span class="sfig-tag"></span>{{ . | $.Page.RenderString }}</figcaption>{{ end }}
+</figure>

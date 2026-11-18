@@ -8,6 +8,16 @@ objectives:
   - "Interpret t-SNE and UMAP maps without over-reading distances or cluster sizes"
   - "Run k-means and choose the number of clusters with the elbow and the silhouette"
   - "Compare Gaussian mixtures, density-based and hierarchical clustering for grouping conformations"
+cover: "cover.svg"
+milestones:
+  - year: 1901
+    text: "Karl Pearson fits lines and planes of closest fit to clouds of points"
+  - year: 1957
+    text: "Stuart Lloyd describes the k-means algorithm in a Bell Labs memo"
+  - year: 1993
+    text: "Amadei, Linssen and Berendsen introduce essential dynamics of proteins"
+  - year: 2008
+    text: "Van der Maaten and Hinton introduce t-SNE for visualising high-dimensional data"
 track: unsup
 weight: 1
 level: Core
@@ -43,6 +53,12 @@ $$ \textcolor{#12a594}{\mathbf C} = \frac{1}{N-1}\,\mathbf X_c^{\top}\mathbf X_c
 
 Because $\mathbf C$ is symmetric, its eigenvectors are perpendicular ([vectors and matrices](../vectors-and-matrices/)) and the components are uncorrelated. The fraction of the total variance carried by the first $m$ components, $\sum_{k\le m}\lambda_k / \sum_k \lambda_k$, is the **explained variance**, and projecting onto those $m$ axes gives the best $m$-dimensional linear summary of the data.
 
+### A worked example by hand
+
+Take two standardised features with variance 3 each and covariance 2, so $\mathbf C = \begin{pmatrix}3 & 2\\ 2 & 3\end{pmatrix}$. The eigenvalues solve $(3-\lambda)^2 - 4 = 0$, giving $\lambda_1 = 5$ and $\lambda_2 = 1$, with eigenvectors $(1, 1)/\sqrt2$ and $(1, -1)/\sqrt2$. The first component, the sum of the two features, carries $5/6 = 83\,\%$ of the variance; the difference carries the rest. Turning a unit vector $\mathbf v = (\cos\theta, \sin\theta)$ through all directions gives $\mathbf v^{\top}\mathbf C\mathbf v = 3 + 2\sin 2\theta$, which peaks at 5 for $\theta = 45°$. Because the total variance, the trace of $\mathbf C$, is fixed at 6, the variance kept and the mean squared distance of the points from the axis always add up to 6: maximising one minimises the other, which is why Pearson's and Hotelling's formulations give the same answer.
+
+{{< fig src="pca-geometry.svg" alt="Left: an elongated cloud of 300 points with the PC1 arrow along the diagonal and a shorter PC2 arrow perpendicular to it; one sample is projected onto PC1 with its residual drawn as a dashed line. Right: variance along a direction plotted against its angle, a sine wave peaking at 5 at 45 degrees and falling to 1 at 135 degrees, below a horizontal line at total variance 6." caption="The worked example. The blue area under the curve is the variance a single axis keeps; the pink area above it, up to the total of 6, is the mean squared residual. Both are optimised by the same direction, $\theta = 45°$." >}}
+
 ### PCA by singular value decomposition
 
 In practice PCA is computed without forming $\mathbf C$ at all. The **singular value decomposition** (SVD) factorises the centred data matrix itself:
@@ -55,6 +71,10 @@ $$ \mathbf X_c = \textcolor{#e64980}{\mathbf U}\,\textcolor{#f08c2e}{\mathbf S}\
 {{< /eq >}}
 
 Substituting shows why: $\mathbf X_c^{\top}\mathbf X_c = \mathbf V\mathbf S^2\mathbf V^{\top}$, the eigendecomposition of $(N-1)\mathbf C$. The SVD is preferred for the reason least squares avoids the normal equations ([learning from data](../learning-from-data/)): forming $\mathbf X^{\top}\mathbf X$ squares the condition number. Carl Eckart and Gale Young proved in 1936 that truncating the SVD after $m$ terms gives the best rank-$m$ approximation of the matrix, which is the reconstruction view of PCA in a single theorem.
+
+{{< note type="practice" title="Back of the envelope" >}}
+The protein trajectory of the opening, 100,000 frames of 3000 coordinates, is a data matrix of $3\times10^{8}$ numbers: 2.4 GB in double precision, more than many laptops will hold twice. Its covariance matrix is only $3000^2\times 8$ bytes $= 72$ MB, and diagonalising it costs of order $d^3 \approx 3\times10^{10}$ floating-point operations, a few seconds. So for long trajectories of moderate size, accumulate $\mathbf X_c^{\top}\mathbf X_c$ frame by frame and diagonalise the small matrix; for data too large even for that, randomised SVD (Nathan Halko, Per-Gunnar Martinsson and Joel Tropp, 2011) finds the leading components from a few passes over the data. The condition-number penalty of forming the covariance matters little here, because only the large, well-separated eigenvalues are wanted.
+{{< /note >}}
 
 ### How many components?
 
@@ -69,6 +89,10 @@ PCA maximises variance, and variance depends on units. Mix a distance in ångstr
 PCA of a molecular-dynamics trajectory has a name of its own. Andrea Amadei, Antonius Linssen and Herman Berendsen showed in 1993, from simulations of lysozyme, that configurational space separates into an **essential subspace** of a few collective coordinates, which carry most of the positional fluctuation and the large anharmonic motions, and a remainder of narrow, nearly Gaussian vibration. Projecting onto the first two or three components reveals hinge bending or domain closure that no single atom shows. GROMACS (`gmx covar`, `gmx anaeig`) and MDAnalysis implement the analysis.
 
 Two cautions come with it. A short trajectory that is merely diffusing also produces a few dominant components, whose projections look like half and whole cosine waves in time; Berk Hess showed in 2000 that this "cosine content" signals unconverged sampling, not genuine collective motion. And large variance does not mean slow or important motion: a floppy loop can dominate the first component while the rare transition that matters hides in a later one. Methods that seek slowness instead, such as TICA, are the subject of [learned collective variables](../es-ml-cvs/).
+
+{{< note type="practice" title="From the lab" >}}
+The covariance of an MD trajectory also carries thermodynamics. If the potential near a minimum is harmonic, $U = \tfrac12\mathbf x^{\top}\mathbf H\mathbf x$, the Boltzmann distribution is a Gaussian with covariance $k_BT\,\mathbf H^{-1}$. In mass-weighted coordinates the eigenvalues of the covariance are then $\lambda_k = k_BT/\omega_k^2$, so each principal component defines an effective frequency $\omega_k = \sqrt{k_BT/\lambda_k}$. This **quasi-harmonic analysis**, used by Martin Karplus and Joseph Kushick (1981) to estimate configurational entropies of macromolecules, turns a trajectory into a set of effective normal modes without computing a single second derivative. The entropy it gives is an upper bound when the true distribution is not Gaussian, and it converges slowly, because the smallest-frequency modes, which contribute most, are the ones the trajectory samples worst.
+{{< /note >}}
 
 ### Kernel PCA
 
@@ -147,6 +171,8 @@ print("cluster sizes", np.bincount(a), " agreement with the true states", np.mea
 
 The first two explained-variance ratios, 0.50 and 0.39, stand far above a floor of about 0.015 for each of the others, and the covariance route gives the same eigenvalues. k-means cuts the sum of squared distances from 1093 to 573 with its first update and settles at 567.5, with clusters that match the hidden states for 98.5 % of the samples. Change the seed in the second line to 2: after six iterations one centre still straddles two states, and the sum, about 1810, is three times what 15 iterations reach, which is why k-means++ and restarts matter.
 
+{{< fig src="scree-and-clusters.svg" alt="Left: bar chart of ten explained-variance ratios, 0.50 and 0.38 for the first two and about 0.015 for each of the other eight. Right: the 600 samples on the first two principal components, coloured by their k-means cluster, with three cluster centres marked and nine misassigned points ringed." caption="The cell's output as pictures. Two components stand clear of a flat noise floor; in their plane, k-means with seed 1 recovers the hidden states except for nine points in the overlap regions between them." >}}
+
 ### Choosing k
 
 $J$ always falls as $k$ grows, reaching zero at $k = N$, so it cannot choose $k$ by itself. The **elbow method** plots $J$ against $k$ and looks for the point beyond which extra clusters buy little; on real data the elbow is often a gentle curve. The **silhouette** (Peter Rousseeuw, 1987) asks whether each point sits more comfortably in its own cluster than in the next best. With $a_i$ the mean distance from point $i$ to the rest of its cluster and $b_i$ the mean distance to the nearest other cluster,
@@ -156,6 +182,14 @@ s_i = \frac{b_i - a_i}{\max(a_i, b_i)}, \qquad -1 \le s_i \le 1 .
 $$
 
 Values near 1 mean well separated, near 0 on a boundary, negative probably misassigned; choose the $k$ with the largest mean silhouette. For probabilistic models, such as the mixtures below, an information criterion such as the BIC does the same job.
+
+For a single point with $a_i = 1.0$ and $b_i = 2.5$, $s_i = 1.5/2.5 = 0.6$; swap the two and $s_i = -0.6$, a point closer on average to another cluster than to its own. On the data of the Python cell, the elbow and the silhouette agree. The within-cluster sum of squares falls from 3372 for one cluster to 1797 for two and 567.5 for three, then only to 487 for four. The mean silhouette is 0.48 for $k = 2$, peaks at 0.64 for $k = 3$, and falls to 0.54 and 0.45 for four and five clusters.
+
+{{< fig src="choosing-k.svg" alt="Left: within-cluster sum of squares against k from 1 to 8, falling steeply to k equals 3 and then flattening, with the elbow at k equals 3 circled. Right: mean silhouette against k from 2 to 8, peaking at 0.64 at k equals 3." caption="Elbow and silhouette for the PC1–PC2 scores of the cell, with k-means++ and ten restarts per $k$. Both point to three clusters; on real conformational data the two often disagree, and neither replaces a look at the structures." >}}
+
+{{< note type="practice" title="Back of the envelope" >}}
+Clustering on raw high-dimensional coordinates fails for a geometric reason: distances concentrate. For two random points whose $d$ coordinates are independent with unit variance, the squared distance has mean $2d$ and standard deviation $\sqrt{8d}$, so the relative spread of the distance is about $1/\sqrt{2d}$. In two dimensions that is about 0.5; with $d = 30$ it is 0.13; with the 3000 coordinates of the protein it is 0.013. Every frame is then almost equally far from every other, and "nearest centre" is decided by noise. Reduce to a few informative coordinates first (PCA, TICA or physically chosen ones), then cluster.
+{{< /note >}}
 
 ### Gaussian mixtures and the EM algorithm
 
@@ -174,6 +208,14 @@ The parameters are fitted by maximum likelihood with the **expectation–maximis
 
 **DBSCAN** (Martin Ester, Hans-Peter Kriegel, Jörg Sander and Xiaowei Xu, 1996) defines clusters as dense regions. A point with at least a minimum number of neighbours within a radius $\varepsilon$ is a core point; a cluster is a chain of core points within $\varepsilon$ of each other plus the points on its fringe, and everything else is **noise**. DBSCAN needs no $k$, finds clusters of any shape, and sets sparse points aside rather than forcing them into a cluster, which suits conformational data, where frames caught mid-transition belong to no state. HDBSCAN avoids its single global density threshold by considering all thresholds at once. **Density-peak clustering** (Alex Rodriguez and Alessandro Laio, 2014) takes as centres points that are dense and far from any denser point.
 
+{{< note type="try" title="Pause and predict" >}}
+Two interleaved crescents, an elongated streak below them and a sprinkling of uniform noise: 480 points, three real groups. Before looking at the figure, predict what k-means with $k = 3$, a three-component Gaussian mixture and DBSCAN will each do with the crescents.
+{{< /note >}}
+
+{{< fig src="three-clusterers.svg" alt="Three panels of the same data, two interleaved crescents above an elongated streak plus scattered noise. k-means cuts the crescents with straight boundaries; the Gaussian mixture fits the streak with one thin ellipse but covers the crescents with a large ellipse and a small one; DBSCAN recovers both crescents and the streak and marks scattered points as noise." caption="The same 480 points clustered three ways. k-means and the mixture both assume convex blobs, so neither can follow a crescent, although the mixture captures the elongated streak. DBSCAN with $\varepsilon = 0.25$ and a minimum of 8 neighbours finds all three groups and sets 32 points aside as noise." >}}
+
+k-means draws straight boundaries between centres, so it cuts each crescent in two. The mixture handles the elongated streak well, since an elongated Gaussian is exactly what it models, but a crescent is not an ellipse, and it spends one large component on most of both. DBSCAN follows chains of dense points round each arc. Its price is the choice of $\varepsilon$: at 0.2 with a minimum of 5 neighbours the same data give five clusters, two of them a handful of stray noise points that happen to sit close together. A common recipe for $\varepsilon$ plots the distance of every point to its $k$-th nearest neighbour, sorted, and takes the value at the knee of that curve.
+
 **Hierarchical clustering** starts with every point in a cluster of its own and repeatedly merges the two closest clusters, with "closest" defined by a **linkage**: single (nearest members), complete (farthest members), average, or Ward's criterion (Joe Ward, 1963), which merges the pair that increases the within-cluster sum of squares least. The history of merges is a tree, the **dendrogram**, and cutting it at any height gives a clustering. Storing every pairwise distance between 100,000 frames takes about 40 GB, so the method is usually applied to a subsample or to centres found by a faster method.
 
 ## From clusters to microstates
@@ -182,12 +224,17 @@ Clustering conformations is the first step in building a [Markov state model](..
 
 When the natural distance is the root-mean-square deviation (RMSD) after optimal superposition, there is no meaningful average conformation to serve as a centre. Methods whose centres are actual samples, such as k-medoids or the algorithm of Xavier Daura and colleagues (1999), available as `gmx cluster -method gromos` in GROMACS, are then the right choice. Whatever the method, a geometric cluster is not automatically a free-energy basin: two structures can look alike yet be separated by a high barrier. Kinetics has the final word, as [learned collective variables](../es-ml-cvs/) also show.
 
+{{< note type="practice" title="From the lab" >}}
+A typical Markov-state-model pipeline for a small protein, as implemented in PyEMMA or deeptime, runs as follows. Featurise each frame by backbone dihedral angles, each as a sine–cosine pair, or by inter-residue contact distances. Project onto the 2 to 10 slowest TICA components at a lag of a few nanoseconds. Cluster the projected frames into 100 to 500 microstates by k-means. Count transitions between microstates at a lag time chosen where the implied timescales stop changing with the lag, estimate the transition matrix, and test it with the Chapman–Kolmogorov test. Finally lump the microstates into a few metastable macrostates by PCCA+ (Peter Deuflhard and Marcus Weber, 2005). Every step except the last is unsupervised learning from this chapter or [learned collective variables](../es-ml-cvs/); the [Markov state model chapter](../es-msm/) covers the rest.
+{{< /note >}}
+
 {{< note type="key" >}}
 - PCA diagonalises the covariance matrix; compute it by SVD of the centred data, $\lambda_k = s_k^2/(N-1)$, and keep components down to the scree plot's noise floor.
 - In a trajectory a few components carry most of the fluctuation, but variance is not slowness.
 - t-SNE and UMAP preserve neighbourhoods, not cluster sizes or the gaps between clusters.
 - k-means finds local minima, so use k-means++ and restarts; choose $k$ by elbow and silhouette. Mixtures fitted by EM give soft clusters; DBSCAN labels noise; hierarchical clustering gives a dendrogram.
 - For Markov state models, cluster into many small microstates in slow coordinates, then lump them by kinetics.
+- Distances concentrate in high dimensions (relative spread about $1/\sqrt{2d}$), so reduce dimension before clustering.
 {{< /note >}}
 
 {{< quiz >}}
@@ -211,6 +258,14 @@ When the natural distance is the root-mean-square deviation (RMSD) after optimal
   options: ["A lower k-means objective is the aim", "Microstates must be small enough for memory to be lost within the lag time; metastable states come later, by lumping", "Clustering cannot produce fewer clusters"]
   answer: 1
   why: "Fine microstates keep the Markov approximation accurate; too many leave too few transitions per state."
+- q: "A covariance matrix is $\\begin{pmatrix}3 & 2\\\\ 2 & 3\\end{pmatrix}$. What fraction of the variance does the first principal component carry?"
+  options: ["1/2", "5/6", "2/3"]
+  answer: 1
+  why: "The eigenvalues are 5 and 1, and the total variance is the trace, 6, so PC1 carries 5/6, about 83 %."
+- q: "Which method can recover two interleaved crescent-shaped clusters and leave isolated points unassigned?"
+  options: ["k-means", "A Gaussian mixture", "DBSCAN"]
+  answer: 2
+  why: "DBSCAN builds clusters from chains of dense points, so they can take any shape, and points in sparse regions are labelled noise. k-means and mixtures assume convex, blob-like clusters."
 {{< /quiz >}}
 
 ## References and further reading
@@ -235,6 +290,7 @@ When the natural distance is the root-mean-square deviation (RMSD) after optimal
 16. J. H. Ward, “Hierarchical grouping to optimize an objective function,” *Journal of the American Statistical Association* **58**, 236–244 (1963).
 17. X. Daura, K. Gademann, B. Jaun, D. Seebach, W. F. van Gunsteren and A. E. Mark, “Peptide folding: when simulation meets experiment,” *Angewandte Chemie International Edition* **38**, 236–240 (1999).
 18. C. M. Bishop, *Pattern Recognition and Machine Learning*, Springer (2006), chapters 9 (mixture models and EM) and 12 (principal component analysis).
-19. T. Hastie, R. Tibshirani and J. Friedman, *The Elements of Statistical Learning*, 2nd ed., Springer (2009), chapter 14 (unsupervised learning).
+19. N. Halko, P.-G. Martinsson and J. A. Tropp, “Finding structure with randomness: probabilistic algorithms for constructing approximate matrix decompositions,” *SIAM Review* **53**, 217–288 (2011).
+20. T. Hastie, R. Tibshirani and J. Friedman, *The Elements of Statistical Learning*, 2nd ed., Springer (2009), chapter 14 (unsupervised learning).
 
 </div>

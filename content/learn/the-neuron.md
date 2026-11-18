@@ -8,6 +8,14 @@ objectives:
   - "Choose an activation function for an output or a hidden neuron"
   - "Interpret a sigmoid neuron's weights as changes in the log-odds of its prediction"
   - "Recognise problems, such as XOR or a stability window, that no single neuron can solve"
+cover: "cover.svg"
+milestones:
+  - year: 1943
+    text: "McCulloch and Pitts model a neuron as a threshold logic unit"
+  - year: 1958
+    text: "Rosenblatt's perceptron gives every input a weight learned from examples"
+  - year: 1969
+    text: "Minsky and Papert's Perceptrons sets out what one-layer perceptrons cannot compute"
 track: neuron
 weight: 1
 level: Foundation
@@ -19,7 +27,13 @@ lab: "Steer a neuron and watch its decision"
 
 In 1943 the neurophysiologist Warren McCulloch and the logician Walter Pitts asked a bold question: could a brain cell be described as a tiny logical device? A biological neuron receives signals from thousands of others through **synapses**, some exciting it and some inhibiting it; if the combined stimulation crosses a threshold, it **fires** a pulse down its axon. McCulloch and Pitts wrote this as arithmetic: count the active excitatory inputs, let any active inhibitory input veto the cell outright, and output 1 if the count reaches a threshold, 0 otherwise. Their units were wired by hand. Giving every input its own adjustable strength, a **weight**, came later: in 1958 Frank Rosenblatt introduced the **perceptron**, a machine that could *learn* those weights from examples.
 
+{{< fig src="bio-to-artificial.svg" alt="A stylised biological neuron with dendrites, synapses, a cell body and an axon, beside an artificial neuron with three weighted inputs, a summing node, a bias and a sigmoid activation" caption="The correspondence McCulloch and Pitts drew in 1943: synaptic strengths become weights, the firing threshold becomes the bias, and the all-or-nothing spike becomes the activation function. Edge thickness on the right shows the size of each weight; teal is positive, pink negative." >}}
+
 Modern artificial neurons are only loosely inspired by biology, but the arithmetic has hardly changed. Everything in this volume, up to graph networks and transformers, is built from millions of copies of the unit in this chapter.
+
+{{< note type="warn" title="Myth" >}}
+**Myth:** an artificial neuron is a simplified model of a brain cell. **Reality:** it models one idea about brain cells, threshold summation, and the resemblance ends there. A cortical neuron signals with spikes whose timing carries information, its dendrites perform nonlinear computations of their own, and its synapses change on time scales from milliseconds to days. In 2021 David Beniaguev, Idan Segev and Michael London trained artificial networks to reproduce, millisecond by millisecond, the output of a detailed biophysical model of a layer-5 cortical pyramidal neuron. They needed a temporal convolutional network five to eight layers deep; with the NMDA receptors removed from the model's dendrites, a single hidden layer sufficed. One biological neuron is closer to a whole network than to one unit of this chapter.
+{{< /note >}}
 
 ## What a neuron computes
 
@@ -38,6 +52,10 @@ $$ \textcolor{#d4a017}{z} = \textcolor{#12a594}{w_1}\textcolor{#4c6ef5}{x_1} + \
 A positive weight means "more of this input makes me fire more"; a negative weight means "more of this input makes me fire less"; a weight near zero means "I ignore this input". The bias shifts the threshold: a large positive bias makes the neuron fire even with weak input.
 
 It is often convenient to treat the bias as one more weight. Append a constant input $x_0 = 1$ to every input vector and call the bias $w_0$; then $z = \sum_{j=0}^{n} w_j x_j$ is a single dot product, and any rule that updates the weights updates the bias too. Software libraries keep $b$ separate, but derivations, including the perceptron rule traced in [the next chapter](../how-a-neuron-learns/), often use this trick.
+
+{{< note type="practice" title="Back of the envelope" >}}
+A neuron that reads a whole Raman spectrum of 1,000 channels performs 1,000 multiplications, 1,000 additions and one exponential, about 2,000 floating-point operations. One CPU core sustaining $10^{10}$ operations per second evaluates it five million times a second, far faster than any spectrometer records spectra. Speed is never the constraint for one neuron; the parameter count is. Such a neuron has 1,001 numbers to fit, and a library of 200 labelled spectra cannot determine them: many weight vectors fit the training set perfectly and disagree on new spectra. That is the problem of [generalisation and regularisation](../generalisation/), and it starts with the first neuron.
+{{< /note >}}
 
 {{< widget name="neuron" title="One neuron, two inputs" caption="Left: the neuron as a diagram, with edge thickness showing the size of each weight (teal positive, pink negative). Right: its output for every input in the plane. Move the sliders and drag the white input point." >}}
 
@@ -69,6 +87,20 @@ $$ \frac{\textcolor{#d4a017}{z}}{\lVert \textcolor{#12a594}{\mathbf w} \rVert} =
 - $\lVert\mathbf w\rVert = \sqrt{w_1^2 + w_2^2}$: the length of the weight vector
 {{< /eq >}}
 
+Put numbers into the anatase neuron. Its weight vector $(4, -4)$ has length $\sqrt{32} = 5.66$, and its boundary is the diagonal $x_1 = x_2$. The clearly anatase spectrum $(0.9, 0.1)$, with $z = 3.2$, sits $3.2/5.66 = 0.57$ intensity units from that line on the anatase side; the mostly anatase spectrum $(0.6, 0.3)$ sits 0.21 units away. Scale the weights up to $\pm 40$ and these distances do not change, but every $z$ grows tenfold, so the second spectrum, which a spectroscopist would call probably anatase, receives a probability of $\sigma(12) = 0.999994$. The geometry fixes which side a spectrum falls on; $\lVert\mathbf w\rVert$ alone decides how loudly the neuron announces it.
+
+{{< note type="try" title="Pause and predict" >}}
+A cosmic ray strikes the detector during a measurement and puts a spike on the 144 cm⁻¹ channel, so the anatase neuron receives $x_1 = 5$, $x_2 = 0.1$, an intensity five times larger than anything in its library. Before reading on, guess the probability it reports.
+
+It reports $z = 4 \times 5 - 4 \times 0.1 = 19.6$ and $y = \sigma(19.6) = 1 - 3\times10^{-9}$, more certain than it is about any genuine spectrum in its library. A sigmoid's confidence measures distance from the boundary, not closeness to the training data, and nothing inside $z$ can signal that an input is unlike anything the neuron has seen. Detecting that needs a separate check, such as the distance to the nearest training example or the disagreement within an ensemble of models (see [uncertainty and Gaussian processes](../uncertainty-gaussian-processes/)).
+{{< /note >}}
+
+### Many inputs: the weight vector as a template
+
+With two inputs the geometry can be drawn; with a full spectrum of 1,000 intensities it cannot, but the algebra is the same and it suggests a more useful picture. The weighted sum is a dot product, $\mathbf w\cdot\mathbf x = \lVert\mathbf w\rVert\,\lVert\mathbf x\rVert\cos\theta$, where $\theta$ is the angle between the two vectors. Among inputs of a given length, $z$ is largest for the one that points along $\mathbf w$ (the Cauchy–Schwarz inequality). The weight vector is therefore a **template**: the input pattern that excites the neuron most, and $z$ measures how well an input matches it. A sigmoid neuron trained to separate anatase from rutile over the whole spectrum tends to learn weights that look like a difference spectrum: positive near the anatase bands at 144, 197, 399, 513 and 639 cm⁻¹, negative near the rutile bands at 447 and 612 cm⁻¹, and close to zero where neither phase scatters.
+
+The template picture also explains a common failure. Suppose every anatase sample in the training library happened to be measured on one instrument whose spectra carry a sloping fluorescence background. The neuron cannot know that the slope is irrelevant; it learns the slope as part of the anatase template, and later calls any spectrum with a similar background anatase. The practical defence is to plot the learned weight vector as if it were a spectrum. Weight that sits on features with no physical origin, such as a smooth baseline, an edge of the detector or a single noisy channel, is a sign that the classifier has learned the measurement rather than the material. Baseline subtraction and normalisation before training remove the most common culprits.
+
 ## The activation function
 
 The activation turns the weighted sum into a response. The common choices, all in the lab:
@@ -81,6 +113,26 @@ The activation turns the weighted sum into a response. The common choices, all i
 | ReLU | $\max(0, z)$ | zero, then a ramp | hidden layers of most image models; smooth variants such as GELU in language models |
 
 Why not leave the activation out? Then $y = \mathbf w\cdot\mathbf x + b$ is just linear regression ([the chapter on fitting](../learning-from-data/)), and, as later chapters show, stacking any number of linear neurons still gives only a linear function. The bend in the activation is what lets networks of neurons represent curved relationships. Why smooth curves rather than the step? Because learning, the subject of [the next chapter](../how-a-neuron-learns/), works by nudging the weights in the direction that improves the output, and a step function gives no hint of which direction that is: its slope is zero everywhere except at the cliff.
+
+{{< fig src="activations.svg" alt="Left, the step, sigmoid, tanh and ReLU activation functions against the weighted sum z. Right, their slopes, with the regions where the sigmoid is saturated shaded grey and a point marking the sigmoid slope at z equal to 10" caption="Left: the four common activations. Right: their slopes, which carry the learning signal. A sigmoid's slope never exceeds 0.25 and is below 0.007 once $|z|$ exceeds 5 (shaded); at $z = 10$, the 1000 K example in the warning below, it is $4.5\times10^{-5}$. A ReLU passes a slope of exactly 1 whenever it is active and 0 otherwise." >}}
+
+### Why the sigmoid's slope is so simple
+
+Differentiate $\sigma(z) = (1 + e^{-z})^{-1}$ and rearrange:
+
+$$
+\sigma'(z) = \frac{e^{-z}}{(1+e^{-z})^2} = \frac{1}{1+e^{-z}}\cdot\frac{e^{-z}}{1+e^{-z}} = \sigma(z)\,\big[1-\sigma(z)\big].
+$$
+
+The slope is the output times its complement. It can be computed from the forward value with no further exponential, it peaks at $1/4$ at $z = 0$, and it falls as $e^{-|z|}$ in both tails, which is the saturation shown in the figure. The hyperbolic tangent is not a different idea: $\tanh(z) = 2\sigma(2z) - 1$, a sigmoid stretched to the range $(-1, 1)$ and made twice as steep, with slope $1 - \tanh^2 z$, at most 1. Because its output is centred on zero, a layer of tanh neurons hands roughly centred inputs to the next layer, which is why Yann LeCun and co-workers, in their 1998 guide *Efficient BackProp*, recommended it over the sigmoid for hidden layers.
+
+{{< note type="practice" title="From the lab: choosing activations for a materials model" >}}
+- **Probability output** (stable or unstable, phase A or B): sigmoid; for several classes, its generalisation, the softmax.
+- **Unbounded output** (formation energy in eV per atom, a free-energy difference): no activation at all. A sigmoid output would cap every prediction at 1.
+- **Positive output** (a band gap, a variance, a diffusion coefficient): softplus, $\ln(1 + e^{z})$, or predict the logarithm of the quantity.
+- **Hidden layers of a property model or classifier**: ReLU or a smooth relative such as GELU.
+- **Hidden layers of an interatomic potential**: smooth activations only. Behler and Parrinello used tanh in 2007; NequIP and MACE use SiLU, $z\,\sigma(z)$. Forces are $-\partial E/\partial \mathbf r$, so an energy with ReLU kinks gives forces that jump whenever a neuron switches on or off, which spoils energy conservation in [molecular dynamics](../molecular-dynamics/) and makes curvatures, needed for phonons, unreliable.
+{{< /note >}}
 
 {{< note type="warn" title="Saturated neurons" >}}
 A sigmoid responds only in a window of roughly $-5 < z < 5$. Outside it the output is pinned near 0 or 1, and its slope, $\sigma(z)\,[1-\sigma(z)]$, is almost zero. Feed a neuron a raw temperature of 1000 K with a modest weight of 0.01 and $z = 10$: the output is 0.99995 and the slope is $4.5\times10^{-5}$, so the neuron cannot tell 1000 K from 1200 K, and any learning signal that must pass back through that slope, as it does in squared-error training and in the hidden layers of a network, is all but switched off. Standardise the inputs (subtract the mean, divide by the standard deviation) so that typical values of $z$ fall where the activation actually bends.
@@ -99,6 +151,10 @@ Build the AND neuron in the lab. Choose the **Step** activation and set $w_1 = w
 {{< /note >}}
 
 But no choice of weights computes **XOR** (output 1 when exactly one input is 1). Plot the four corners: $(0,1)$ and $(1,0)$ must be on one side of the line, $(0,0)$ and $(1,1)$ on the other, and no straight line does that. Minsky and Papert's 1969 book *Perceptrons* made this limitation famous, and it contributed to a long decline of interest in neural networks. The way out, layers of neurons, is the subject of the chapter after next, where you will watch a small network solve XOR by bending the plane.
+
+{{< fig src="logic-gates.svg" alt="Three panels showing the four corners of the unit square. AND and OR are separated by straight lines with the weight vector drawn as an arrow; in the XOR panel the best straight line leaves one corner, ringed in pink, on the wrong side" caption="Step neurons on the four corners of the unit square, with orange shading where $z \ge 0$ and the weight vector as a teal arrow. AND and OR share the weights $(1, 1)$ and differ only in the bias, which slides the same line. For XOR, the best any line achieves is three corners out of four: OR's line misclassifies $(1, 1)$, ringed." >}}
+
+The picture has a short algebraic counterpart. Suppose some $w_1$, $w_2$, $b$ computed XOR with a step activation. The corner $(0,0)$ must give 0, so $b < 0$; the corner $(1,1)$ must give 0, so $w_1 + w_2 + b < 0$; the corners $(1,0)$ and $(0,1)$ must give 1, so $w_1 + b \ge 0$ and $w_2 + b \ge 0$. Adding the last two inequalities gives $w_1 + w_2 + b \ge -b$, and $-b$ is positive, which contradicts the second. No activation function rescues the neuron, because every activation turns the same sign of $z$ into the same decision.
 
 You need not trust the picture; you can search. The cell below tries every neuron whose two weights and bias lie on a grid from −3 to 3 in steps of 0.1, about 227,000 neurons in all, and counts how many reproduce each truth table.
 
@@ -133,6 +189,10 @@ One neuron cannot compute XOR, but it can compute NAND, “not both”, and NAND
 
 A single neuron with a sigmoid output is exactly **logistic regression**, one of the most used models in science: will this compound be stable or not, is this spectrum from phase A or B. Its weights are directly interpretable as the influence of each feature. A neuron with no activation is linear regression. Everything more powerful is built by connecting many of them.
 
+{{< note type="practice" title="From the lab: labelling atoms as solid or liquid" >}}
+Simulations of crystallisation need a label for every atom in every frame: crystal or melt? A common recipe computes for each atom a few local order parameters, such as the bond-orientational parameters $q_4$ and $q_6$ of Paul Steinhardt, David Nelson and Marco Ronchetti (1983), averaged over its neighbours. Short runs of the pure crystal and the pure liquid at the temperature of interest supply labelled examples, and a single sigmoid neuron fitted to them gives every atom a probability of being crystalline. Applied to a run in which a nucleus grows from the melt, atoms near 0.5 mark the interface, and counting atoms above 0.5 gives the nucleus size frame by frame, a standard reaction coordinate for nucleation. Two checks matter. The training runs must be at the production temperature, because thermal motion broadens both distributions and shifts the best boundary. And the error rate on held-out frames of pure liquid sets a floor: misclassifying 0.1% of liquid atoms in a box of 100,000 creates 100 phantom solid atoms per frame, enough to swamp a small nucleus. Where one cut is not enough, for example to tell fcc from hcp from bcc environments, small networks take over, as in the work of Philipp Geiger and Christoph Dellago (2013).
+{{< /note >}}
+
 ### Reading the output as odds
 
 The sigmoid has a precise interpretation that explains why logistic regression is so popular in science. Invert it: if $y = \sigma(z)$, then
@@ -147,7 +207,11 @@ Each weight therefore has a direct meaning: raising $x_j$ by one unit adds $w_j$
 
 ### One cut, or two?
 
-A single neuron is also a quick test of whether a classification problem is easy. Goldschmidt's tolerance factor (1926), $t = (r_A + r_O)/[\sqrt2\,(r_B + r_O)]$, computed from the ionic radii of a compound ABO₃, is a classic descriptor for perovskite formation: perovskites typically form when $t$ lies between about 0.8 and 1.0. Look at the shape of that rule. One neuron fed with $t$ can say “$t$ is above 0.8” or “$t$ is below 1.0”, but not both, because the perovskites sit in a window with non-perovskites on either side: one cut too few. Two neurons, one for each edge, combined by a third, solve it, which is the same move that solves XOR. The rule that a good solar absorber needs a band gap neither too small nor too large has the same window shape. When a problem looks like this, a hidden layer is not a luxury.
+A single neuron is also a quick test of whether a classification problem is easy. Goldschmidt's tolerance factor (1926), $t = (r_A + r_O)/[\sqrt2\,(r_B + r_O)]$, computed from the ionic radii of a compound ABO₃, is a classic descriptor for perovskite formation: perovskites typically form when $t$ lies between about 0.8 and 1.0. Look at the shape of that rule. One neuron fed with $t$ can say “$t$ is above 0.8” or “$t$ is below 1.0”, but not both, because the perovskites sit in a window with non-perovskites on either side: one cut too few. Two neurons, one for each edge, combined by a third, solve it, which is the same move that solves XOR. Concretely, neuron A, $\sigma(40(t - 0.8))$, says “$t$ is above 0.8”; neuron B, $\sigma(40(1.0 - t))$, says “$t$ is below 1.0”; and an output neuron $\sigma(20A + 20B - 30)$ fires only when both do. At $t = 0.9$ both hidden neurons give 0.982 and the output is 0.9999; at $t = 1.1$ neuron B gives 0.018 and the output falls to $6.5\times10^{-5}$.
+
+{{< fig src="window.svg" alt="Two dashed sigmoid curves along the tolerance factor, one rising at 0.8 and one falling at 1.0, and a solid orange curve that is high only between 0.8 and 1.0" caption="Two hidden neurons each make one cut along the tolerance factor; a third neuron that fires only when both do turns the two cuts into a window between $t = 0.8$ and $t = 1.0$. The weights are those given in the text." >}}
+
+The rule that a good solar absorber needs a band gap neither too small nor too large has the same window shape. When a problem looks like this, a hidden layer is not a luxury.
 
 {{< note type="warn" title="Reading weights as importance" >}}
 It is tempting to read the largest weight as the most important feature. That is meaningful only if the features share a scale: the weight on a lattice constant measured in metres is $10^{10}$ times the weight on the same lattice constant in ångströms, for an identical model. Standardise the inputs first. Even then, strongly correlated features can share or trade their weight almost arbitrarily: two nearly identical descriptors may receive weights of +5 and −4 that mean nothing individually.
@@ -157,6 +221,7 @@ It is tempting to read the largest weight as the most important feature. That is
 - A neuron computes a weighted sum of its inputs plus a bias, $z = \mathbf w\cdot\mathbf x + b$, and passes it through a nonlinear activation, $y = \sigma(z)$.
 - Geometrically, it cuts input space with a flat boundary perpendicular to $\mathbf w$; the bias moves it and $\lVert\mathbf w\rVert$ sets its sharpness.
 - For a sigmoid neuron the weighted sum is the log-odds of its prediction, so each weight multiplies the odds by $e^{w_j}$ per unit of its input.
+- The weight vector is a template: $z$ measures how well an input matches it, and its confidence grows with distance from the boundary, not with closeness to the training data.
 - One neuron can only separate classes that a straight cut can separate: XOR, or any window-shaped rule, is impossible without layers.
 {{< /note >}}
 
@@ -185,6 +250,10 @@ It is tempting to read the largest weight as the most important feature. That is
   options: ["$w_1 = w_2 = 1$, $b = -1.5$", "$w_1 = w_2 = -1$, $b = 1.5$", "$w_1 = 1$, $w_2 = -1$, $b = 0$"]
   answer: 1
   why: "With $w_1 = w_2 = -1$ and $b = 1.5$ the four corners give $z = 1.5, 0.5, 0.5, -0.5$, so only $(1,1)$ produces 0. The first option is AND."
+- q: "The anatase neuron ($w_1 = 4$, $w_2 = -4$, $b = 0$) receives a corrupted spectrum $(5, 0.1)$, far outside its training data. What does it report?"
+  options: ["About 0.5, because the input is unfamiliar", "A probability of anatase within $10^{-8}$ of 1", "An error"]
+  answer: 1
+  why: "$z = 19.6$ and $\\sigma(19.6) = 1 - 3\\times10^{-9}$. A sigmoid's confidence grows with distance from the boundary; it has no notion of distance from the data."
 {{< /quiz >}}
 
 ## References and further reading
@@ -197,5 +266,10 @@ It is tempting to read the largest weight as the most important feature. That is
 4. G. Sanderson (3Blue1Brown), *Neural networks*, video series (2017–2024), 3blue1brown.com: chapter 1, “But what is a neural network?”
 5. M. A. Nielsen, *Neural Networks and Deep Learning*, Determination Press (2015), chapter 1, free online.
 6. C. M. Bishop, *Pattern Recognition and Machine Learning*, Springer (2006), §4.1 (discriminant functions) and §4.3.2 (logistic regression).
+7. D. Beniaguev, I. Segev and M. London, “Single cortical neurons as deep artificial neural networks,” *Neuron* **109**, 2727–2739 (2021).
+8. Y. LeCun, L. Bottou, G. B. Orr and K.-R. Müller, “Efficient BackProp,” in *Neural Networks: Tricks of the Trade*, Springer (1998).
+9. J. Behler and M. Parrinello, “Generalized neural-network representation of high-dimensional potential-energy surfaces,” *Physical Review Letters* **98**, 146401 (2007).
+10. P. J. Steinhardt, D. R. Nelson and M. Ronchetti, “Bond-orientational order in liquids and glasses,” *Physical Review B* **28**, 784–805 (1983).
+11. P. Geiger and C. Dellago, “Neural networks for local structure detection in polymorphic systems,” *Journal of Chemical Physics* **139**, 164105 (2013).
 
 </div>

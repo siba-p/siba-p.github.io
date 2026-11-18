@@ -8,6 +8,16 @@ objectives:
   - "Explain irreducible representations, spherical harmonics and tensor products in equivariant networks"
   - "Compare NequIP, MACE and Allegro by body order, locality and data efficiency"
   - "Choose an architecture for a given data budget, system size and chemistry"
+cover: "cover.svg"
+milestones:
+  - year: 2017
+    text: "Gilmer and colleagues frame graph networks for chemistry as message passing"
+  - year: 2018
+    text: "Thomas, Smidt and colleagues build tensor field networks from spherical harmonics"
+  - year: 2022
+    text: "Batzner, Musaelian, Kozinsky and colleagues publish NequIP"
+  - year: 2022
+    text: "Batatia, Kovács, Simm, Ortner and Csányi introduce MACE's many-body messages"
 track: mlmodels
 weight: 3
 level: Advanced
@@ -30,6 +40,14 @@ $$ \textcolor{#f08c2e}{\mathbf m_i^{t+1}} = \sum_{j \in \mathcal N(i)} M_t\!\lef
 
 {{< widget name="mpnn" title="Messages spreading over a molecule" caption="Message passing on the heavy-atom graph of aspirin. Step through the layers and watch information from each atom reach its neighbours, then their neighbours. After a few layers every atom's features reflect a large part of the molecule." >}}
 
+### Embeddings, aggregation and readout
+
+Three design choices in the framework have consequences that are easy to miss. The first is the **element embedding**. In a Behler–Parrinello network each element pair needs its own descriptor channels, so the input grows roughly as the square of the number of elements. In a message-passing network an element is a learned vector of, say, 64 or 128 numbers, and a system with 89 elements needs 89 such vectors and nothing else. Elements that behave alike end up with similar embeddings, which lets data on one element inform predictions for its neighbours in the periodic table. This is the main reason that the [universal potentials](../universal-potentials/) are message-passing models.
+
+The second is the **aggregation**. Messages are summed over neighbours, not averaged and not maximised. Keyulu Xu, Weihua Hu, Jure Leskovec and Stefanie Jegelka (2019) showed that among these three choices only the sum can distinguish neighbourhoods that differ in the number of identical neighbours: the mean of the messages from four identical oxygen neighbours equals the mean from six, and so does the maximum, but the sum from six is 1.5 times the sum from four. For atoms this is decisive, since coordination number is among the most important quantities controlling the energy. The sum is also what keeps the energy extensive.
+
+The third is the **readout**. The final features of each atom are mapped by a small network to an atomic energy, and the energies are summed, exactly as in the [Behler–Parrinello model](../neural-network-potentials/). Forces, stresses and the virial then follow by automatic differentiation of the total energy with respect to positions and cell, so a message-passing potential is conservative for the same reason a Behler–Parrinello one is.
+
 ## SchNet: continuous-filter convolutions
 
 **SchNet**, from Kristof Schütt, Klaus-Robert Müller, Alexandre Tkatchenko and colleagues (2017), was the first widely used message-passing potential. Graph networks for molecules had treated bonds as discrete edges, but in a potential energy surface interactions change continuously with distance. SchNet makes the message a **continuous-filter convolution**: each neighbour's features are multiplied, element by element, by a filter that is itself a neural-network function of the interatomic distance.
@@ -42,6 +60,8 @@ $$ \textcolor{#f08c2e}{\mathbf m_i} = \sum_{j \in \mathcal N(i)} \textcolor{#4c6
 
 The radial basis expansion plays the same role as the radial symmetry functions of [Behler–Parrinello networks](../neural-network-potentials/), but what is done with it is learned. SchNet uses only distances, so all its features are rotation-invariant. Trained on energies and forces of molecular dynamics trajectories of small organic molecules (the MD17 benchmark of Chmiela and colleagues), it reached chemical accuracy and set a template that PhysNet (2019), with explicit charges and dispersion, and many later models followed.
 
+The numbers in the original SchNet papers show how much freedom the filter has. Distances were expanded in 300 Gaussians with centres every 0.1 Å from 0 to 30 Å and $\gamma = 10$ Å$^{-2}$, the features had 64 channels, and three to six interaction blocks were stacked. The filter network turns 300 radial numbers into 64 channel weights, so it can learn a separate radial profile for each feature channel, something a fixed set of symmetry functions cannot do. Later models replaced the Gaussian expansion by a handful of Bessel functions $\sin(n\pi r/r_c)/r$ multiplied by a smooth polynomial envelope, introduced with DimeNet, which needs about eight basis functions instead of hundreds and goes to zero smoothly at the cutoff.
+
 ## Receptive field and locality
 
 Each layer lets an atom collect information from neighbours within the cutoff $r_c$. After $T$ layers, information can have travelled $T$ hops, so an atom's features, and hence its energy, depend on atoms up to about $T r_c$ away: its **receptive field**. With $r_c = 5$ Å and five layers, that is 25 Å, which can include thousands of atoms.
@@ -50,15 +70,31 @@ Each layer lets an atom collect information from neighbours within the cutoff $r
 
 A large receptive field is a mixed blessing. It lets the model capture interactions somewhat beyond one cutoff and gives each layer a chance to refine the picture. But it makes the model less local, which hurts in two ways. Large simulations are parallelised by dividing space among processors, each needing copies of atoms within the interaction range of its region (ghost atoms); for a message-passing model that range is $T r_c$, so the ghost regions, and the communication, become very large. And a model whose energy depends on a 25 Å sphere needs training data that represent such large environments. These costs motivated the strictly local Allegro architecture described below.
 
+{{< fig src="ghosts.svg" alt="Left: atoms within the receptive field of a message-passing model in liquid water, on a log scale, rising from 52 at one layer to about 11 000 at six layers. Right: ghost atoms per owned atom against number of layers for processor domains of side 20, 40 and 80 angstrom, all rising steeply." caption="Left: atoms within $T r_c$ of a central atom for $r_c$ = 5 Å in liquid water (0.1 atoms per Å$^3$). Right: ghost atoms needed per owned atom when each processor holds a cube of side L and must import a shell of thickness $T r_c$. With five layers and a 40 Å domain, every processor imports ten atoms for each one it owns." >}}
+
+{{< note type="practice" title="Back of the envelope: what locality costs" >}}
+Liquid water contains about 0.1 atoms per Å$^3$. With a 5 Å cutoff, one layer sees $\tfrac43\pi\,5^3 \times 0.1 \approx 52$ atoms, two layers (MACE) see 419, and five layers (a typical NequIP or SchNet setting) see 6 545. Now split a simulation among GPUs, each owning a 40 Å cube of 6 400 atoms. A strictly local model needs a ghost shell 5 Å thick, $(50^3 - 40^3)/40^3 = 0.95$ ghost atoms per owned atom. A five-layer model with a 25 Å shell needs $(90^3 - 40^3)/40^3 = 10.4$, so each GPU computes and stores ten times more atoms than it owns. Some implementations avoid this by exchanging node features between processors after every layer, which keeps the ghost shell at one cutoff but adds one round of communication per layer.
+{{< /note >}}
+
+A second, subtler consequence concerns training cells. A copper cell of 32 atoms is 7.2 Å across, so with five 5 Å layers an atom receives messages from many periodic images of itself and of its neighbours. The model can then fit features of the training data that exist only because the cell is small and periodic, and that do not carry over to a large cell. Training on cells larger than the cutoff, and checking that predictions do not change when the same structure is represented in a supercell, guard against this.
+
 ## Beyond distances
 
 An invariant network that uses only distances must reconstruct angles and other geometric information indirectly through several layers, and some arrangements are hard or impossible for it to distinguish. **DimeNet** (Johannes Gasteiger, Janek Groß and Stephan Günnemann, 2020) addressed this with **directional message passing**: messages are attached to bonds rather than atoms, and a message from bond $kj$ to bond $ji$ depends on the angle $\angle kji$, expanded in a spherical basis. Angles enter explicitly, at the cost of operating on all triplets of atoms. A more general and efficient solution is to let the features themselves carry direction, which requires understanding how quantities transform under rotation.
+
+The limitation is not hypothetical. Sergey Pozdnyakov, Michele Ceriotti, Gábor Csányi and colleagues (2020) constructed pairs of atomic environments that are different but have identical distance and angle distributions, so that any descriptor built from three-body correlations alone assigns them the same features and the same energy; four-body information is needed to tell them apart. Such degenerate pairs are rare in ordinary structures, but their neighbourhoods in configuration space are regions where a low-body-order model learns slowly.
 
 ## How quantities transform under rotation
 
 Physical quantities fall into types according to how they change when the system is rotated. A scalar, such as energy or charge, does not change. A vector, such as a force, a dipole or a bond direction, rotates with the system: $\mathbf v \mapsto \mathbf R\mathbf v$. A second-rank tensor, such as the stress or a quadrupole, transforms as $\mathbf T \mapsto \mathbf R\mathbf T\mathbf R^{\mathsf T}$. Group theory organises these types into **irreducible representations** of the rotation group SO(3), labelled by an integer $l = 0, 1, 2, \ldots$ and of dimension $2l + 1$. Type $l = 0$ is a scalar, $l = 1$ a vector, $l = 2$ the five independent components of a symmetric traceless tensor, and so on. Under a rotation $\mathbf R$, a type-$l$ quantity is multiplied by a $(2l+1)\times(2l+1)$ **Wigner D-matrix** $\mathbf D^{(l)}(\mathbf R)$.
 
 The natural way to produce type-$l$ quantities from geometry is with **spherical harmonics** $Y_{lm}(\hat{\mathbf r})$, $m = -l, \dots, l$, evaluated on the unit vector between two atoms. They are the three-dimensional generalisation of the circular harmonics $e^{im\theta}$ in the figure of [the chapter on what an MLIP must learn](../mlip-foundations/), and they transform exactly as type-$l$ objects. An **equivariant network** keeps, for each atom, features of several types, $\mathbf h_i = \bigoplus_l \mathbf h_i^{(l)}$, and uses only operations that commute with rotation, so that rotating the input rotates every feature by its own $\mathbf D^{(l)}$.
+
+{{< fig src="equivariance.svg" alt="A commutative diagram of four panels. Top left: a bent three-atom molecule. Top right: the same molecule with orange force arrows. Bottom left: the molecule rotated by 60 degrees. Bottom right: the rotated molecule with force arrows that are the rotated versions of those above." caption="Equivariance of forces. Predicting forces for a rotated structure (bottom route) gives the same arrows as predicting them for the original and rotating the result (right route). The forces here come from a simple bonded model of a stretched, bent triatomic; the two routes agree to $10^{-11}$." >}}
+
+{{< note type="warn" title="Myth: an invariant model cannot get the forces right" >}}
+Forces are vectors, so it is tempting to think that a model built only from distances cannot predict them correctly. It can. If the energy is invariant under rotation, $E(\mathbf R\mathbf x) = E(\mathbf x)$, then differentiating both sides gives $\mathbf F(\mathbf R\mathbf x) = \mathbf R\,\mathbf F(\mathbf x)$: the gradient of an invariant scalar is automatically equivariant. SchNet and Behler–Parrinello networks produce exactly equivariant forces for this reason. What equivariant features buy is not correct force symmetry but expressiveness and data efficiency: directional information is available inside the network at every layer instead of having to be reconstructed from distances. Equivariant outputs matter directly only when the model predicts a vector or tensor that is not the gradient of an energy, such as a dipole moment, a polarisability or a Born effective charge.
+{{< /note >}}
 
 Two equivariant quantities are combined with the **tensor product**, the operation familiar from the addition of angular momenta in quantum mechanics:
 
@@ -68,7 +104,11 @@ $$ \big(\mathbf a^{(\textcolor{#4c6ef5}{l_1})} \otimes \mathbf b^{(\textcolor{#f
 - example: two vectors ($1\otimes 1$) give a scalar (their dot product, $l = 0$), a vector (their cross product, $l = 1$) and a symmetric traceless tensor ($l = 2$)
 {{< /eq >}}
 
-The example under the equation shows that this is not exotic: the dot and cross products of vectors are tensor products. Nonlinearities need care, because applying, say, a SiLU to each component of a vector would break its rotation behaviour; equivariant networks apply nonlinearities only to scalars, or use **gates**, multiplying each higher-$l$ feature by a nonlinear function of a scalar. Libraries such as e3nn implement these operations generally.
+The example under the equation shows that this is not exotic: the dot and cross products of vectors are tensor products.
+
+{{< fig src="outer-product.svg" alt="Four three-by-three grids of numbers. The outer product of a equals (1, 2, 0) and b equals (0, 1, 1) is written as the sum of a diagonal matrix with two thirds on the diagonal, an antisymmetric matrix, and a symmetric traceless matrix." caption="The nine products $a_i b_j$ of two vectors split into a multiple of the identity (one number, the dot product $\mathbf a\cdot\mathbf b = 2$), an antisymmetric part (three numbers, half the cross product, here $\tfrac12(2, -1, 1)$) and a symmetric traceless part (five numbers). Each part rotates on its own; this is the tensor product $1 \otimes 1 = 0 \oplus 1 \oplus 2$." >}}
+
+Count the numbers to check: $3 \times 3 = 9 = 1 + 3 + 5$. In general a type-$l_1$ object and a type-$l_2$ object have $(2l_1 + 1)(2l_2 + 1)$ products, and the outputs from $|l_1 - l_2|$ to $l_1 + l_2$ account for exactly that many components. A feature that keeps all types up to $l_{\max}$ has $(l_{\max} + 1)^2$ components per channel: 4 for $l_{\max} = 1$, 9 for 2, 16 for 3. The number of allowed coupling paths, and the cost of computing them with Clebsch–Gordan coefficients, grows much faster, roughly as $l_{\max}^6$ for a full tensor product. Saro Passaro and Lawrence Zitnick (2023) showed that rotating each edge so that the bond lies along a fixed axis reduces the cost to roughly $l_{\max}^3$, the trick behind EquiformerV2's higher $l$. Nonlinearities need care, because applying, say, a SiLU to each component of a vector would break its rotation behaviour; equivariant networks apply nonlinearities only to scalars, or use **gates**, multiplying each higher-$l$ feature by a nonlinear function of a scalar. Libraries such as e3nn implement these operations generally.
 
 ## PaiNN and NequIP
 
@@ -100,6 +140,16 @@ Because of the density trick, the products cost far less than explicit sums over
 
 **Allegro** (Albert Musaelian, Simon Batzner and colleagues, 2023) takes the opposite approach to the receptive-field problem. It keeps equivariant features but attaches them to **pairs** of atoms $ij$ rather than to atoms, and updates them using only the neighbours of the central atom $i$, never passing messages between atoms. Every pair energy therefore depends only on the cutoff sphere of atom $i$: the model is strictly local, like a Behler–Parrinello network, but with learned equivariant features. Strict locality makes it straightforward to distribute a simulation over many GPUs with small ghost regions, and Allegro demonstrated simulations of protein–water systems with tens to hundreds of millions of atoms at high accuracy.
 
+## Equivariant models in research practice
+
+The early equivariant papers tested their models on demanding systems rather than only on molecular benchmarks. The NequIP paper studied water and ice, the decomposition of formate on a copper surface, a lithium phosphorus sulfide superionic conductor and the formation of a lithium phosphate glass from the melt. Allegro was demonstrated on lithium-ion conductors and, in a follow-up study by Kozinsky and colleagues (2023), on biomolecular systems in water with tens of millions of atoms, including a complete HIV capsid. MACE models fitted to a few hundred to a few thousand DFT structures are now routine for single materials, and the MACE-MP-0 foundation model, trained on the roughly 1.5 million structures of the Materials Project trajectory data set covering 89 elements, showed that one equivariant network could run stable molecular dynamics across a wide range of chemistry, from water and catalysts to metal–organic frameworks and battery materials.
+
+{{< note type="practice" title="From the lab" >}}
+A typical system-specific equivariant potential is trained as follows. A few hundred to a few thousand DFT structures of 50 to 200 atoms are generated, ideally by [active learning](../active-learning/). A MACE model with a 5 to 6 Å cutoff, two layers, correlation order 3 and features up to $l = 1$ or 2, or a NequIP model with three to five layers, is trained on energies, forces and, for constant-pressure work, stresses. Training on a single GPU takes hours to a day. The trained model is compiled with TorchScript and run from LAMMPS or ASE. Validation follows [the chapter on training and validation](../mlip/): stable dynamics at the highest temperature of interest, then the physical properties that matter for the research question.
+{{< /note >}}
+
+Message-passing models share the failure modes of every MLIP, and add a few of their own. Very short interatomic distances are rarely in the training data, and a flexible network can predict an energy that falls rather than rises as two atoms approach; several codes therefore offer an analytic repulsive baseline, such as the Ziegler–Biersack–Littmark (ZBL) screened nuclear repulsion, added to the learned energy. The large receptive field of deep models can let a perturbation propagate unphysically far, so a model trained on bulk may respond to a surface several layers away from it. And because equivariant models are expensive per atom, there is a temptation to save cost with single-precision arithmetic; energy conservation in long NVE runs is the test of whether that is acceptable for a given model.
+
 ## Equivariant transformers and the trade-offs
 
 Attention, the mechanism of [transformers](../transformers/), has also been made equivariant: in Equiformer and EquiformerV2 (Yi-Lun Liao, Tess Smidt and colleagues, 2023–2024), attention weights between neighbours are computed from invariant combinations of equivariant features, and the values being mixed are equivariant. EquiformerV2 used computational shortcuts (rotating each edge into a frame aligned with the bond so that tensor products become cheaper) to reach higher $l$, and it underlies several of the largest models trained on the Open Catalyst and OMat24 data sets. At the other extreme, some fast models, such as ORB, drop exact equivariance and learn approximate symmetry from rotated training data, trading guarantees for speed.
@@ -122,6 +172,7 @@ The practical choice depends on the task. For a single system with limited DFT d
 - Rotations act on type-$l$ quantities (irreducible representations) through Wigner D-matrices; spherical harmonics produce them; tensor products with Clebsch–Gordan coefficients combine them equivariantly.
 - PaiNN and NequIP carry equivariant features and are far more data-efficient; MACE builds many-body (ACE-like) messages so two layers suffice; Allegro is strictly local and scales to very large systems.
 - Choose by data budget, system size and chemical diversity; equivariant transformers and non-equivariant fast models extend the range.
+- Sum aggregation keeps coordination information and extensivity; forces from an invariant energy are already equivariant, so equivariant features are about data efficiency, not force symmetry.
 {{< /note >}}
 
 {{< quiz >}}
@@ -145,6 +196,14 @@ The practical choice depends on the task. For a single system with limited DFT d
   options: ["Lower memory use", "Much higher data efficiency: similar accuracy from far fewer training structures", "No need for a cutoff"]
   answer: 1
   why: "Built-in directional information means each example teaches more."
+- q: "SchNet uses only interatomic distances. Are its predicted forces equivariant under rotation?"
+  options: ["No, invariant models give invariant forces", "Yes, exactly: the gradient of a rotation-invariant energy rotates with the structure", "Only approximately, after training on rotated data"]
+  answer: 1
+  why: "Differentiating E(Rx) = E(x) gives F(Rx) = R F(x). Equivariant features improve expressiveness and data efficiency, not the symmetry of the forces."
+- q: "Why do message-passing networks sum the messages from neighbours instead of averaging them?"
+  options: ["Averaging is slower", "The mean cannot distinguish four identical neighbours from six, so it loses the coordination number; the sum keeps it and keeps the energy extensive", "Sums are needed for equivariance"]
+  answer: 1
+  why: "Xu and colleagues showed sum aggregation is the most expressive of sum, mean and max."
 {{< /quiz >}}
 
 ## References and further reading
@@ -165,5 +224,10 @@ The practical choice depends on the task. For a single system with limited DFT d
 12. M. Geiger and T. Smidt, "e3nn: Euclidean neural networks", arXiv:2207.09453 (2022).
 13. Y.-L. Liao, B. Wood, A. Das and T. Smidt, "EquiformerV2: improved equivariant transformer for scaling to higher-degree representations", *International Conference on Learning Representations* (2024).
 14. A. S. Christensen and O. A. von Lilienfeld, "On the role of gradients for machine learning of molecular energies and forces", *Machine Learning: Science and Technology* **1**, 045018 (2020).
+15. K. Xu, W. Hu, J. Leskovec and S. Jegelka, "How powerful are graph neural networks?", *International Conference on Learning Representations* (2019).
+16. S. N. Pozdnyakov, M. J. Willatt, A. P. Bartók, C. Ortner, G. Csányi and M. Ceriotti, "Incompleteness of atomic structure representations", *Physical Review Letters* **125**, 166001 (2020).
+17. S. Passaro and C. L. Zitnick, "Reducing SO(3) convolutions to SO(2) for efficient equivariant GNNs", *Proceedings of the 40th International Conference on Machine Learning* (2023).
+18. K. T. Schütt, P.-J. Kindermans, H. E. Sauceda, S. Chmiela, A. Tkatchenko and K.-R. Müller, "SchNet: a continuous-filter convolutional neural network for modeling quantum interactions", *Advances in Neural Information Processing Systems* **30** (2017).
+19. I. Batatia et al., "A foundation model for atomistic materials chemistry", arXiv:2401.00096 (2023).
 
 </div>
